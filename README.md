@@ -7,7 +7,7 @@ A small framework to split app into small parts.
 * **Perfect built-in**
   - All plugins are support to build in host application.
 * **Highly transparent**
-  - The plugin coding (code, layout, etc.) is as same as a single application.
+  - The plugin codings (code, layout, etc.) are as same as a single application.
   - Support plugin debuging just like a completion application.
 * **Ultimate slicing**
   - Splits out any shared codes and resources from plugins.
@@ -17,7 +17,7 @@ A small framework to split app into small parts.
   - Until now, we support android, iOS and html5 plugins. In addition, they can communicate with each other by an uniform javascript interface.
 
 # Documentation
-The development details and the code principle is on [Small Wiki][wiki].
+The development details and the code principles are on [Small Wiki][wiki].
 
 # License
 Apache License 2.0
