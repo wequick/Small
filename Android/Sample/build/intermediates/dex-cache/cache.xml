@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        jar="/Users/galen/Projects/github/galenlin/Small/Android/Sample/app/build/intermediates/exploded-aar/net.wequick.small/small/0.1.2/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="b5db18da29e29c959a1aea12b6e8f283bb90055c">
+        <dex dex="/Users/galen/Projects/github/galenlin/Small/Android/Sample/app/build/intermediates/pre-dexed/debug/net.wequick.small-small-0.1.2_adbcfc1d44a218c98b8f7e817bd80d52a9ec3c14.jar" />
+    </item>
+
+</items>

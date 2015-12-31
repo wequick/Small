@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">app.mine</string>
+    <string name="hello">Hello World from app.mine!</string>
+</resources>

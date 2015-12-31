@@ -1,0 +1,2 @@
+int string s_util_aa 0x6020000
+int string s_util_hello 0x6020001

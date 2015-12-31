@@ -1,0 +1,387 @@
+[
+    {
+        "outputFile": "/Users/galen/Projects/github/galenlin/Small/Android/aar-small/build/intermediates/res/merged/release/values-tr/values-tr.xml",
+        "map": [
+            {
+                "to": {
+                    "startLine": 2,
+                    "startColumn": 4,
+                    "startOffset": 55,
+                    "endColumn": 104,
+                    "endOffset": 155
+                },
+                "from": {
+                    "file": "/Users/galen/Projects/github/galenlin/Small/Android/aar-small/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.1.1/res/values-tr/values-tr.xml",
+                    "position": {
+                        "startLine": 4,
+                        "startColumn": 4,
+                        "startOffset": 229,
+                        "endColumn": 104,
+                        "endOffset": 329
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 3,
+                    "startColumn": 4,
+                    "startOffset": 160,
+                    "endColumn": 107,
+                    "endOffset": 263
+                },
+                "from": {
+                    "file": "/Users/galen/Projects/github/galenlin/Small/Android/aar-small/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.1.1/res/values-tr/values-tr.xml",
+                    "position": {
+                        "startLine": 5,
+                        "startColumn": 4,
+                        "startOffset": 334,
+                        "endColumn": 107,
+                        "endOffset": 437
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 4,
+                    "startColumn": 4,
+                    "startOffset": 268,
+                    "endColumn": 122,
+                    "endOffset": 386
+                },
+                "from": {
+                    "file": "/Users/galen/Projects/github/galenlin/Small/Android/aar-small/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.1.1/res/values-tr/values-tr.xml",
+                    "position": {
+                        "startLine": 6,
+                        "startColumn": 4,
+                        "startOffset": 442,
+                        "endColumn": 122,
+                        "endOffset": 560
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 5,
+                    "startColumn": 4,
+                    "startOffset": 391,
+                    "endColumn": 98,
+                    "endOffset": 485
+                },
+                "from": {
+                    "file": "/Users/galen/Projects/github/galenlin/Small/Android/aar-small/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.1.1/res/values-tr/values-tr.xml",
+                    "position": {
+                        "startLine": 7,
+                        "startColumn": 4,
+                        "startOffset": 565,
+                        "endColumn": 98,
+                        "endOffset": 659
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 6,
+                    "startColumn": 4,
+                    "startOffset": 490,
+                    "endColumn": 111,
+                    "endOffset": 597
+                },
+                "from": {
+                    "file": "/Users/galen/Projects/github/galenlin/Small/Android/aar-small/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.1.1/res/values-tr/values-tr.xml",
+                    "position": {
+                        "startLine": 8,
+                        "startColumn": 4,
+                        "startOffset": 664,
+                        "endColumn": 111,
+                        "endOffset": 771
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 7,
+                    "startColumn": 4,
+                    "startOffset": 602,
+                    "endColumn": 89,
+                    "endOffset": 687
+                },
+                "from": {
+                    "file": "/Users/galen/Projects/github/galenlin/Small/Android/aar-small/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.1.1/res/values-tr/values-tr.xml",
+                    "position": {
+                        "startLine": 9,
+                        "startColumn": 4,
+                        "startOffset": 776,
+                        "endColumn": 89,
+                        "endOffset": 861
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 8,
+                    "startColumn": 4,
+                    "startOffset": 692,
+                    "endColumn": 105,
+                    "endOffset": 793
+                },
+                "from": {
+                    "file": "/Users/galen/Projects/github/galenlin/Small/Android/aar-small/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.1.1/res/values-tr/values-tr.xml",
+                    "position": {
+                        "startLine": 10,
+                        "startColumn": 4,
+                        "startOffset": 866,
+                        "endColumn": 105,
+                        "endOffset": 967
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 9,
+                    "startColumn": 4,
+                    "startOffset": 798,
+                    "endColumn": 119,
+                    "endOffset": 913
+                },
+                "from": {
+                    "file": "/Users/galen/Projects/github/galenlin/Small/Android/aar-small/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.1.1/res/values-tr/values-tr.xml",
+                    "position": {
+                        "startLine": 11,
+                        "startColumn": 4,
+                        "startOffset": 972,
+                        "endColumn": 119,
+                        "endOffset": 1087
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 10,
+                    "startColumn": 4,
+                    "startOffset": 918,
+                    "endColumn": 78,
+                    "endOffset": 992
+                },
+                "from": {
+                    "file": "/Users/galen/Projects/github/galenlin/Small/Android/aar-small/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.1.1/res/values-tr/values-tr.xml",
+                    "position": {
+                        "startLine": 12,
+                        "startColumn": 4,
+                        "startOffset": 1092,
+                        "endColumn": 78,
+                        "endOffset": 1166
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 11,
+                    "startColumn": 4,
+                    "startOffset": 997,
+                    "endColumn": 75,
+                    "endOffset": 1068
+                },
+                "from": {
+                    "file": "/Users/galen/Projects/github/galenlin/Small/Android/aar-small/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.1.1/res/values-tr/values-tr.xml",
+                    "position": {
+                        "startLine": 13,
+                        "startColumn": 4,
+                        "startOffset": 1171,
+                        "endColumn": 75,
+                        "endOffset": 1242
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 12,
+                    "startColumn": 4,
+                    "startOffset": 1073,
+                    "endColumn": 78,
+                    "endOffset": 1147
+                },
+                "from": {
+                    "file": "/Users/galen/Projects/github/galenlin/Small/Android/aar-small/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.1.1/res/values-tr/values-tr.xml",
+                    "position": {
+                        "startLine": 14,
+                        "startColumn": 4,
+                        "startOffset": 1247,
+                        "endColumn": 78,
+                        "endOffset": 1321
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 13,
+                    "startColumn": 4,
+                    "startOffset": 1152,
+                    "endColumn": 106,
+                    "endOffset": 1254
+                },
+                "from": {
+                    "file": "/Users/galen/Projects/github/galenlin/Small/Android/aar-small/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.1.1/res/values-tr/values-tr.xml",
+                    "position": {
+                        "startLine": 15,
+                        "startColumn": 4,
+                        "startOffset": 1326,
+                        "endColumn": 106,
+                        "endOffset": 1428
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 14,
+                    "startColumn": 4,
+                    "startOffset": 1259,
+                    "endColumn": 104,
+                    "endOffset": 1359
+                },
+                "from": {
+                    "file": "/Users/galen/Projects/github/galenlin/Small/Android/aar-small/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.1.1/res/values-tr/values-tr.xml",
+                    "position": {
+                        "startLine": 16,
+                        "startColumn": 4,
+                        "startOffset": 1433,
+                        "endColumn": 104,
+                        "endOffset": 1533
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 15,
+                    "startColumn": 4,
+                    "startOffset": 1364,
+                    "endColumn": 95,
+                    "endOffset": 1455
+                },
+                "from": {
+                    "file": "/Users/galen/Projects/github/galenlin/Small/Android/aar-small/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.1.1/res/values-tr/values-tr.xml",
+                    "position": {
+                        "startLine": 17,
+                        "startColumn": 4,
+                        "startOffset": 1538,
+                        "endColumn": 95,
+                        "endOffset": 1629
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 16,
+                    "startColumn": 4,
+                    "startOffset": 1460,
+                    "endColumn": 106,
+                    "endOffset": 1562
+                },
+                "from": {
+                    "file": "/Users/galen/Projects/github/galenlin/Small/Android/aar-small/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.1.1/res/values-tr/values-tr.xml",
+                    "position": {
+                        "startLine": 18,
+                        "startColumn": 4,
+                        "startOffset": 1634,
+                        "endColumn": 106,
+                        "endOffset": 1736
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 17,
+                    "startColumn": 4,
+                    "startOffset": 1567,
+                    "endColumn": 101,
+                    "endOffset": 1664
+                },
+                "from": {
+                    "file": "/Users/galen/Projects/github/galenlin/Small/Android/aar-small/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.1.1/res/values-tr/values-tr.xml",
+                    "position": {
+                        "startLine": 19,
+                        "startColumn": 4,
+                        "startOffset": 1741,
+                        "endColumn": 101,
+                        "endOffset": 1838
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 18,
+                    "startColumn": 4,
+                    "startOffset": 1669,
+                    "endColumn": 107,
+                    "endOffset": 1772
+                },
+                "from": {
+                    "file": "/Users/galen/Projects/github/galenlin/Small/Android/aar-small/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.1.1/res/values-tr/values-tr.xml",
+                    "position": {
+                        "startLine": 20,
+                        "startColumn": 4,
+                        "startOffset": 1843,
+                        "endColumn": 107,
+                        "endOffset": 1946
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 19,
+                    "startColumn": 4,
+                    "startOffset": 1777,
+                    "endColumn": 118,
+                    "endOffset": 1891
+                },
+                "from": {
+                    "file": "/Users/galen/Projects/github/galenlin/Small/Android/aar-small/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.1.1/res/values-tr/values-tr.xml",
+                    "position": {
+                        "startLine": 21,
+                        "startColumn": 4,
+                        "startOffset": 1951,
+                        "endColumn": 118,
+                        "endOffset": 2065
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 20,
+                    "startColumn": 4,
+                    "startOffset": 1896,
+                    "endColumn": 97,
+                    "endOffset": 1989
+                },
+                "from": {
+                    "file": "/Users/galen/Projects/github/galenlin/Small/Android/aar-small/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.1.1/res/values-tr/values-tr.xml",
+                    "position": {
+                        "startLine": 22,
+                        "startColumn": 4,
+                        "startOffset": 2070,
+                        "endColumn": 97,
+                        "endOffset": 2163
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 21,
+                    "startColumn": 4,
+                    "startOffset": 1994,
+                    "endColumn": 100,
+                    "endOffset": 2090
+                },
+                "from": {
+                    "file": "/Users/galen/Projects/github/galenlin/Small/Android/aar-small/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.1.1/res/values-tr/values-tr.xml",
+                    "position": {
+                        "startLine": 23,
+                        "startColumn": 4,
+                        "startOffset": 2168,
+                        "endColumn": 100,
+                        "endOffset": 2264
+                    }
+                }
+            }
+        ]
+    }
+]

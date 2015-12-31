@@ -1,0 +1,47 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 23
+    buildToolsVersion "23.0.1"
+
+    defaultConfig {
+        minSdkVersion 15
+        targetSdkVersion 23
+        applicationId "net.wequick.example.small"
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    // Filter locale configuration
+    aaptOptions {
+        additionalParameters '-c', 'zh-rCN'
+    }
+
+    // Signing
+    signingConfigs {
+        release {
+            storeFile file('../sign/release.jks')
+            storePassword "5mall@ndro!d"
+            keyAlias "small"
+            keyPassword "5mall@ndro!d"
+        }
+    }
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+        }
+    }
+}
+
+dependencies {
+    com.android.build.gradle.AppExtension
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    testCompile 'junit:junit:4.12'
+    compile 'com.android.support:design:23.1.1'
+}

@@ -1,0 +1,28 @@
+body {
+  color: #34495e;
+}
+.container {
+  max-width: 970px !important;
+  text-align: center;
+}
+.headline {
+  padding: 20px 0 10px;
+}
+.logo {
+  font: 700 70px/100px "Helvetica Neue", Helvetica, Arial, sans-serif;
+  letter-spacing: -2px;
+  margin: 10px 0;
+}
+.logo small {
+  color: rgba(52, 73, 94, 0.30000000000000004);
+  display: block;
+  font-size: 22px;
+  font-weight: 200;
+  letter-spacing: 0;
+  padding-top: 5px;
+}
+footer {
+  position: relative;
+  margin-top: 60px;
+  height: 60px;
+}

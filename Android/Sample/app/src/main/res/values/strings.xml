@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Small Sample</string>
+
+    <string name="dummy_content">Small Android</string>
+    <string name="initializing">Preparing for first launching...</string>
+    <string name="copyright">{Small} - a small framework to split app into small parts.</string>
+</resources>

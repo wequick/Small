@@ -1,0 +1,8 @@
+include ':app', ':app.main', ':app.home', ':app.detail', ':app.mine', ':lib.utils', ':web.about'
+def dev = true
+if (dev) {
+    include ':small'
+    project(':small').projectDir = new File('../aar-small')
+    include ':gradle-small'
+    project(':gradle-small').projectDir = new File('../gradle-small-plugin')
+}

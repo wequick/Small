@@ -22,7 +22,7 @@ The development details and the code principles are on [Small Wiki][wiki].
 # License
 Apache License 2.0
 
-# <a name="zh_CN"/>中文介绍
+# <a name="zh_CN">中文介绍</a>
 ## 功能
 * **完美内置**
   - 所有插件支持内置于宿主包中
