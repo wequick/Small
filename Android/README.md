@@ -10,8 +10,8 @@ Import `Sample' by Android Studio.
     > ./gradlew -p ../gradle-small-plugin install (Mac OS)
     > gradlew -p ..\gradle-small-plugin install (Windows)
 ### Step 3. Build project
-  	> [./]gradlew buildLibs -q
-  	> [./]gradlew buildBundles -q
+  	> [./]gradlew buildLib -q
+  	> [./]gradlew buildBundle -q
 
 ## Documentation
 [Wiki](https://github.com/wequick/small/wiki)
