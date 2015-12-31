@@ -22,14 +22,18 @@ DerivedData
 project.xcworkspace
 
 # Gradle
-/build
-/*/build
+/build/
+/*/build/
 
 # Android
 .idea
 .gradle
 local.properties
 *.iml
+
+# Small
+/build-small/
+/smallLibs/
 
 # OS X
 .DS_Store
