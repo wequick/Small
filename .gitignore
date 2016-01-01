@@ -22,8 +22,8 @@ DerivedData
 project.xcworkspace
 
 # Gradle
-/build/
-/*/build/
+build/
+**/build/
 
 # Android
 .idea
@@ -32,8 +32,8 @@ local.properties
 *.iml
 
 # Small
-/build-small/
-/smallLibs/
+build-small/
+smallLibs/
 
 # OS X
 .DS_Store
