@@ -66,7 +66,7 @@ Sample (Root)
 
 ### HostPlugin
 
-宿主配置插件做3件事：
+用于配置宿主：
 
 1. 增加jni libs目录**smallLibs**
 
@@ -83,7 +83,7 @@ Sample (Root)
 	
 ### AppPlugin
 
-App组件打包插件主要做2件事：
+用于App组件打包：
 
 1. 分离宿主、公共库的类与资源
 
@@ -94,3 +94,32 @@ App组件打包插件主要做2件事：
 2. 分配资源id
 
 	- 为保证整合在一起的程序资源id不冲突，对组件包分配 [0x03, 0x7e] 之间的package id。
+
+### LibraryPlugin
+
+用于公共库组件打包：
+
+1. 在编译App组件包时，使用`com.android.library`模式
+2. 在编译自己时，切换为`com.android.application`模式，并按App组件打包
+3. 增加**buildLib** task，生成jar包，供其它组件引用以便打包时分离
+
+### AssetPlugin
+
+用于资源组件打包：
+
+1. 复制assets目录下文件
+2. 生成二进制AndroidManifest.xml
+	- 携带versionCode以供插件版本比对
+	- 使插件可以通过PackageManager的getPackageArchiveInfo方法加载
+3. 签名组件包
+
+此类打包忽略所有java文件，直接将assets目录中的文件进行压缩打包。
+
+aar-small内部内置了[WebBundleLauncher][1](网页资源组件包加载器)用来加载`web.*`的网页组件。
+
+基于这个架构，您可以扩展自己的自定义组件，比如扩展支持Markdown组件：
+
+1. 新建`md.*`模块，该模块的`src/main/assets`目录中添加`index.md`文件
+2. 新建`MdBundleLauncher`类来加载`md.*`模块
+
+[1]: https://github.com/wequick/Small/blob/master/Android/aar-small/src/main/java/net/wequick/small/WebBundleLauncher.java
