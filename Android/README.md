@@ -4,6 +4,10 @@
 * gradle-small-plugin 组件编译插件，用于打包组件
 * Sample 示例工程
 
+## Why Small?
+
+[FAQ](https://github.com/wequick/Small/wiki/Android-FAQ)
+
 ## Installation
 ### Step 1. Install gradle-small-plugin (安装编译插件)
     > cd Sample
