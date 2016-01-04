@@ -3,6 +3,8 @@ A small framework to split app into small parts.
 
 [![License Apache2.0](https://img.shields.io/hexpm/l/plug.svg)][license]
 
+![Small][icon]
+
 # Features
 * **Perfect built-in**
   - All plugins are support to build in host application.
@@ -41,3 +43,4 @@ Apache License 2.0
 
 [wiki]: https://github.com/wequick/Small/wiki
 [license]: https://raw.githubusercontent.com/wequick/Small/master/LICENSE
+[icon]: http://code.wequick.net/images/small-icon-512.png
