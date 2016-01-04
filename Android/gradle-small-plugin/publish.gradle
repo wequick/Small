@@ -24,7 +24,7 @@ dependencies {
 pluginBundle {
     // These settings are set for the whole plugin bundle
     website = 'http://code.wequick.net/'
-    vcsUrl = 'https://github.com/wequick/Small'
+    vcsUrl = 'https://github.com/wequick/Small/tree/master/Android/gradle-small-plugin'
 
     // tags and description can be set for the whole bundle here, but can also
     // be set / overridden in the config for specific plugins

@@ -1,3 +1,37 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:1.5.0'
+    }
+}
+
+apply from: 'base.gradle'
+
+//--------------------------------------------------------------------------------------------------
+// Scripts to upload plugin to Bintray/JCenter [https://bintray.com/]
+// > ./gradlew bintrayUpload
+//--------------------------------------------------------------------------------------------------
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.3'
+    }
+}
+
+apply plugin: 'com.github.dcendents.android-maven'
+
+buildscript {
+    dependencies {
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.4'
+    }
+}
+
+apply plugin: 'com.jfrog.bintray'
+
 def mavenDesc = 'A small framework to split android app into small parts.'
 def siteUrl = 'https://github.com/wequick/Small'
 def gitUrl = "${siteUrl}.git"
@@ -13,6 +47,7 @@ def username = 'Galen Lin'
 install {
     repositories {
         mavenInstaller {
+            pom.artifactId = 'small'
             pom.project {
                 packaging 'aar'
                 name mavenDesc
@@ -72,7 +107,7 @@ bintray.apiUrl = 'https://api.bintray.com'
 bintray.configurations = ['archives']
 bintray.pkg {
     repo = "maven"
-    name = "${project.group}:${project.name}"
+    name = "net.wequick.small:small"
     desc = mavenDesc
     websiteUrl = siteUrl
     vcsUrl = gitUrl
