@@ -110,7 +110,7 @@ Sample (Root)
 1. 复制assets目录下文件
 2. 生成二进制AndroidManifest.xml
 	- 携带versionCode以供插件版本比对
-	- 使插件可以通过PackageManager的getPackageArchiveInfo方法加载
+	- 使插件可以通过PackageManager的getPackageArchiveInfo方法获取签名信息
 3. 签名组件包
 
 此类打包忽略所有java文件，直接将assets目录中的文件进行压缩打包。
