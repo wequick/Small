@@ -1,0 +1,52 @@
+apply plugin: 'groovy'
+
+dependencies {
+    compile gradleApi()
+    compile localGroovy()
+}
+
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.4'
+    }
+}
+
+apply plugin: 'com.jfrog.bintray'
+
+publishing {
+    publications {
+        MyPublication(MavenPublication) {
+            from components.java
+            groupId project.group
+            artifactId 'gradle-small'
+            version project.version
+        }
+    }
+}
+
+bintray {
+    user = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
+    key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
+    publications = ['MyPublication']
+    pkg {
+        repo = 'maven'
+        name = 'net.wequick.tools.build:gradle-small'
+        userOrg = user
+        licenses = ['Apache-2.0']
+        vcsUrl = 'https://github.com/wequick/Small/tree/master/Android/gradle-small-plugin'
+        labels = ['gradle', 'android', 'small', 'plugin']
+        publicDownloadNumbers = true
+//        attributes= ['a': ['ay1', 'ay2'], 'b': ['bee'], c: 'cee'] //Optional package-level attributes
+        version {
+            name = project.version
+            desc = "Gradle Small Plugin ${project.version}"
+            vcsTag = project.version
+        }
+    }
+}
