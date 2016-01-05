@@ -31,15 +31,6 @@ class HostPlugin extends AndroidPlugin {
     }
 
     @Override
-    protected Class<? extends BaseExtension> getExtensionClass() {
-        return BaseExtension.class
-    }
-
-    BaseExtension getSmall() {
-        return (BaseExtension) project.small
-    }
-
-    @Override
     protected PluginType getPluginType() {
         return PluginType.Host
     }

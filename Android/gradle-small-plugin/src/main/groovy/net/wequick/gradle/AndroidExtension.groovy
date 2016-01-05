@@ -17,18 +17,12 @@ package net.wequick.gradle
 
 import org.gradle.api.Project
 
-public class AssetExtension extends BundleExtension {
+public class AndroidExtension extends BaseExtension {
 
-    /** */
-    protected File assetsDir
+    /** File of release variant output */
+    protected File outputFile
 
-    protected File unsignedFile
-
-    AssetExtension(Project project) {
+    AndroidExtension(Project project) {
         super(project)
-
-        File interDir = new File(project.buildDir, FD_INTERMEDIATES)
-        assetsDir = new File(interDir, 'small-asset')
-        unsignedFile = new File(interDir, 'outputs/asset-unsigned.zip')
     }
 }
