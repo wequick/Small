@@ -18,10 +18,10 @@
 Import `Sample' by Android Studio.
 
 ### Step 3. Build libraries (准备基础库)
-  	> [./]gradlew buildLib -q
+  	> [./]gradlew buildLib -q (-q是安静模式，可以让输出更好看，也可以不加)
   	
 ### Step 4. Build bundles (打包所有组件)
-  	> [./]gradlew buildBundle -q
+  	> [./]gradlew buildBundle -q (-q是安静模式，可以让输出更好看，也可以不加)
   	
   ![Build bundle][anim-bB]
 
