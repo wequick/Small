@@ -339,7 +339,11 @@ class AppPlugin extends BundlePlugin {
      */
     protected void initPackageId() {
         Integer pp = sPackageIds.get(project.name)
-        if (pp != null) return
+        if (pp != null) {
+            small.packageId = pp
+            small.packageIdStr = String.format('%02x', pp)
+            return
+        }
 
         if (project.hasProperty('packageId')) {
             pp = project.packageId
