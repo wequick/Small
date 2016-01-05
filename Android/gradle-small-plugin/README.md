@@ -4,31 +4,31 @@ gradle-small-plugin是一个gradle插件，用来打包安卓组件包。
 
 1. 在root工程的build.gradle中添加依赖：
 
-```gradle
-buildscript {
-    repositories {
-        jcenter()
-        mavenLocal()
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:1.5.0'
-        classpath 'net.wequick.tools.build:gradle-small:0.1.2'
-    }
-}
+  ```gradle
+  buildscript {
+      repositories {
+          jcenter()
+          mavenLocal()
+      }
+      dependencies {
+          classpath 'com.android.tools.build:gradle:1.5.0'
+          classpath 'net.wequick.tools.build:gradle-small:0.1.2'
+      }
+  }
 
-allprojects {
-    repositories {
-        jcenter()
-        mavenLocal()
-    }
-}
-```
+  allprojects {
+      repositories {
+          jcenter()
+          mavenLocal()
+      }
+  }
+  ```
 
 2. 应用工程配置插件
 
-```gradle
-apply plugin: 'net.wequick.small'
-```
+  ```gradle
+  apply plugin: 'net.wequick.small'
+  ```
 
 ## 原理
 
