@@ -29,6 +29,9 @@ The development details and the code principles are on [Small Wiki][wiki].
 Apache License 2.0
 
 # <a name="zh_CN">中文介绍</a>
+
+世界那么大，组件那么小。不用Small就out了。
+
 ## 功能
 * **完美内置**
   - 所有插件支持内置于宿主包中
