@@ -22,9 +22,13 @@ Import `Sample' by Android Studio.
   	
 ### Step 4. Build bundles (打包所有组件)
   	> [./]gradlew buildBundle -q
+  	
+  ![Build bundle][anim-bB]
 
 ## Documentation
 [Wiki](https://github.com/wequick/small/wiki/Android)
 
 ## License
 Apache License 2.0
+
+[anim-bB]: http://code.wequick.net/anims/small-android-build-bundle.gif
