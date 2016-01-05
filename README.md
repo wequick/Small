@@ -5,7 +5,7 @@ A small framework to split app into small parts.
 
 ![Small][icon]
 
-# Features
+## Features
 * **Perfect built-in**
   - All plugins are support to build in host application.
 * **Highly transparent**
@@ -18,10 +18,14 @@ A small framework to split app into small parts.
 * **Cross platforms**
   - Until now, we support android, iOS and html5 plugins. In addition, they can communicate with each other by an uniform javascript interface.
 
-# Documentation
+## Get Started
+
+* [Android](Android)
+
+## Documentation
 The development details and the code principles are on [Small Wiki][wiki].
 
-# License
+## License
 Apache License 2.0
 
 # <a name="zh_CN">中文介绍</a>
@@ -37,6 +41,10 @@ Apache License 2.0
   - 通过设定URI，宿主、本地化应用插件、本地化web插件、在线网页，以及任何自定义的插件之间能够相互调起与传递参数
 * **跨平台**
   - 目前已支持安卓、iOS以及html5插件。并且三者之间可以通过同一套javascript接口进行通信。
+  
+## 入口
+
+* [Android](Android)
 
 ## 文档
 开发细节、代码原理见 [Small Wiki][wiki]
