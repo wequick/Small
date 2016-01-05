@@ -188,12 +188,12 @@ class RootPlugin extends BasePlugin {
     }
 
     private void logFinishBuild(Project project) {
-        if (!project.small instanceof BundleExtension) return
+        if (!(project.small instanceof AndroidExtension)) return
 
-        BundleExtension ext = project.small
+        AndroidExtension ext = project.small
         def outFile = ext.outputFile
         Log.footer "-- output: ${outFile.parentFile.name}/${outFile.name} " +
-                "(${outFile.length()} bytes ≈ ${getFileSize(outFile)})"
+                "(${outFile.length()} bytes = ${getFileSize(outFile)})"
     }
 
     private static String getFileSize(File file) {
