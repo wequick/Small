@@ -18,7 +18,7 @@ A small framework to split app into small parts.
 * **Cross platforms**
   - Until now, we support android, iOS and html5 plugins. In addition, they can communicate with each other by an uniform javascript interface.
 
-## Get Started
+## Getting Started
 
 * [Android](Android)
 
