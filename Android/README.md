@@ -28,6 +28,10 @@ Import `Sample' by Android Studio.
 ## Documentation
 [Wiki](https://github.com/wequick/small/wiki/Android)
 
+## Contact
+
+<a target="_blank" href="http://shang.qq.com/wpa/qunwpa?idkey=d9b57f150084ba4b30c73d0a2b480e30c99b8718bf16bb7739af740f7d1e21f3"><img border="0" src="http://pub.idqqimg.com/wpa/images/group.png" alt="快客 - Small Android" title="快客 - Small Android"></a>
+
 ## License
 Apache License 2.0
 
