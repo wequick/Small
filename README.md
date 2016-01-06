@@ -27,6 +27,10 @@
 ## 协议
 Apache License 2.0
 
+## 重要入口贴三遍
+
+[Android](Android) [Android](Android) [Android](Android)
+
 # 以下装逼请忽略
 
 A small framework to split app into small parts.
