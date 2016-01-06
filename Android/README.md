@@ -6,14 +6,16 @@
 
 ## 框架对比
 
+```
+  DyLA  : Dynamic-load-apk          @singwhatiwanna, 百度
+  DiLA  : Direct-Load-apk           @melbcat
+  APF   : Android-Plugin-Framework  @limpoxe
+  ACDD  : ACDD                      @bunnyblue
+  DyAPK : DynamicAPK                @TediWang, 携程
+  DPG   : DroidPlugin               @cmzy, 360
+```
+
 * 功能
-  
-  > DyLA: Dynamic-load-apk @singwhatiwanna, 百度 <br/>
-  DiLA: Direct-Load-apk @melbcat <br/>
-  APF: Android-Plugin-Framework @limpoxe <br/>
-  ACDD: ACDD @bunnyblue <br/>
-  DyAPK: DynamicAPK @TediWang, 携程 <br/>
-  DPG: DroidPlugin @Qihoo360
 
   \\                             | DyLA   | DiLA   | ACDD   | DyAPK  | DPG    | APF    | Small
   -------------------------------|--------|--------|--------|--------|--------|--------|--------
