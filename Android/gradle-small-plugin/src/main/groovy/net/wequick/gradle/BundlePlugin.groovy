@@ -88,7 +88,7 @@ abstract class BundlePlugin extends AndroidPlugin {
                     (t == 'buildLib') : (t == 'buildBundle')
         } else {
             // gradlew -p [project.name] assembleRelease
-            return (p == project.projectDir && t == 'assembleRelease')
+            return (p == project.projectDir && (t == 'assembleRelease' || t == 'aR'))
         }
     }
 
@@ -102,7 +102,7 @@ abstract class BundlePlugin extends AndroidPlugin {
             return (t == 'buildLib')
         } else {
             // ./gradlew -p [lib.*] [task]
-            return (p.name.startsWith('lib.') && t == 'assembleRelease')
+            return (p.name.startsWith('lib.') && (t == 'assembleRelease' || t == 'aR'))
         }
     }
 

@@ -29,8 +29,8 @@ public abstract class BasePlugin implements Plugin<Project> {
     public static final String SMALL_AAR_PREFIX = "net.wequick.small:small:"
     public static final String SMALL_LIBS = 'smallLibs'
 
-    protected static boolean isBuildingBundle
-    protected static boolean isBuildingLib
+    protected boolean isBuildingBundle
+    protected boolean isBuildingLib
 
     protected Project project
 
@@ -48,7 +48,7 @@ public abstract class BasePlugin implements Plugin<Project> {
             // gradlew buildLib | buildBundle
             if (t == 'buildLib') isBuildingLib = true
             else if (t == 'buildBundle') isBuildingBundle = true
-        } else if (t == 'assembleRelease') {
+        } else if (t == 'assembleRelease' || t == 'aR') {
             // gradlew -p [project.name] assembleRelease
             if (pluginType == PluginType.Library) isBuildingLib = true
             else isBuildingBundle = true
