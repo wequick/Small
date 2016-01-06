@@ -40,7 +40,6 @@ android {
 }
 
 dependencies {
-    com.android.build.gradle.AppExtension
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:design:23.1.1'
