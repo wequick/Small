@@ -119,6 +119,8 @@
 
 <a target="_blank" href="http://shang.qq.com/wpa/qunwpa?idkey=d9b57f150084ba4b30c73d0a2b480e30c99b8718bf16bb7739af740f7d1e21f3"><img border="0" src="http://pub.idqqimg.com/wpa/images/group.png" alt="快客 - Small Android" title="快客 - Small Android"></a> 
 
+<iframe allowtransparency="" border="0" frameborder="0" height="22" marginheight="0" marginwidth="0" scrolling="no" src="http://widget.weibo.com/relationship/followbutton.php?width=200&amp;height=22&amp;uid=3481891030&amp;style=5&amp;btn=red&amp;dpc=1" style="width: 64px; height: 22px;" width="200"></iframe>
+
 > QQ群链接无法使用的手动加 **374601844**，验证填写你是从何得知Small的，如qq, csdn, github, 朋友推荐。<br/> 进群改备注：如_“福州-GalenLin”_。
 
 ## License
