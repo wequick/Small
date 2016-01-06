@@ -47,14 +47,22 @@
   > [9] 联调插件：使用Android Studio调试时，可直接在插件代码中添加断点调试。
 
 ## 开始Small之旅
-### Step 1. Install gradle-small-plugin (安装编译插件)
+
+### Step 1. Clone Small (下载源码)
+    > cd [你要放Small的目录]
+    > git clone https://github.com/wequick/Small.git
+
+> 强烈建议使用git命令行，方便更新维护。[Git for Windows][git-win]
+> 后续更新可以使用命令：git pull origin master
+
+### Step 2. Install gradle-small-plugin (安装编译插件)
     > cd Sample
     > ./gradlew -p ../gradle-small-plugin install (Mac OS)
     > gradlew -p ..\gradle-small-plugin install (Windows)
     
   ![Build gradle-small-plugin][anim-bG]
   
-### Step 2. Import sample project (导入示例工程)
+### Step 3. Import sample project (导入示例工程)
 打开Android Studio，File->New->Import Project... 选择**Sample**文件夹，导入。
 
 ![Small project][ic-project]
@@ -68,12 +76,12 @@
   * web.\* `本地网页组件`
   * sign `签名文件`
 
-### Step 3. Build libraries (准备基础库)
+### Step 4. Build libraries (准备基础库)
   	> [./]gradlew buildLib -q (-q是安静模式，可以让输出更好看，也可以不加)
   	
   ![Build libraries][anim-bL]
   	
-### Step 4. Build bundles (打包所有组件)
+### Step 5. Build bundles (打包所有组件)
   	> [./]gradlew buildBundle -q (-q是安静模式，可以让输出更好看，也可以不加)
   	
   ![Build bundles][anim-bB]
@@ -92,6 +100,7 @@
 ## License
 Apache License 2.0
 
+[git-win]: http://git-scm.com/downloads
 [ic-project]: http://code.wequick.net/images/small/project.png
 [anim-bG]: http://code.wequick.net/anims/small/android-build-gradle.gif
 [anim-bL]: http://code.wequick.net/anims/small/android-build-lib.gif
