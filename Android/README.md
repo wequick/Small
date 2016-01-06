@@ -52,7 +52,7 @@
     > cd [你要放Small的目录]
     > git clone https://github.com/wequick/Small.git
 
-> 强烈建议使用git命令行，方便更新维护。Windows用户需安装：[Git for Windows][git-win]<br/>
+> 强烈建议使用git命令行，方便更新维护。Windows用户入口：[Git for Windows][git-win]<br/>
 > 后续更新可以使用命令：git pull origin master
 
 ### Step 2. Install gradle-small-plugin (安装编译插件)
