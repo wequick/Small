@@ -1,11 +1,7 @@
 package net.wequick.gradle
 
 import net.wequick.gradle.aapt.SymbolParser
-import org.gradle.BuildListener
-import org.gradle.BuildResult
 import org.gradle.api.Project
-import org.gradle.api.initialization.Settings
-import org.gradle.api.invocation.Gradle
 import org.gradle.api.tasks.Delete
 
 import java.text.DecimalFormat

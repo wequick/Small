@@ -1,9 +1,39 @@
-# Small [中文介绍](#zh_CN)
-A small framework to split app into small parts.
+# Small
+
+世界那么大，组件那么小。Small，做最轻巧的跨平台插件化框架。
 
 [![License Apache2.0](https://img.shields.io/hexpm/l/plug.svg)][license]
 
+支持平台：[Android](Android) API 15(4.0.3)+  `iOS 7.0+ 敬请期待`
+
 ![Small][icon]
+
+## 功能
+* **完美内置**
+  - 所有插件支持内置于宿主包中
+* **高度透明**
+  - 插件编码、布局编写方式与独立应用开发无异
+  - 插件代码调试与整包开发无异
+* **极致剪裁**
+  - 对插件分离所有一切能分离的公共代码、资源
+* **无缝链接**
+  - 通过设定URI，宿主、本地化应用插件、本地化web插件、在线网页，以及任何自定义的插件之间能够相互调起与传递参数
+* **跨平台**
+  - 目前已支持[Android](Android)、iOS以及html5插件。并且三者之间可以通过同一套javascript接口进行通信。
+
+## 文档
+开发细节、代码原理见 [Small Wiki][wiki]
+
+## 协议
+Apache License 2.0
+
+## 重要入口贴三遍
+
+[Android](Android) [Android](Android) [Android](Android)
+
+# 以下装逼请忽略
+
+A small framework to split app into small parts.
 
 ## Features
 * **Perfect built-in**
@@ -18,7 +48,7 @@ A small framework to split app into small parts.
 * **Cross platforms**
   - Until now, we support android, iOS and html5 plugins. In addition, they can communicate with each other by an uniform javascript interface.
 
-## Get Started
+## Getting Started
 
 * [Android](Android)
 
@@ -27,30 +57,6 @@ The development details and the code principles are on [Small Wiki][wiki].
 
 ## License
 Apache License 2.0
-
-# <a name="zh_CN">中文介绍</a>
-
-世界那么大，组件那么小。不用Small就out了。
-
-## 功能
-* **完美内置**
-  - 所有插件支持内置于宿主包中
-* **高度透明**
-  - 插件编码、布局编写方式与独立应用开发无异
-  - 插件代码调试与整包开发无异
-* **极致剪裁**
-  - 对插件分离所有一切能分离的公共代码、资源
-* **无缝链接**
-  - 通过设定URI，宿主、本地化应用插件、本地化web插件、在线网页，以及任何自定义的插件之间能够相互调起与传递参数
-* **跨平台**
-  - 目前已支持安卓、iOS以及html5插件。并且三者之间可以通过同一套javascript接口进行通信。
-  
-## 入口
-
-* [Android](Android)
-
-## 文档
-开发细节、代码原理见 [Small Wiki][wiki]
 
 [wiki]: https://github.com/wequick/Small/wiki
 [license]: https://raw.githubusercontent.com/wequick/Small/master/LICENSE

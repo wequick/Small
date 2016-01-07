@@ -196,6 +196,11 @@ class AppPlugin extends BundlePlugin {
                 }
             }
         }
+        if (retainedEntries.size() == 0) {
+            small.retainedTypes = [] // Doesn't have any resources
+            return
+        }
+
         // Resort retained resources
         def retainedTypes = []
         retainedEntries.sort { a, b ->

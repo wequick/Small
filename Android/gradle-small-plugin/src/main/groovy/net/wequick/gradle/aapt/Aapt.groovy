@@ -41,6 +41,14 @@ public class Aapt {
      */
     void filterPackage(List retainedTypes, int pp, Map idMaps) {
         File arscFile = new File(mAssetDir, 'resources.arsc')
+        if (retainedTypes.size() == 0) {
+            // Remove everything
+            mJavaFile.write('')
+            if (mSymbolFile != null) mSymbolFile.write('')
+            arscFile.delete()
+            return
+        }
+
         def arscEditor = new ArscEditor(arscFile)
 
         // Filter R.java
