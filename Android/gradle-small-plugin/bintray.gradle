@@ -1,13 +1,22 @@
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:1.5.0'
-    }
+// Compile groovy
+apply plugin: 'groovy'
+
+dependencies {
+    compile gradleApi()
+    compile localGroovy()
 }
 
-apply from: 'base.gradle'
+// Generate groovy doc
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.codehaus.groovy:groovy-all:2.4.4'
+}
+
+//import org.gradle.api.tasks.javadoc.GroovyDoc
 
 //--------------------------------------------------------------------------------------------------
 // Scripts to upload plugin to Bintray/JCenter [https://bintray.com/]
@@ -25,6 +34,9 @@ buildscript {
 apply plugin: 'com.github.dcendents.android-maven'
 
 buildscript {
+    repositories {
+        jcenter()
+    }
     dependencies {
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.4'
     }
@@ -32,10 +44,13 @@ buildscript {
 
 apply plugin: 'com.jfrog.bintray'
 
-def mavenDesc = 'A small framework to split android app into small parts.'
-def siteUrl = 'https://github.com/wequick/Small'
-def gitUrl = "${siteUrl}.git"
-def issueUrl = "${siteUrl}/issues"
+archivesBaseName = 'gradle-small'
+
+def mavenDesc = 'Gradle plugin to build small android bundles.'
+def baseUrl = 'https://github.com/wequick/Small'
+def siteUrl = baseUrl//"${baseUrl}/tree/master/Android/gradle-small-plugin"
+def gitUrl = "${baseUrl}.git"
+def issueUrl = "${baseUrl}/issues"
 
 def licenseIds = ['Apache-2.0']
 def licenseNames = ['The Apache Software License, Version 2.0']
@@ -47,9 +62,8 @@ def username = 'Galen Lin'
 install {
     repositories {
         mavenInstaller {
-            pom.artifactId = 'small'
+            pom.artifactId = 'gradle-small'
             pom.project {
-                packaging 'aar'
                 name mavenDesc
                 url siteUrl
 
@@ -79,18 +93,19 @@ install {
 }
 
 task sourcesJar(type: Jar) {
-    from android.sourceSets.main.java.srcDirs
+    from sourceSets.main.allGroovy
     classifier = 'sources'
 }
 
-task javadoc(type: Javadoc) {
-    source = android.sourceSets.main.java.srcDirs
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-}
+//task genDoc(type: GroovyDoc) {
+//    source = sourceSets.main.groovy.srcDirs
+//}
 
-task javadocJar(type: Jar, dependsOn: javadoc) {
+task javadocJar(type: Jar, dependsOn: groovydoc) {
     classifier = 'javadoc'
-    from javadoc.destinationDir
+    println groovydoc.destinationDir
+//    assert false
+    from groovydoc.destinationDir
 }
 
 artifacts {
@@ -98,22 +113,32 @@ artifacts {
     archives sourcesJar
 }
 
+//task('bintrayUpload', overwrite: true) << {
+//    println sourceSets.main.allGroovy.properties
+//}
+
+bintrayUpload.doFirst {
+    bintray.project.name = 'gradle-small'
+    println bintray.properties
+    assert false
+}
+
 // Bintray upload
-bintray.user = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : 
+bintray.user = project.hasProperty('bintrayUser') ? project.property('bintrayUser') :
         System.getenv('BINTRAY_USER')
-bintray.key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : 
+bintray.key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') :
         System.getenv('BINTRAY_API_KEY')
 bintray.apiUrl = 'https://api.bintray.com'
 bintray.configurations = ['archives']
 bintray.pkg {
     repo = "maven"
-    name = "net.wequick.small:small"
+    name = "net.wequick.tools.build:gradle-small"
     desc = mavenDesc
     websiteUrl = siteUrl
     vcsUrl = gitUrl
     issueTrackerUrl = issueUrl
     licenses = licenseIds
-    labels = ['android', 'plugin', 'bundle', 'dynamic', 'small']
+    labels = ['android', 'plugin', 'gradle', 'small']
     publish = true
     publicDownloadNumbers = true
 }

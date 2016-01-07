@@ -44,8 +44,11 @@ class AssetPlugin extends BundlePlugin {
 
         project.afterEvaluate {
             // Task for log
-            project.task('preBuild', overwrite: true) 
-            project.task('assembleRelease', overwrite: true) << {
+            def orgGroup = project.preBuild.group // Keep original task group
+            project.task('preBuild', group: orgGroup, overwrite: true)
+
+            orgGroup = project.assembleRelease.group
+            project.task('assembleRelease', group: orgGroup, overwrite: true) << {
                 tidyUp()
             }
         }

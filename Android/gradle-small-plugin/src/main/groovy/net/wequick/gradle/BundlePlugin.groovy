@@ -48,30 +48,19 @@ abstract class BundlePlugin extends AndroidPlugin {
                     bt.signingConfig = it.signingConfig
                 }
             }
-
-            if (!project.android.hasProperty('applicationVariants')) return
-
-            project.android.applicationVariants.all { variant ->
-                if (variant.name != 'release') return
-
-                // While release variant created, everything of `Android Plugin' should be ready
-                // and then we can do some extensions with it
-                configureReleaseVariant(variant)
-            }
         }
     }
 
+    @Override
     protected void configureReleaseVariant(variant) {
+        super.configureReleaseVariant(variant)
+
         // Set output file (*.so)
         def outputFile = getOutputFile(variant)
         BundleExtension ext = small
         ext.outputFile = outputFile
         variant.outputs.each { out ->
             out.outputFile = outputFile
-        }
-        // Hook variant tasks
-        variant.assemble.doLast {
-            tidyUp()
         }
     }
 
@@ -99,7 +88,7 @@ abstract class BundlePlugin extends AndroidPlugin {
                     (t == 'buildLib') : (t == 'buildBundle')
         } else {
             // gradlew -p [project.name] assembleRelease
-            return (p == project.projectDir && t == 'assembleRelease')
+            return (p == project.projectDir && (t == 'assembleRelease' || t == 'aR'))
         }
     }
 
@@ -113,7 +102,7 @@ abstract class BundlePlugin extends AndroidPlugin {
             return (t == 'buildLib')
         } else {
             // ./gradlew -p [lib.*] [task]
-            return (p.name.startsWith('lib.') && t == 'assembleRelease')
+            return (p.name.startsWith('lib.') && (t == 'assembleRelease' || t == 'aR'))
         }
     }
 

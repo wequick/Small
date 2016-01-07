@@ -18,10 +18,7 @@ package net.wequick.gradle
 import org.gradle.api.Project
 import org.gradle.api.Task
 
-public class BundleExtension extends BaseExtension {
-
-    /** File of .so (renamed apk file) */
-    File outputFile
+public class BundleExtension extends AndroidExtension {
 
     BundleExtension(Project project) {
         super(project)

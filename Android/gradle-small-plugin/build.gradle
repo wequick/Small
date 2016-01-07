@@ -12,10 +12,19 @@ dependencies {
 apply plugin: 'maven'
 
 //--------------------------------------------------------------------------------------------------
+// Scripts to upload plugin to Bintray/JCenter [https://bintray.com/]
+// > ./gradlew bintrayUpload
+//--------------------------------------------------------------------------------------------------
+task bintrayUpload(type: GradleBuild) {
+    buildFile = 'bintray.gradle'
+    tasks = ['bintrayUpload']
+}
+
+//--------------------------------------------------------------------------------------------------
 // Scripts to upload plugin to Gradle Plugins Portal [https://plugins.gradle.org/]
 // > ./gradlew publish
 //--------------------------------------------------------------------------------------------------
 task publish(type: GradleBuild) {
     buildFile = 'publish.gradle'
-    tasks = ['publishPlugins']
+    tasks = ['build']
 }

@@ -196,6 +196,11 @@ class AppPlugin extends BundlePlugin {
                 }
             }
         }
+        if (retainedEntries.size() == 0) {
+            small.retainedTypes = [] // Doesn't have any resources
+            return
+        }
+
         // Resort retained resources
         def retainedTypes = []
         retainedEntries.sort { a, b ->
@@ -339,7 +344,11 @@ class AppPlugin extends BundlePlugin {
      */
     protected void initPackageId() {
         Integer pp = sPackageIds.get(project.name)
-        if (pp != null) return
+        if (pp != null) {
+            small.packageId = pp
+            small.packageIdStr = String.format('%02x', pp)
+            return
+        }
 
         if (project.hasProperty('packageId')) {
             pp = project.packageId

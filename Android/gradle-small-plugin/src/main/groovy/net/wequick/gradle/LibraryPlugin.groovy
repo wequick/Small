@@ -19,7 +19,7 @@ class LibraryPlugin extends AppPlugin {
     protected void configureProject() {
         super.configureProject()
 
-        if (!isBuildingLibs()) return
+        if (!isBuildingRelease()) return
 
         mBakBuildFile = new File(project.buildFile.parentFile, "${project.buildFile.name}~")
 
