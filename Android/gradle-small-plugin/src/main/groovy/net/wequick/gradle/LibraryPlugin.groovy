@@ -61,17 +61,11 @@ class LibraryPlugin extends AppPlugin {
 
         // Generate jar file to root pre-jar directory
         variant.assemble.doLast {
-            def jarName = getJarName()
-            def jarFile = new File(project.rootProject.small.preJarDir, jarName)
+            RootExtension rootExt = project.rootProject.small
+            def jarName = getJarName(project)
+            def jarFile = new File(rootExt.preLibsJarDir, jarName)
             project.ant.jar(baseDir: small.javac.destinationDir, destFile: jarFile)
         }
-    }
-
-    @Override
-    protected String getJarName() {
-        def group = project.group
-        if (group == project.rootProject.name) group = project.name
-        return "$group-${project.version}.jar"
     }
 
     @Override

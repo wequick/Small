@@ -25,6 +25,8 @@ public class RootExtension extends BaseExtension {
     private static final String FD_PRE_JAR = 'small-pre-jar'
     private static final String FD_PRE_AP = 'small-pre-ap'
     private static final String FD_PRE_IDS = 'small-pre-ids'
+    private static final String FD_BASE = 'base'
+    private static final String FD_LIBS = 'libs'
 
     /** 
      * Version of aar net.wequick.small:small
@@ -42,8 +44,17 @@ public class RootExtension extends BaseExtension {
     protected boolean hasSmallProject
 
     private File preBuildDir
-    private File preJarDir
+
+    /** Directory of pre-build host and android support jars */
+    private File preBaseJarDir
+
+    /** Directory of pre-build libs jars */
+    private File preLibsJarDir
+
+    /** Directory of pre-build resources.ap_ */
     private File preApDir
+
+    /** Directory of pre-build R.txt */
     private File preIdsDir
 
     RootExtension(Project project) {
@@ -51,7 +62,9 @@ public class RootExtension extends BaseExtension {
 
         preBuildDir = new File(project.projectDir, FD_BUILD_SMALL)
         def interDir = new File(preBuildDir, FD_INTERMEDIATES)
-        preJarDir = new File(interDir, FD_PRE_JAR)
+        def jarDir = new File(interDir, FD_PRE_JAR)
+        preBaseJarDir = new File(jarDir, FD_BASE)
+        preLibsJarDir = new File(jarDir, FD_LIBS)
         preApDir = new File(interDir, FD_PRE_AP)
         preIdsDir = new File(interDir, FD_PRE_IDS)
 
@@ -66,8 +79,12 @@ public class RootExtension extends BaseExtension {
         return preBuildDir
     }
 
-    public File getPreJarDir() {
-        return preJarDir
+    public File getPreBaseJarDir() {
+        return preBaseJarDir
+    }
+
+    public File getPreLibsJarDir() {
+        return preLibsJarDir
     }
 
     public File getPreApDir() {

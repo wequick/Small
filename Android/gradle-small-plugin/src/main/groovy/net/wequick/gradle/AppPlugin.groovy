@@ -23,6 +23,8 @@ class AppPlugin extends BundlePlugin {
 
     private static def sPackageIds = [:] as LinkedHashMap<String, Integer>
 
+    protected def compileLibs
+
     void apply(Project project) {
         super.apply(project)
     }
@@ -52,14 +54,15 @@ class AppPlugin extends BundlePlugin {
         super.configureProject()
 
         project.afterEvaluate {
+            // Get all dependencies with gradle script `compile project(':lib.*')'
+            compileLibs = project.configurations.compile.dependencies.findAll {
+                it.hasProperty('dependencyProject') &&
+                        it.dependencyProject.name.startsWith('lib.')
+            }
             if (isBuildingLibs()) {
-                // While building libs, `lib.*' modules are chaning to be an application 
+                // While building libs, `lib.*' modules are changing to be an application
                 // module and cannot be depended by any other modules. To avoid warnings,
                 // remove the `compile project(':lib.*')' dependencies temporary.
-                def compileLibs = project.configurations.compile.dependencies.findAll {
-                    it.hasProperty('dependencyProject') &&
-                            it.dependencyProject.name.startsWith('lib.')
-                }
                 project.configurations.compile.dependencies.removeAll(compileLibs)
             }
         }
@@ -77,16 +80,27 @@ class AppPlugin extends BundlePlugin {
         }
     }
 
+    protected static def getJarName(Project project) {
+        def group = project.group
+        if (group == project.rootProject.name) group = project.name
+        return "$group-${project.version}.jar"
+    }
+
     protected void resolveReleaseDependencies() {
         // Pre-split shared libraries at release mode
-        def jars = project.fileTree(dir: project.rootProject.small.preJarDir, include: ['*.jar'])
-        def selfLib = getJarName()
-        if (selfLib != null) {
-            // If self was built to `pre-jar' directory as a jar, after assemble the jar was changed
-            // and will trigger javac task at next compiling, exclude unnecessary self to avoid that.
-            jars.excludes += selfLib
+        //  - host, appcompat and etc.
+        RootExtension rootExt = project.rootProject.small
+        def baseJars = project.fileTree(dir: rootExt.preBaseJarDir, include: ['*.jar'])
+        project.dependencies.add('provided', baseJars)
+        //  - lib.*
+        def libJarNames = []
+        compileLibs.each {
+            libJarNames += getJarName(it.dependencyProject)
         }
-        project.dependencies.add('provided', jars)
+        if (libJarNames.size() > 0) {
+            def libJars = project.fileTree(dir: rootExt.preLibsJarDir, include: libJarNames)
+            project.dependencies.add('provided', libJars)
+        }
 
         // Pre-split the `support-annotations' library which would be combined into `classes.dex'
         // by Dex task: `variant.dex' on gradle 1.3.0 or
@@ -296,8 +310,6 @@ class AppPlugin extends BundlePlugin {
             small.bkAarDir.renameTo(small.aarDir)
         }
     }
-
-    protected String getJarName() { return null }
 
     @Override
     protected void tidyUp() {
