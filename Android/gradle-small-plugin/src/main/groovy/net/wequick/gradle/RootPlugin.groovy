@@ -94,7 +94,7 @@ class RootPlugin extends BasePlugin {
         def libName = lib.name
 
         // Copy jars
-        def preJarDir = small.preJarDir
+        def preJarDir = small.preBaseJarDir
         if (!preJarDir.exists()) preJarDir.mkdirs()
         //  - copy package.R jar (host only)
         if (lib.hasProperty('jarReleaseClasses')) {
