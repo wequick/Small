@@ -400,14 +400,17 @@ public class ApkBundleLauncher extends BundleLauncher {
      * @param ps
      */
     private static void ensureAddAssetPath(Activity activity, PackageSpec ps) {
-        if (Build.VERSION.SDK_INT >= 21) { // 5.0+
-            if (sAddedAssetPaths.contains(ps.path)) return;
-            ReflectAccelerator.addAssetPath(
-                    activity.getBaseContext().getResources().getAssets(), ps.path);
-            sAddedAssetPaths.add(ps.path);
-        } else {
-            V20.addAssetPaths(activity);
-        }
+        // Fix issue #2 by ymcao:
+        // Disappointed to find following cannot support for 6.0+ on some devices such as HTC A9.
+//        if (Build.VERSION.SDK_INT >= 21) { // 5.0+
+//            if (sAddedAssetPaths.contains(ps.path)) return;
+//            ReflectAccelerator.addAssetPath(
+//                    activity.getBaseContext().getResources().getAssets(), ps.path);
+//            sAddedAssetPaths.add(ps.path);
+//            return;
+//        }
+
+        V20.addAssetPaths(activity);
     }
 
     private static class V20 {
