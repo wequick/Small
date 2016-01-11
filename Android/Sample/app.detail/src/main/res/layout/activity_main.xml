@@ -6,6 +6,8 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".MainActivity">
 
-    <TextView android:text="Hello World from app.detail!" android:layout_width="wrap_content"
+    <TextView android:id="@+id/tvHello" android:text="Hello World from app.detail!" android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    <TextView android:id="@+id/tvFrom" android:layout_below="@id/tvHello" android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 </RelativeLayout>
