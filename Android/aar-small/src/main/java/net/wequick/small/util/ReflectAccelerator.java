@@ -69,7 +69,9 @@ public class ReflectAccelerator {
                     "addAssetPath", new Class[]{String.class});
         }
         if (sAddAssetPath == null) return 0;
-        int ret = invoke(sAddAssetPath, assets, path);
+        // Fix issue #4 by hpj831112
+        Integer ret = invoke(sAddAssetPath, assets, path);
+        if (ret == null) return 0;
         return ret;
     }
 

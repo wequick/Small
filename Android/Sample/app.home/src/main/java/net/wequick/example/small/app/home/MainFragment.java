@@ -21,7 +21,7 @@ public class MainFragment extends Fragment {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Small.openUri("detail", getContext());
+                Small.openUri("detail?from=app.home", getContext());
             }
         });
         button = (Button) rootView.findViewById(R.id.btnAbout);
