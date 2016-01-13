@@ -70,9 +70,7 @@ public final class Small {
                         Class.forName("android.app.ActivityThread");
                 final Method method = activityThreadClass.getMethod("currentApplication");
                 sContext = (Context) method.invoke(null, (Object[]) null);
-            } catch (Exception e) {
-                return null;
-            }
+            } catch (Exception ignored) { }
         }
         return sContext;
     }

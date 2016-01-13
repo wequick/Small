@@ -47,9 +47,10 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * Class to launch an apk (which fake as .so).
  * Created by galen on 15/2/3.
  */
-public class ApkBundleLauncher extends BundleLauncher {
+public class ApkBundleLauncher extends SoBundleLauncher {
     private static final String PACKAGE_NAME = ApkBundleLauncher.class.getPackage().getName();
     private static final String STUB_ACTIVITY_PREFIX = PACKAGE_NAME + ".A.";
     private static final String TAG = "ApkBundleLauncher";
@@ -257,33 +258,18 @@ public class ApkBundleLauncher extends BundleLauncher {
     }
 
     @Override
-    public boolean preloadBundle(Bundle bundle) {
-        // Check if exists an `app' plugin
+    protected String[] getSupportingTypes() {
+        return new String[] {"app", "lib"};
+    }
+
+    @Override
+    public void loadBundle(Bundle bundle) {
         String packageName = bundle.getPackageName();
-        if (packageName == null) return false;
-        if (!packageName.contains(".app.")
-                && !packageName.contains(".lib.")
-                && !packageName.contains(".bundle.")) return false;
+        File plugin = bundle.getFile();
 
-        String soName = "lib" + packageName.replaceAll("\\.", "_") + ".so";
-        File plugin = new File(Bundle.getUserBundlesPath() + soName);
-        if (plugin == null || !plugin.exists()) return false;
-
-        // Check if is an apk bundle
         PackageManager pm = Small.getContext().getPackageManager();
         PackageInfo pluginInfo = pm.getPackageArchiveInfo(plugin.getPath(),
                 PackageManager.GET_ACTIVITIES );
-        if (pluginInfo == null) return false;
-
-        // Record version code for upgrade
-        bundle.setVersionCode(pluginInfo.versionCode);
-        Small.setBundleVersionCode(packageName, pluginInfo.versionCode);
-
-        // Validate bundle signatures
-        if (!SignUtils.verifyPlugin(plugin)) {
-            bundle.setEnabled(false);
-            return true;
-        }
 
         // Load the bundle
         String apkPath = plugin.getPath();
@@ -311,7 +297,7 @@ public class ApkBundleLauncher extends BundleLauncher {
 
         if (pluginInfo.activities == null) {
             bundle.setLaunchable(false);
-            return true;
+            return;
         }
 
         // Record activities for intent redirection
@@ -323,8 +309,6 @@ public class ApkBundleLauncher extends BundleLauncher {
             as.info = ai;
             sActivitySpecs.put(ai.name, as);
         }
-
-        return true;
     }
 
     @Override

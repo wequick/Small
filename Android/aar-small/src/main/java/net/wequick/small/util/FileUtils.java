@@ -66,7 +66,10 @@ public final class FileUtils {
             } else {
 
                 File file = new File(outPath + File.separator + szName);
-                file.createNewFile();
+                if (!file.createNewFile()) {
+                    System.err.println("Failed to create file: " + file);
+                    return;
+                }
                 // get the output stream of the file
                 FileOutputStream out = new FileOutputStream(file);
                 int len;
@@ -86,19 +89,19 @@ public final class FileUtils {
         inZip.close();
     }
 
-    public static String getInternalFilesPath(String dir) {
+    public static File getInternalFilesPath(String dir) {
         File file = Small.getContext().getDir(dir, Context.MODE_PRIVATE);
         if (!file.exists()) {
             file.mkdirs();
         }
-        return file.getAbsolutePath();
+        return file;
     }
 
-    public static String getDownloadBundlePath() {
+    public static File getDownloadBundlePath() {
         return getInternalFilesPath(DOWNLOAD_PATH);
     }
 
-    public static String getWebBundlePath() {
+    public static File getWebBundlePath() {
         return getInternalFilesPath(WEB_PATH);
     }
 

@@ -18,25 +18,59 @@ package net.wequick.small;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.text.TextUtils;
+
+import net.wequick.small.util.SignUtils;
+
+import java.io.File;
+import java.io.InputStream;
 
 /**
  * Created by galen on 15/1/28.
  */
-public class BundleLauncher {
+public abstract class BundleLauncher {
 
     /**
-     * Setup launcher, execute on {Small} setup
+     * Bundle upgrade type
+     */
+    public enum UpgradeType {
+        REPLACE (0), // Replace the built-in bundle; 覆盖升级
+        OVERLAY (1), // Overlay with incremental package; 增量升级
+        FUSING (2); // Fusing previous `Overlay'; 熔断上次增量
+
+        private int value;
+        UpgradeType(int value) { this.value = value; }
+    }
+
+    /**
+     * LifeCircle #1: Setup launcher, execute on {Small} setup
      */
     public void setup(Context context) { }
 
+    public boolean initBundle(Bundle bundle) {
+        if (!preloadBundle(bundle)) return false;
+
+        loadBundle(bundle);
+        return true;
+    }
+
     /**
-     * Try to preload a bundle
+     * Preload bundle
      * @param bundle
-     * @return true: can launch bundle, false: otherwise
+     * @return true: can load the bundle, false: cannot
      */
-    public boolean preloadBundle(Bundle bundle) { return false; }
+    public boolean preloadBundle(Bundle bundle) {
+        return true;
+    }
+
+    /**
+     * Load a bundle
+     * @param bundle
+     */
+    public void loadBundle(Bundle bundle) { }
 
     public void prelaunchBundle(Bundle bundle) { }
 
@@ -68,6 +102,13 @@ public class BundleLauncher {
     public <T> T createObject(Bundle bundle, Context context, String type) {
         return null;
     }
+
+//    /**
+//     * Upgrade bundle
+//     * @param is the stream download from server
+//     * @param type the type of upgrade
+//     */
+//    public abstract void upgrade(InputStream is, UpgradeType type);
 
     private boolean needsFinishActivity(Activity activity) {
         Uri uri = Small.getUri(activity);

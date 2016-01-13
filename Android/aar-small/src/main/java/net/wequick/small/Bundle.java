@@ -73,16 +73,17 @@ public class Bundle {
     private Uri uri;
     private Object preloadData;
     private URL url; // for WebBundleLauncher
-    private Intent intent;
+    private Intent mIntent;
     private String type; // for ApkBundleLauncher
     private Uri mTargetUri;
     private String path;
     private String query;
     private HashMap<String, String> rules;
     private int versionCode;
-    private URL downloadUrl;
 
     private BundleLauncher mApplicableLauncher = null;
+
+    private String mFileName = null;
     private File mFile = null;
     private long mSize = -1;
 
@@ -383,8 +384,8 @@ public class Bundle {
             @Override
             public void onFetch(InputStream is, Exception e) {
                 if (is != null) {
-                    // TODO: 断点续传
                     if (file.exists()) {
+                        // TODO: 断点续传
                         file.delete();
                     }
                     if (!isApkLib(file.getName())) {
@@ -439,9 +440,7 @@ public class Bundle {
     }
 
     public void prepareForLaunch() {
-        if (this.intent != null) {
-            return;
-        }
+        if (mIntent != null) return;
 
         URL url = this.getDownloadUrl();
         if (url != null) {
@@ -451,7 +450,7 @@ public class Bundle {
 
         if (mApplicableLauncher == null && sBundleLaunchers != null) {
             for (BundleLauncher launcher : sBundleLaunchers) {
-                if (launcher.preloadBundle(this)) {
+                if (launcher.initBundle(this)) {
                     mApplicableLauncher = launcher;
                     break;
                 }
@@ -460,23 +459,21 @@ public class Bundle {
     }
 
     public URL getDownloadUrl() {
-        if (this.downloadUrl == null && this.mFile != null) {
-            Map<String, String> urls = Small.getBundleUpgradeUrls();
-            if (urls == null) {
-                return null;
-            }
-            String src = urls.get(this.mFile.getName());
-            if (src != null) {
-                URL url = null;
-                try {
-                    url = new URL(src);
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                }
-                this.downloadUrl = url;
-            }
+        if (mPackageName == null) return null;
+
+        Map<String, String> urls = Small.getBundleUpgradeUrls();
+        if (urls == null) return null;
+
+        String src = urls.get(mPackageName);
+        if (src == null) return null;
+
+        try {
+            return new URL(src);
+        } catch (MalformedURLException ignored) {
+            // ignored
         }
-        return this.downloadUrl;
+
+        return null;
     }
 
     public void launchFrom(Context context) {
@@ -493,15 +490,11 @@ public class Bundle {
             mApplicableLauncher.prelaunchBundle(this);
         }
 
-        if (intent != null) {
-//            intent.setClass(context, intent.get);
-            return intent;
-        }
-        return null;
+        return mIntent;
     }
 
-    public Intent getIntent() { return intent; }
-    public void setIntent(Intent intent) { this.intent = intent; }
+    public Intent getIntent() { return mIntent; }
+    public void setIntent(Intent intent) { mIntent = intent; }
 
     public String getPackageName() {
         return mPackageName;
@@ -626,6 +619,18 @@ public class Bundle {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public void setFile(File file) {
+        this.mFile = file;
+    }
+
+    public String getFileName() {
+        return mFileName;
+    }
+
+    public void setFileName(String mFileName) {
+        this.mFileName = mFileName;
     }
 
     //______________________________________________________________________________

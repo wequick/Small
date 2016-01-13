@@ -21,14 +21,14 @@ import android.content.Intent;
 import android.net.Uri;
 
 /**
+ * Class to launch activity by it's class name
  * Created by galen on 15/3/29.
  */
 public class ActivityLauncher extends BundleLauncher {
+
     @Override
     public boolean preloadBundle(Bundle bundle) {
         String packageName = bundle.getPackageName();
-        if (packageName == null) return false;
-
         Context context = Small.getContext();
         if (packageName == null || packageName.equals("main")) {
             packageName = context.getPackageName();
