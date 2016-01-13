@@ -58,7 +58,15 @@ public class Aapt {
         // Filter resources.arsc
         arscEditor.slice(pp, idMaps, retainedTypes)
 
-        resetAllXmlPackageId(pp, idMaps)
+        resetAllXmlPackageId(mAssetDir, pp, idMaps)
+        // TODO: slice AndroidManifest.xml, if you finish `AXmlEditor.slice', uncomment following.
+//        // Filter AndroidManifest.xml
+//        File manifest = new File(mAssetDir, 'AndroidManifest.xml')
+//        AXmlEditor xmlEditor = new AXmlEditor(manifest)
+//        xmlEditor.slice(pp, idMaps, retainedTypes)
+//        // Reset xml package id
+//        File resDir = new File(mAssetDir, 'res')
+//        resetAllXmlPackageId(resDir, pp, idMaps)
     }
 
     /**
@@ -144,8 +152,8 @@ public class Aapt {
     }
 
     /** Reset package id for *.xml */
-    private void resetAllXmlPackageId(int pp, Map idMaps) {
-        mAssetDir.eachFileRecurse(FileType.FILES) { file ->
+    private void resetAllXmlPackageId(File dir, int pp, Map idMaps) {
+        dir.eachFileRecurse(FileType.FILES) { file ->
             if (file.name.endsWith('.xml')) {
                 def editor = new AXmlEditor(file)
                 editor.setPackageId(pp, idMaps)
