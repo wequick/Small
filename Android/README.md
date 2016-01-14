@@ -115,6 +115,15 @@
 
 [FAQ](https://github.com/wequick/Small/wiki/Android-FAQ)
 
+## 致谢
+
+感谢以下网站收录本项目：
+
+* [p.codekk.com](http://p.codekk.com) @[singwhatiwanna](https://github.com/singwhatiwanna)
+* [androidweekly.cn](http://androidweekly.cn) @[inferjay](https://github.com/inferjay)
+* [toutiao.io](http://toutiao.io) @[Juude](https://github.com/Juude)
+* [gank.io](http://gank.io) @[daimajia](https://github.com/daimajia)
+
 ## 联系我们
 
 <a target="_blank" href="http://shang.qq.com/wpa/qunwpa?idkey=d9b57f150084ba4b30c73d0a2b480e30c99b8718bf16bb7739af740f7d1e21f3"><img border="0" src="http://pub.idqqimg.com/wpa/images/group.png" alt="快客 - Small Android" title="快客 - Small Android"></a> 
