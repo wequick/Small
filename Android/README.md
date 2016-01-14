@@ -101,7 +101,7 @@
 
 ## 助力Small
 
-Small处于发展初期，需要大家共同推进。
+Small处于发展初期，需要大家共同推进，欢迎Fork成为**Small**的开发者。
 
 ### Step 1. Import DevSample project (导入开发工程)
 打开Android Studio，File->New->Import Project... 选择**DevSample**文件夹，导入。
