@@ -101,7 +101,7 @@
 
 ## 助力Small
 
-Small处于发展初期，需要大家共同推进。
+Small处于发展初期，需要大家共同推进，欢迎Fork成为**Small**的开发者。
 
 ### Step 1. Import DevSample project (导入开发工程)
 打开Android Studio，File->New->Import Project... 选择**DevSample**文件夹，导入。
@@ -114,7 +114,11 @@ Small处于发展初期，需要大家共同推进。
 
 > buildSrc在修改后会被自动编译。
 
-其他步骤同上。
+其他步骤同上。除了编译单个组件的命令有所不同：
+
+    > [./]gradlew :app.main:assembleRelease
+    
+> P.s. gradlew命令支持缩写，比如`assembleRelease`可以缩写为`aR`
 
 ## TODO
 
