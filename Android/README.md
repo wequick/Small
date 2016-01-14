@@ -66,21 +66,12 @@
 
 > 强烈建议使用git命令行，方便更新维护。Windows用户入口：[Git for Windows][git-win]<br/>
 > 后续更新可以使用命令：git pull origin master
-
-### Step 2. Install gradle-small-plugin (安装编译插件)
-    > cd Sample
-    > ./gradlew -p ../gradle-small-plugin install (Mac OS)
-    > gradlew -p ..\gradle-small-plugin install (Windows)
-    
-  ![Build gradle-small-plugin][anim-bG]
   
-### Step 3. Import sample project (导入示例工程)
+### Step 2. Import Sample project (导入示例工程)
 打开Android Studio，File->New->Import Project... 选择**Sample**文件夹，导入。
 
-![Small project][ic-project]
+![Small sample][ic-sample]
 
-* aar-small `核心库，用于加载组件`
-* gradle-small-plugin `组件编译插件，用于打包组件`
 * Sample `示例工程`
   * app `宿主工程`
   * app.\* `包含Activity/Fragment的组件`
@@ -91,22 +82,47 @@
 > 顺便说下，这些app.\*跟web.\*可以从工具栏的![▶️][as-run]按钮单独运行。<br/>
 > 其中app.home无法单独运行是因为它只包含一个Fragment，没有Launcher Activity。
 
-### Step 4. Build libraries (准备基础库)
+### Step 3. Build libraries (准备基础库)
   	> [./]gradlew buildLib -q (-q是安静模式，可以让输出更好看，也可以不加)
   	
   ![Build libraries][anim-bL]
   	
-### Step 5. Build bundles (打包所有组件)
+### Step 4. Build bundles (打包所有组件)
   	> [./]gradlew buildBundle -q (-q是安静模式，可以让输出更好看，也可以不加)
   	
   ![Build bundles][anim-bB]
   
-> 步骤4跟5，如果你喜欢，也可以在**Gradle**任务导航里运行<br/>
+> 步骤3跟4，如果你喜欢，也可以在**Gradle**任务导航里运行<br/>
 > ![Small tasks][ic-root-tasks]
   
 > 单独编译一个组件可以使用 [./]gradlew -p web.about assembleRelease<br/>
 > 或者<br/>
 > ![Sub tasks][ic-sub-tasks]
+
+## 助力Small
+
+Small处于发展初期，需要大家共同推进。
+
+### Step 1. Import DevSample project (导入开发工程)
+打开Android Studio，File->New->Import Project... 选择**DevSample**文件夹，导入。
+
+![Small devsample][ic-devsample]
+
+* DevSample `开发工程`
+  * buildSrc `组件编译插件，用于打包组件`
+  * small `核心库，用于加载组件`
+
+> buildSrc在修改后会被自动编译。
+
+其他步骤同上。
+
+## TODO
+
+待实现的功能：
+* \#1 终极分离与去除警告
+* \#2 加速生成AndroidManifest.xml
+
+[查看详情](http://code.wequick.net/2016/01/09/todo-list.html)
 
 ## 文档
 [Wiki](https://github.com/wequick/small/wiki/Android)
@@ -114,6 +130,15 @@
 ## 常见问题
 
 [FAQ](https://github.com/wequick/Small/wiki/Android-FAQ)
+
+## 致谢
+
+感谢以下网站收录本项目：
+
+* [p.codekk.com](http://p.codekk.com) @[singwhatiwanna](https://github.com/singwhatiwanna)
+* [androidweekly.cn](http://androidweekly.cn) @[inferjay](https://github.com/inferjay)
+* [toutiao.io](http://toutiao.io) @[Juude](https://github.com/Juude)
+* [gank.io](http://gank.io) @[daimajia](https://github.com/daimajia)
 
 ## 联系我们
 
@@ -127,7 +152,8 @@ Apache License 2.0
 [git-win]: http://git-scm.com/downloads
 [as-run]: http://developer.android.com/images/tools/as-run.png
 [as-debug]: http://developer.android.com/images/tools/as-debugbutton.png
-[ic-project]: http://code.wequick.net/images/small/project.png
+[ic-sample]: http://code.wequick.net/assets/images/small-sample.png
+[ic-devsample]: http://code.wequick.net/assets/images/small-devsample.png
 [anim-bG]: http://code.wequick.net/anims/small/android-build-gradle.gif
 [anim-bL]: http://code.wequick.net/anims/small/android-build-lib.gif
 [anim-bB]: http://code.wequick.net/anims/small-android-build-bundle.gif
