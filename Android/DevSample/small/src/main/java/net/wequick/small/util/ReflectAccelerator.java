@@ -171,12 +171,18 @@ public class ReflectAccelerator {
     }
 
     public static void setResources(Activity activity, Resources resources) {
-        if (sContextThemeWrapper_mResources_field == null) {
-            sContextThemeWrapper_mResources_field = getDeclaredField(
-                    ContextThemeWrapper.class, "mResources");
+        Object target = activity;
+        Class targetClass = ContextThemeWrapper.class;
+        if (Build.VERSION.SDK_INT <= 16) {
+            // wu4321: Fix resource not found bug for API16-
+            target = activity.getBaseContext();
+            targetClass = target.getClass();
         }
-        if (sContextThemeWrapper_mResources_field == null) return;
-        setValue(sContextThemeWrapper_mResources_field, activity, resources);
+        if (sContextThemeWrapper_mResources_field == null) {
+            sContextThemeWrapper_mResources_field = getDeclaredField(targetClass, "mResources");
+            if (sContextThemeWrapper_mResources_field == null) return;
+        }
+        setValue(sContextThemeWrapper_mResources_field, target, resources);
     }
 
     public static Object getActivityThread(Context context) {
