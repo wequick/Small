@@ -320,7 +320,7 @@ class AppPlugin extends BundlePlugin {
     }
 
     /**
-     * Get reserved resource keys of project. For mading a smaller slice, the unnecessary
+     * Get reserved resource keys of project. For making a smaller slice, the unnecessary
      * resource `mipmap/ic_launcher' and `string/app_name' are excluded.
      */
     protected def getReservedResourceKeys() {
@@ -380,7 +380,8 @@ class AppPlugin extends BundlePlugin {
     }
 
     /**
-     * Generate a random package id with range [0x03, 0x7e] by bundle's name
+     * Generate a random package id in range [0x03, 0x7e] by bundle's name.
+     * [0x00, 0x02] reserved for android system resources.
      */
     private static int genRandomPackageId(String bundleName) {
         int minPP = 0x03
