@@ -267,7 +267,7 @@ public class Bundle {
                 e.printStackTrace();
             }
             bundle.prepareForLaunch();
-            bundle.setQuery(uri.getQuery());
+            bundle.setQuery(uri.getEncodedQuery()); // Fix issue #6 from Spring-Xu.
             bundle.mApplicableLauncher = new WebBundleLauncher();
             bundle.mApplicableLauncher.prelaunchBundle(bundle);
             return bundle;
