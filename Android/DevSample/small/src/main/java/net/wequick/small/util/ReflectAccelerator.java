@@ -17,10 +17,10 @@
 package net.wequick.small.util;
 
 import android.app.Activity;
+import android.app.Application;
 import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.os.Build;
@@ -52,6 +52,7 @@ public class ReflectAccelerator {
     private static Field sApplicationInfo_resourceDirs_field;
     private static Field sContextThemeWrapper_mTheme_field;
     private static Field sContextThemeWrapper_mResources_field;
+    private static Field sContextImpl_mResources_field;
     private static Field sActivity_mMainThread_field;
     private static Method sActivityThread_currentActivityThread_method;
     private static Method sTheme_getNativeTheme_method;
@@ -183,6 +184,15 @@ public class ReflectAccelerator {
             if (sContextThemeWrapper_mResources_field == null) return;
         }
         setValue(sContextThemeWrapper_mResources_field, target, resources);
+    }
+
+    public static void setResources(Application app, Resources resources) {
+        if (sContextImpl_mResources_field == null) {
+            sContextImpl_mResources_field = getDeclaredField(
+                    app.getBaseContext().getClass(), "mResources");
+            if (sContextImpl_mResources_field == null) return;
+        }
+        setValue(sContextImpl_mResources_field, app.getBaseContext(), resources);
     }
 
     public static Object getActivityThread(Context context) {

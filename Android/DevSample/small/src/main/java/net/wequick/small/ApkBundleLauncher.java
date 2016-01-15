@@ -285,7 +285,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             // Add dex element to class loader's pathList
             Context context = Small.getContext();
             File packagePath = context.getFileStreamPath("storage");
-            packagePath = new File(packagePath.getAbsolutePath() + "/" + bundle.getPackageName());
+            packagePath = new File(packagePath, packageName);
             if (!packagePath.exists()) {
                 packagePath.mkdirs();
             }
@@ -390,6 +390,8 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 //            if (sAddedAssetPaths.contains(ps.path)) return;
 //            ReflectAccelerator.addAssetPath(
 //                    activity.getBaseContext().getResources().getAssets(), ps.path);
+//        ReflectAccelerator.addAssetPath(
+//                activity.getApplicationContext().getResources().getAssets(), ps.path);
 //            sAddedAssetPaths.add(ps.path);
 //            return;
 //        }
@@ -401,6 +403,8 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         static void addAssetPaths(Activity activity) {
             ResourcesMerger rm = ResourcesMerger.merge(activity.getBaseContext());
             ReflectAccelerator.setResources(activity, rm);
+            // Also replace the resources of application
+            ReflectAccelerator.setResources(activity.getApplication(), rm);
         }
 
         private static class ResourcesMerger extends Resources {
