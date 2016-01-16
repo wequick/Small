@@ -18,9 +18,11 @@ package net.wequick.small;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 
+import net.wequick.small.util.FileUtils;
 import net.wequick.small.util.SignUtils;
 
 import java.io.File;
+import java.io.InputStream;
 
 /**
  * Class to launch .so bundle.
@@ -57,13 +59,27 @@ public abstract class SoBundleLauncher extends BundleLauncher {
         // Get package info
         PackageManager pm = Small.getContext().getPackageManager();
         PackageInfo pluginInfo = pm.getPackageArchiveInfo(plugin.getPath(),
-                PackageManager.GET_SIGNATURES );
+                PackageManager.GET_SIGNATURES);
         if (pluginInfo == null) return false;
 
         // Verify signatures
         if (!SignUtils.verifyPlugin(pluginInfo)) {
             bundle.setEnabled(false);
             return true; // Got it, but disabled
+        }
+
+        // Check if exists a patch
+        File patch = new File(FileUtils.getDownloadBundlePath(), soName);
+        if (patch.exists()) {
+            PackageInfo patchInfo = pm.getPackageArchiveInfo(plugin.getPath(),
+                    PackageManager.GET_SIGNATURES);
+            if (patchInfo == null || !SignUtils.verifyPlugin(patchInfo)) {
+                patch.delete(); // Invalid patch
+            } else {
+                // Currently only support replacing
+                // TODO: Incremental patch
+
+            }
         }
 
         bundle.setFileName(soName);

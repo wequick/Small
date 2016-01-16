@@ -23,7 +23,6 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
 
-import net.wequick.small.util.FileUtils;
 import net.wequick.small.webkit.WebViewPool;
 
 import org.json.JSONArray;
@@ -75,7 +74,6 @@ public class Bundle {
     private URL url; // for WebBundleLauncher
     private Intent mIntent;
     private String type; // for ApkBundleLauncher
-    private Uri mTargetUri;
     private String path;
     private String query;
     private HashMap<String, String> rules;
@@ -85,6 +83,7 @@ public class Bundle {
 
     private String mFileName = null;
     private File mFile = null;
+    private File mPatchFile = null;
     private long mSize = -1;
 
     private Drawable mIcon = null;
@@ -96,35 +95,11 @@ public class Bundle {
 
     //______________________________________________________________________________
     // Class methods
-    public static String getMainBundlesPath() {
-        String path = Small.getContext().getApplicationInfo().dataDir + "/lib/";
-        return path;
-    }
 
     public static String getUserBundlesPath() {
-//        Context context = Small.getContext();
-//        File //cacheDir = context.getExternalCacheDir();
-////        if (cacheDir == null || !cacheDir.exists()) {
-//            cacheDir = context.getCacheDir();
-////        }
-//        cacheDir = Environment.getExternalStorageDirectory();
-//        String bundlePath = cacheDir.getAbsolutePath() + "/broker";
-//        /*
-//         * If not exists, create it
-//         */
-//        File bundleDir = new File(bundlePath);
-//        if (!bundleDir.exists()) {
-//            bundleDir.mkdir();
-//        }
-//
-//        bundlePath = bundlePath + "/bundles";
-//        bundleDir = new File(bundlePath);
-//        if (!bundleDir.exists()) {
-//            bundleDir.mkdir();
-//        }
-//        return bundlePath;
-        return getMainBundlesPath();
+        return Small.getContext().getApplicationInfo().dataDir + "/lib/";
     }
+
     /**
      * Load bundles from manifest
      */
@@ -300,14 +275,11 @@ public class Bundle {
         } else {
             for (String key : this.rules.keySet()) {
                 // TODO: regex match and replace
-                if (key.equals(srcPath)) {
-                    dstPath = this.rules.get(key);
-                }
-                if (dstPath != null) {
-                    break;
-                }
+                if (key.equals(srcPath)) dstPath = this.rules.get(key);
+                if (dstPath != null) break;
             }
             if (dstPath == null) return false;
+
             int index = dstPath.indexOf("?");
             if (index > 0) {
                 if (dstQuery != null) {
@@ -340,17 +312,6 @@ public class Bundle {
 
     private void initWithMap(JSONObject map) throws JSONException {
         mPackageName = map.getString("pkg");
-        if (map.has("target")) {
-            // Local bundle
-            this.mTargetUri = Uri.parse(map.getString("target"));
-        } else {
-            // Remote bundle
-            if (mPackageName != null) {
-                String aBundlePath = getUserBundlesPath() + "/" + mPackageName;
-                mFile = new File(aBundlePath);
-            }
-        }
-
         String uri = map.getString("uri");
         if (!uri.startsWith("http") && Small.getBaseUri() != null) {
             uri = Small.getBaseUri() + uri;
@@ -374,10 +335,6 @@ public class Bundle {
         }
     }
 
-    private boolean isApkLib(String name) {
-        return name.endsWith(".apk") || name.endsWith(".so");
-    }
-
     private boolean downloadBundle(URL url, final File file) {
         final Bundle self = this;
         BundleFetcher.getInstance().fetchBundle(url, new BundleFetcher.OnFetchListener() {
@@ -388,43 +345,29 @@ public class Bundle {
                         // TODO: 断点续传
                         file.delete();
                     }
-                    if (!isApkLib(file.getName())) {
-                        // Unzip
-                        try {
-                            FileUtils.unZipFolder(is, getUserBundlesPath(), new FileUtils.OnProgressListener() {
-                                @Override
-                                public void onProgress(int length) {
-                                    postLoadProgressMessage(self.mPackageName, length);
-                                }
-                            });
-                        } catch (Exception e1) {
-                            e1.printStackTrace();
-                        }
-                    } else {
-                        // Save
-                        OutputStream os = null;
-                        try {
-                            os = new FileOutputStream(file);
-                            if (os != null) {
-                                byte[] buffer = new byte[1024];
-                                int length;
-                                while ((length = is.read(buffer)) != -1) {
-                                    postLoadProgressMessage(self.mPackageName, length);
-                                    os.write(buffer, 0, length);
-                                }
-                                os.flush();
+                    // Save
+                    OutputStream os = null;
+                    try {
+                        os = new FileOutputStream(file);
+                        if (os != null) {
+                            byte[] buffer = new byte[1024];
+                            int length;
+                            while ((length = is.read(buffer)) != -1) {
+                                postLoadProgressMessage(self.mPackageName, length);
+                                os.write(buffer, 0, length);
                             }
-                        } catch (FileNotFoundException e1) {
-                            e.printStackTrace();
-                        } catch (IOException e1) {
-                            e.printStackTrace();
-                        } finally {
-                            if (os != null) {
-                                try {
-                                    os.close();
-                                } catch (IOException e1) {
-                                    e.printStackTrace();
-                                }
+                            os.flush();
+                        }
+                    } catch (FileNotFoundException e1) {
+                        e.printStackTrace();
+                    } catch (IOException e1) {
+                        e.printStackTrace();
+                    } finally {
+                        if (os != null) {
+                            try {
+                                os.close();
+                            } catch (IOException e1) {
+                                e.printStackTrace();
                             }
                         }
                     }
@@ -435,7 +378,7 @@ public class Bundle {
         if (!file.exists()) {
             return false;
         }
-        this.mFile = file;
+        this.mPatchFile = file;
         return true;
     }
 
@@ -444,7 +387,7 @@ public class Bundle {
 
         URL url = this.getDownloadUrl();
         if (url != null) {
-            downloadBundle(url, this.mFile);
+            downloadBundle(url, this.mPatchFile);
             postLoadProgressMessage(mPackageName, -1);
         }
 
@@ -538,14 +481,6 @@ public class Bundle {
 
     public void setType(String type) {
         this.type = type;
-    }
-
-    public Uri getTargetUri() {
-        return mTargetUri;
-    }
-
-    public void setTargetUri(Uri targetUri) {
-        mTargetUri = mTargetUri;
     }
 
     public long getSize() {

@@ -47,7 +47,6 @@ public abstract class AssetBundleLauncher extends SoBundleLauncher {
 
     @Override
     public void loadBundle(Bundle bundle) {
-        // Check if exists a `web' plugin
         String packageName = bundle.getPackageName();
         String soName = bundle.getFileName();
         File plugin = bundle.getFile();
