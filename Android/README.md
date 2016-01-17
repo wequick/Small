@@ -99,9 +99,9 @@
 > 或者<br/>
 > ![Sub tasks][ic-sub-tasks]
 
-## 助力Small
+## 开发者模式
 
-Small处于发展初期，需要大家共同推进，欢迎Fork成为**Small**的开发者。
+如果你对**Small**的实现感兴趣，可以参考
 
 ### Step 1. Import DevSample project (导入开发工程)
 打开Android Studio，File->New->Import Project... 选择**DevSample**文件夹，导入。
@@ -120,7 +120,9 @@ Small处于发展初期，需要大家共同推进，欢迎Fork成为**Small**�
     
 > P.s. gradlew命令支持缩写，比如`assembleRelease`可以缩写为`aR`
 
-### 如何贡献？
+## 加入我们
+
+我们鼓励大家成为**Small**的开发者，并享受开源协作的乐趣。
 
 1. 提交[Bug](https://github.com/wequick/Small/issues)并协助我们确认修复。
 2. 提交[PR](https://github.com/wequick/Small/pulls)来完善文档、修复bug、完成待实现功能或者讨论中的建议。
