@@ -120,13 +120,17 @@ Small处于发展初期，需要大家共同推进，欢迎Fork成为**Small**�
     
 > P.s. gradlew命令支持缩写，比如`assembleRelease`可以缩写为`aR`
 
-## TODO
+### 如何贡献？
 
-待实现的功能：
-* \#1 终极分离与去除警告
-* \#2 加速生成AndroidManifest.xml
+1. 提交[Bug](https://github.com/wequick/Small/issues)并协助我们确认修复。
+2. 提交[PR](https://github.com/wequick/Small/pulls)来完善文档、修复bug、完成待实现功能或者讨论中的建议。
+3. 在QQ群参与讨论，提供建议。
 
-[查看详情](http://code.wequick.net/2016/01/09/todo-list.html)
+#### 公开征集PR的[待实现功能](http://code.wequick.net/2016/01/09/todo-list.html)：
+  * \#1 终极分离与去除警告
+  * \#2 加速生成AndroidManifest.xml
+
+> 更多细节请参考[开源贡献指南](https://guides.github.com/activities/contributing-to-open-source/)。
 
 ## 文档
 [Wiki](https://github.com/wequick/small/wiki/Android)
