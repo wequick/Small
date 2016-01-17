@@ -101,8 +101,6 @@
 
 ## 开发者模式
 
-如果你对**Small**的实现感兴趣，可以参考
-
 ### Step 1. Import DevSample project (导入开发工程)
 打开Android Studio，File->New->Import Project... 选择**DevSample**文件夹，导入。
 
