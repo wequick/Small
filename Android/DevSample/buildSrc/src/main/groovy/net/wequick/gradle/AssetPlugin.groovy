@@ -113,9 +113,9 @@ class AssetPlugin extends BundlePlugin {
         } << {
             def dir = destFile.parentFile
             if (!dir.exists()) dir.mkdirs()
-            ant.signjar(jar: srcFile, signedjar: destFile,
-                    keystore: sc.storeFile.path, storepass: sc.storePassword,
-                    alias: sc.keyAlias, keypass: sc.keyPassword)
+            ant.signjar(jar: srcFile, signedjar: destFile, keystore: sc.storeFile.path,
+                    storepass: sc.storePassword, alias: sc.keyAlias, keypass: sc.keyPassword,
+                    digestalg: 'SHA1', sigalg: 'MD5withRSA') // Fix issue #13
         }
         project.assembleRelease.dependsOn project.signAsset
     }
