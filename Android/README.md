@@ -126,9 +126,9 @@
 2. 提交[PR](https://github.com/wequick/Small/pulls)来完善文档、修复bug、完成待实现功能或者讨论中的建议。
 3. 在QQ群参与讨论，提供建议。
 
-#### 公开征集PR的[待实现功能](http://code.wequick.net/2016/01/09/todo-list.html)：
-  * \#1 终极分离与去除警告
-  * \#2 加速生成AndroidManifest.xml
+#### 已知Issue
+  * \#11 [终极分离与去除警告](https://github.com/wequick/Small/issues/11)
+  * \#12 [加速生成AndroidManifest.xml](https://github.com/wequick/Small/issues/12)
 
 > 更多细节请参考[开源贡献指南](https://guides.github.com/activities/contributing-to-open-source/)。
 
