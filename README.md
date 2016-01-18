@@ -1,5 +1,7 @@
 # Small
 
+[![Join the chat at https://gitter.im/wequick/Small](https://badges.gitter.im/wequick/Small.svg)](https://gitter.im/wequick/Small?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 世界那么大，组件那么小。Small，做最轻巧的跨平台插件化框架。
 
 [![License Apache2.0](https://img.shields.io/hexpm/l/plug.svg)][license]
