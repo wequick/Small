@@ -151,7 +151,6 @@
 ## 联系我们
 
 <a target="_blank" href="http://shang.qq.com/wpa/qunwpa?idkey=d9b57f150084ba4b30c73d0a2b480e30c99b8718bf16bb7739af740f7d1e21f3"><img border="0" src="http://pub.idqqimg.com/wpa/images/group.png" alt="快客 - Small Android" title="快客 - Small Android"></a> 
-[![Gitter](https://img.shields.io/gitter/room/nwjs/nw.js.svg)](https://gitter.im/wequick/SmallAndroid?utm_source=share-link&utm_medium=link&utm_campaign=share-link)
 
 > QQ群链接无法使用的手动加 **374601844**，验证填写你是从何得知Small的，如qq, csdn, github, 朋友推荐。<br/> 进群改备注：如_“福州-GalenLin”_。
 
