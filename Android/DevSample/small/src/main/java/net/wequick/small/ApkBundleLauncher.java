@@ -20,11 +20,9 @@ import android.app.Activity;
 import android.app.Instrumentation;
 import android.content.ComponentName;
 import android.content.pm.ActivityInfo;
-import android.content.pm.Signature;
 import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
-import android.os.Build;
 import android.os.IBinder;
 import android.content.Context;
 import android.content.Intent;
@@ -34,14 +32,12 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 
 import net.wequick.small.util.ReflectAccelerator;
-import net.wequick.small.util.SignUtils;
 
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -81,7 +77,6 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         private static final int STUB_ACTIVITIES_COUNT = 4;
 
         public InstrumentationWrapper() { }
-
 
         /** @Override V21+
          * Wrap activity from REAL to STUB */
@@ -285,7 +280,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             // Add dex element to class loader's pathList
             Context context = Small.getContext();
             File packagePath = context.getFileStreamPath("storage");
-            packagePath = new File(packagePath.getAbsolutePath() + "/" + bundle.getPackageName());
+            packagePath = new File(packagePath, packageName);
             if (!packagePath.exists()) {
                 packagePath.mkdirs();
             }
@@ -390,6 +385,8 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 //            if (sAddedAssetPaths.contains(ps.path)) return;
 //            ReflectAccelerator.addAssetPath(
 //                    activity.getBaseContext().getResources().getAssets(), ps.path);
+//        ReflectAccelerator.addAssetPath(
+//                activity.getApplicationContext().getResources().getAssets(), ps.path);
 //            sAddedAssetPaths.add(ps.path);
 //            return;
 //        }
@@ -401,6 +398,8 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         static void addAssetPaths(Activity activity) {
             ResourcesMerger rm = ResourcesMerger.merge(activity.getBaseContext());
             ReflectAccelerator.setResources(activity, rm);
+            // Also replace the resources of application
+            ReflectAccelerator.setResources(activity.getApplication(), rm);
         }
 
         private static class ResourcesMerger extends Resources {

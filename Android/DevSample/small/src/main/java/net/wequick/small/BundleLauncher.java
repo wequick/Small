@@ -18,14 +18,9 @@ package net.wequick.small;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.text.TextUtils;
 
-import net.wequick.small.util.SignUtils;
-
-import java.io.File;
 import java.io.InputStream;
 
 /**
@@ -33,9 +28,7 @@ import java.io.InputStream;
  */
 public abstract class BundleLauncher {
 
-    /**
-     * Bundle upgrade type
-     */
+    /** Bundle upgrade type */
     public enum UpgradeType {
         REPLACE (0), // Replace the built-in bundle; 覆盖升级
         OVERLAY (1), // Overlay with incremental package; 增量升级
