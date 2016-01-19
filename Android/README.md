@@ -60,10 +60,10 @@
 
 ## 开始Small之旅
 
-### Step 1. Create Project
+### 1. Create Project
 File->New->New Project...
 
-#### Configure your new project
+#### 1.1 Configure your new project
 
 假设宿主包名为`com.example.mysmall`
 
@@ -76,21 +76,16 @@ File->New->New Project...
 
 ![New small project][anim-new-prj]
 
-#### Add an activity to mobile
+#### 1.2 Add an activity to mobile
 
 这步推荐使用**Fullscreen Activity**，作为启动界面再好不过。
-
-![New launch activity][ic-new-act]
-
 在配置Activity界面，建议把**Activity Name**改为**LaunchActivity**（使名符其实）。
 
-![Config launch activity][ic-new-act2]
-
-### Step 2. Configure Small
+### 2. Configure Small
 
 修改Project的build.gradle
 
-#### 加入Small编译库
+#### 2.1 加入Small编译库
 
 ```groovy
 buildscript {
@@ -108,7 +103,7 @@ buildscript {
 apply plugin: 'net.wequick.small'
 ```
 
-#### 配置Small DSL （可选）
+#### 2.2 配置Small DSL （可选）
 
 目前只有一个属性`aarVersion`，表示Small aar的代码库版本。如果没有设置，默认为`gradle-small`的版本。
 
@@ -120,7 +115,7 @@ small {
 
 > 最新的版本号可以在[Bintray][bintray]上看到。
 
-### Step 3. Create Module
+### 3. Create Module
 
 File->New->Module来创建插件模块，需要满足：
 
@@ -136,30 +131,108 @@ File->New->Module来创建插件模块，需要满足：
 1. 修改**Application/Library name**为`App.main`
 2. 修改**Package name**为`com.example.mysmall.app.main`
 
-![New small module][anim-new-md]
+  ![New small module][anim-new-md]
+  
+### 4. Configure UI route
 
-### Step 4. Compile Small
+右键`app`模块->New->Folder->Assets Folder，新建`assets`目录，
+
+右键`assets`目录->New->File，新建`bundles.json`文件，加入：
+
+```json
+{
+  "version": "1.0.0",
+  "bundles": [
+    {
+      "uri": "main",
+      "pkg": "com.example.mysmall.app.main"
+    }
+  ]
+}
+```
+
+### 5. Setup Small
+
+#### 5.1 配置签名
+
+切换到`Project`目录树，右键`MySmall`，新建`sign`目录，添加`release.jks`签名文件。
+
+在`app`模块的`build.gradle`中增加签名配置（密码改成自己的）：
+
+```groovy
+signingConfigs {
+    release {
+        storeFile file('../sign/release.jks')
+        storePassword "5mall@ndro!d"
+        keyAlias "small"
+        keyPassword "5mall@ndro!d"
+    }
+}
+buildTypes {
+    release {
+        signingConfig signingConfigs.release
+    }
+}
+```
+
+#### 5.2 配置基础依赖
+
+在`app`模块增加共享的依赖库，比如：
+
+```groovy
+compile 'com.android.support:design:23.1.1'
+```
+
+#### 5.3 加载插件
+
+在`app`模块的`LaunchActivity`重载`onStart`方法：
+
+```java
+@Override
+protected void onStart() {
+    super.onStart();
+    Small.setBaseUri("http://example.com/");
+    Small.setUp(this, new net.wequick.small.Bundle.OnLoadListener() {
+        @Override
+        public void onStart(int bundleCount, int upgradeBundlesCount, long upgradeBundlesSize) {
+
+        }
+
+        @Override
+        public void onProgress(int bundleIndex, String bundleName, long loadedSize, long bundleSize) {
+
+        }
+
+        @Override
+        public void onComplete(Boolean success) {
+            Small.openUri("main", LaunchActivity.this);
+        }
+    });
+}
+```
+
+### 6. Compile Small
 
 1. Build libraries (准备基础库)
-  	> [./]gradlew buildLib -q (-q是安静模式，可以让输出更好看，也可以不加)
+  > [./]gradlew buildLib -q (-q是安静模式，可以让输出更好看，也可以不加)
   	
   ![Build libraries][anim-bL]
   	
 2. Build bundles (打包所有组件)
-  	> [./]gradlew buildBundle -q (-q是安静模式，可以让输出更好看，也可以不加)
+  > [./]gradlew buildBundle -q (-q是安静模式，可以让输出更好看，也可以不加)
   	
   ![Build bundles][anim-bB]
   
-> 步骤3跟4，如果你喜欢，也可以在**Gradle**任务导航里运行<br/>
+> 这两步，如果你喜欢，也可以在**Gradle**任务导航里运行<br/>
 > ![Small tasks][ic-root-tasks]
   
 > 单独编译一个组件可以使用 [./]gradlew -p web.about assembleRelease<br/>
 > 或者<br/>
 > ![Sub tasks][ic-sub-tasks]
 
-### Step 5. Run Small
+### 7. Run Small
 
-在工具栏[Run small][ic-run]，选择**app**模块，运行。
+在工具栏![Run small][ic-run]，选择**app**模块，运行。
 
 ## Examples
 
