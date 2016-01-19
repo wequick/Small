@@ -60,34 +60,92 @@
 
 ## 开始Small之旅
 
-### Step 1. Clone Small (下载源码)
-    > cd [你要放Small的目录]
-    > git clone https://github.com/wequick/Small.git
+### Step 1. Create Project
+File->New->New Project...
 
-> 强烈建议使用git命令行，方便更新维护。Windows用户入口：[Git for Windows][git-win]<br/>
-> 后续更新可以使用命令：git pull origin master
+#### Configure your new project
+
+假设宿主包名为`com.example.mysmall`
+
+1. 设置**Application name**为`MySmall`
+2. 修改**Company Domain**为`com.example.mysmall`
+
+  > 这步是个技巧，在Step3新建Module时将会自动带上该前缀
   
-### Step 2. Import Sample project (导入示例工程)
-打开Android Studio，File->New->Import Project... 选择**Sample**文件夹，导入。
+3. 修正**Package name**为`com.example.mysmall`
 
-![Small sample][ic-sample]
+![New small project][anim-new-prj]
 
-* Sample `示例工程`
-  * app `宿主工程`
-  * app.\* `包含Activity/Fragment的组件`
-  * lib.\* `公共库组件`
-  * web.\* `本地网页组件`
-  * sign `签名文件`
+#### Add an activity to mobile
 
-> 顺便说下，这些app.\*跟web.\*可以从工具栏的![▶️][as-run]按钮单独运行。<br/>
-> 其中app.home无法单独运行是因为它只包含一个Fragment，没有Launcher Activity。
+这步推荐使用**Fullscreen Activity**，作为启动界面再好不过。
 
-### Step 3. Build libraries (准备基础库)
+![New launch activity][ic-new-act]
+
+在配置Activity界面，建议把**Activity Name**改为**LaunchActivity**（使名符其实）。
+
+![Config launch activity][ic-new-act2]
+
+### Step 2. Configure Small
+
+修改Project的build.gradle
+
+#### 加入Small编译库
+
+```groovy
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:1.3.0'
+        classpath 'net.wequick.tools.build:gradle-small:0.1.1'
+    }
+}
+
+...
+
+apply plugin: 'net.wequick.small'
+```
+
+#### 配置Small DSL （可选）
+
+目前只有一个属性`aarVersion`，表示Small aar的代码库版本。如果没有设置，默认为`gradle-small`的版本。
+
+```groovy
+small {
+    aarVersion = '0.1.2'
+}
+```
+
+> 最新的版本号可以在[Bintray][bintray]上看到。
+
+### Step 3. Create Module
+
+File->New->Module来创建插件模块，需要满足：
+
+1. 模块名形如：`app.*`, `lib.*`或者`web.*`
+2. 包名包含：`.app.`, `.lib.`或者`.web.`
+
+  > 为什么要这样？因为Small会根据包名对插件进行归类，特殊的域名空间如：“.app.” 会让这变得容易。
+
+对`lib.*`模块选择**Android Library**，其他模块选择**Phone & Tablet Module**。
+
+创建一个插件模块，比如`app.main`：
+
+1. 修改**Application/Library name**为`App.main`
+2. 修改**Package name**为`com.example.mysmall.app.main`
+
+![New small module][anim-new-md]
+
+### Step 4. Compile Small
+
+1. Build libraries (准备基础库)
   	> [./]gradlew buildLib -q (-q是安静模式，可以让输出更好看，也可以不加)
   	
   ![Build libraries][anim-bL]
   	
-### Step 4. Build bundles (打包所有组件)
+2. Build bundles (打包所有组件)
   	> [./]gradlew buildBundle -q (-q是安静模式，可以让输出更好看，也可以不加)
   	
   ![Build bundles][anim-bB]
@@ -99,24 +157,14 @@
 > 或者<br/>
 > ![Sub tasks][ic-sub-tasks]
 
-## 开发者模式
+### Step 5. Run Small
 
-### Step 1. Import DevSample project (导入开发工程)
-打开Android Studio，File->New->Import Project... 选择**DevSample**文件夹，导入。
+在工具栏[Run small][ic-run]，选择**app**模块，运行。
 
-![Small devsample][ic-devsample]
+## Examples
 
-* DevSample `开发工程`
-  * buildSrc `组件编译插件，用于打包组件`
-  * small `核心库，用于加载组件`
-
-> buildSrc在修改后会被自动编译。
-
-其他步骤同上。除了编译单个组件的命令有所不同：
-
-    > [./]gradlew :app.main:assembleRelease
-    
-> P.s. gradlew命令支持缩写，比如`assembleRelease`可以缩写为`aR`
+* 使用者模式[Sample](Sample)
+* 开发者模式[DevSample](DevSample)
 
 ## 加入我们
 
@@ -124,7 +172,8 @@
 
 1. 提交[Bug](https://github.com/wequick/Small/issues)并协助我们确认修复。
 2. 提交[PR](https://github.com/wequick/Small/pulls)来完善文档、修复bug、完成待实现功能或者讨论中的建议。
-3. 在QQ群参与讨论，提供建议。
+3. 在QQ群或[Gitter][gitter]参与讨论，提供建议。
+4. 在[Bintray][bintray]上给我们的maven五星好评。
 
 #### 已知Issue
   * \#11 [终极分离与去除警告](https://github.com/wequick/Small/issues/11)
@@ -152,7 +201,9 @@
 
 <a target="_blank" href="http://shang.qq.com/wpa/qunwpa?idkey=d9b57f150084ba4b30c73d0a2b480e30c99b8718bf16bb7739af740f7d1e21f3"><img border="0" src="http://pub.idqqimg.com/wpa/images/group.png" alt="快客 - Small Android" title="快客 - Small Android"></a> 
 
-> QQ群链接无法使用的手动加 **374601844**，验证填写你是从何得知Small的，如qq, csdn, github, 朋友推荐。<br/> 进群改备注：如_“福州-GalenLin”_。
+> 验证填写你是从何得知Small的，如qq, weibo, InfoQ, csdn, 朋友推荐, github搜索。<br/> 
+进群改备注：如_“福州-GalenLin”_。<br/>
+QQ群链接无法使用的手动加 **374601844**
 
 ## License
 Apache License 2.0
@@ -167,3 +218,11 @@ Apache License 2.0
 [anim-bB]: http://code.wequick.net/anims/small-android-build-bundle.gif
 [ic-root-tasks]: http://code.wequick.net/images/small/root-gradle-tasks.png
 [ic-sub-tasks]: http://code.wequick.net/images/small/sub-gradle-tasks.png
+
+[anim-new-prj]: http://code.wequick.net/assets/anims/small-new-project.gif
+[anim-new-md]: http://code.wequick.net/assets/anims/small-new-module.gif
+[ic-new-act]: http://code.wequick.net/assets/images/small-new-activity.png
+[ic-new-act2]: http://code.wequick.net/assets/images/small-new-activity-step2.png
+[bintray]: https://bintray.com/galenlin/maven
+[gitter]: https://gitter.im/wequick/Small
+[ic-run]: http://code.wequick.net/assets/images/small-run.png
