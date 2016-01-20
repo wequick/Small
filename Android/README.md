@@ -254,6 +254,10 @@ protected void onStart() {
 
 > 更多细节请参考[开源贡献指南](https://guides.github.com/activities/contributing-to-open-source/)。
 
+#### 开发中Feature
+
+  1. 下载插件与热更新
+
 ## 文档
 [Wiki](https://github.com/wequick/small/wiki/Android)
 
