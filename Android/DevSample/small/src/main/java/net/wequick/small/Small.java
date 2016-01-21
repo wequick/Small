@@ -52,6 +52,7 @@ public final class Small {
     public static final String SHARED_PREFERENCES_BUNDLE_VERSIONS = "small.app-versions";
     public static final String SHARED_PREFERENCES_BUNDLE_URLS = "small.app-urls";
     public static final String SHARED_PREFERENCES_BUNDLE_MODIFIES = "small.app-modifies";
+    public static final String SHARED_PREFERENCES_BUNDLE_UPGRADES = "small.app-upgrades";
     public static final int REQUEST_CODE_DEFAULT = 10000;
 
     private static Context sContext = null;
@@ -201,6 +202,21 @@ public final class Small {
                 getSharedPreferences(SHARED_PREFERENCES_BUNDLE_MODIFIES, 0);
         if (sp == null) return 0;
         return sp.getLong(bundleName, 0);
+    }
+
+    public static void setBundleUpgraded(String bundleName, boolean flag) {
+        SharedPreferences sp = getContext().
+                getSharedPreferences(SHARED_PREFERENCES_BUNDLE_UPGRADES, 0);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putBoolean(bundleName, flag);
+        editor.commit();
+    }
+
+    public static boolean getBundleUpgraded(String bundleName) {
+        SharedPreferences sp = getContext().
+                getSharedPreferences(SHARED_PREFERENCES_BUNDLE_UPGRADES, 0);
+        if (sp == null) return false;
+        return sp.getBoolean(bundleName, false);
     }
 
     public static void openUri(String uriString, Context context) {

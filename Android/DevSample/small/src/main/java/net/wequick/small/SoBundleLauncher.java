@@ -18,11 +18,9 @@ package net.wequick.small;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 
-import net.wequick.small.util.FileUtils;
 import net.wequick.small.util.SignUtils;
 
 import java.io.File;
-import java.io.InputStream;
 
 /**
  * Class to launch .so bundle.
@@ -51,16 +49,16 @@ public abstract class SoBundleLauncher extends BundleLauncher {
         }
         if (!supporting) return false;
 
-        // Check if has been built-in
-        String soName = "lib" + packageName.replaceAll("\\.", "_") + ".so";
-        File plugin = new File(Bundle.getUserBundlesPath(), soName);
-        if (!plugin.exists()) return false;
+        // Check if has a patch
+        File plugin = bundle.getPatchFile();
+        PackageInfo pluginInfo = getPluginInfo(plugin);
+        if (pluginInfo == null) {
+            if (bundle.isPatching()) return false;
 
-        // Get package info
-        PackageManager pm = Small.getContext().getPackageManager();
-        PackageInfo pluginInfo = pm.getPackageArchiveInfo(plugin.getPath(),
-                PackageManager.GET_SIGNATURES);
-        if (pluginInfo == null) return false;
+            plugin = bundle.getBuiltinFile();
+            pluginInfo = getPluginInfo(plugin);
+            if (pluginInfo == null) return false;
+        }
 
         // Verify signatures
         if (!SignUtils.verifyPlugin(pluginInfo)) {
@@ -68,26 +66,21 @@ public abstract class SoBundleLauncher extends BundleLauncher {
             return true; // Got it, but disabled
         }
 
-        // Check if exists a patch
-        File patch = new File(FileUtils.getDownloadBundlePath(), soName);
-        if (patch.exists()) {
-            PackageInfo patchInfo = pm.getPackageArchiveInfo(plugin.getPath(),
-                    PackageManager.GET_SIGNATURES);
-            if (patchInfo == null || !SignUtils.verifyPlugin(patchInfo)) {
-                patch.delete(); // Invalid patch
-            } else {
-                // Currently only support replacing
-                // TODO: Incremental patch
-
-            }
-        }
-
-        bundle.setFileName(soName);
-        bundle.setFile(plugin);
         // Record version code for upgrade
         bundle.setVersionCode(pluginInfo.versionCode);
         Small.setBundleVersionCode(packageName, pluginInfo.versionCode);
 
+        bundle.setLoadingFile(plugin);
+
         return true;
+    }
+
+    protected PackageInfo getPluginInfo(File plugin) {
+        if (plugin == null || !plugin.exists()) return null;
+
+        PackageManager pm = Small.getContext().getPackageManager();
+        PackageInfo pluginInfo = pm.getPackageArchiveInfo(plugin.getPath(),
+                PackageManager.GET_SIGNATURES);
+        return pluginInfo;
     }
 }

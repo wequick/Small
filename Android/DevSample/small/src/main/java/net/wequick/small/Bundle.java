@@ -18,11 +18,11 @@ package net.wequick.small;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
 
+import net.wequick.small.util.FileUtils;
 import net.wequick.small.webkit.WebViewPool;
 
 import org.json.JSONArray;
@@ -54,6 +54,7 @@ public class Bundle {
     // Fields
     public static final String BUNDLE_MANIFEST_NAME = "bundles.json";
     public static final String BUNDLES_KEY = "bundles";
+    public static final String HOST_PACKAGE = "main";
 
     private static List<BundleLauncher> sBundleLaunchers = null;
     private static List<Bundle> sPreloadBundles = null;
@@ -70,7 +71,6 @@ public class Bundle {
     private String mPackageName;
     private String uriString;
     private Uri uri;
-    private Object preloadData;
     private URL url; // for WebBundleLauncher
     private Intent mIntent;
     private String type; // for ApkBundleLauncher
@@ -81,20 +81,29 @@ public class Bundle {
 
     private BundleLauncher mApplicableLauncher = null;
 
-    private String mFileName = null;
-    private File mFile = null;
+    private File mBuiltinFile = null;
     private File mPatchFile = null;
+    private File mLoadingFile = null; // for ApkBundleLauncher
     private long mSize = -1;
-
-    private Drawable mIcon = null;
 
     private boolean launchable = true;
     private boolean enabled = true;
+    private boolean patching = false;
 
     private String entrance = null; // Main activity for `apk bundle', index page for `web bundle'
 
     //______________________________________________________________________________
     // Class methods
+
+    public static Bundle findByName(String name) {
+        if (name == null) return null;
+        if (sPreloadBundles == null) return null;
+        for (Bundle bundle : sPreloadBundles) {
+            if (bundle.mPackageName == null) continue;
+            if (bundle.mPackageName.equals(name)) return bundle;
+        }
+        return null;
+    }
 
     public static String getUserBundlesPath() {
         return Small.getContext().getApplicationInfo().dataDir + "/lib/";
@@ -310,8 +319,20 @@ public class Bundle {
         }
     }
 
+    public void upgrade() {
+        if (mApplicableLauncher == null) return;
+        mApplicableLauncher.upgradeBundle(this);
+    }
+
     private void initWithMap(JSONObject map) throws JSONException {
-        mPackageName = map.getString("pkg");
+        String pkg = map.getString("pkg");
+        if (pkg != null && !pkg.equals(HOST_PACKAGE)) {
+            String soName = "lib" + pkg.replaceAll("\\.", "_") + ".so";
+            mBuiltinFile = new File(Bundle.getUserBundlesPath(), soName);
+            mPatchFile = new File(FileUtils.getDownloadBundlePath(), soName);
+            mPackageName = pkg;
+        }
+
         String uri = map.getString("uri");
         if (!uri.startsWith("http") && Small.getBaseUri() != null) {
             uri = Small.getBaseUri() + uri;
@@ -335,61 +356,8 @@ public class Bundle {
         }
     }
 
-    private boolean downloadBundle(URL url, final File file) {
-        final Bundle self = this;
-        BundleFetcher.getInstance().fetchBundle(url, new BundleFetcher.OnFetchListener() {
-            @Override
-            public void onFetch(InputStream is, Exception e) {
-                if (is != null) {
-                    if (file.exists()) {
-                        // TODO: 断点续传
-                        file.delete();
-                    }
-                    // Save
-                    OutputStream os = null;
-                    try {
-                        os = new FileOutputStream(file);
-                        if (os != null) {
-                            byte[] buffer = new byte[1024];
-                            int length;
-                            while ((length = is.read(buffer)) != -1) {
-                                postLoadProgressMessage(self.mPackageName, length);
-                                os.write(buffer, 0, length);
-                            }
-                            os.flush();
-                        }
-                    } catch (FileNotFoundException e1) {
-                        e.printStackTrace();
-                    } catch (IOException e1) {
-                        e.printStackTrace();
-                    } finally {
-                        if (os != null) {
-                            try {
-                                os.close();
-                            } catch (IOException e1) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
-        if (!file.exists()) {
-            return false;
-        }
-        this.mPatchFile = file;
-        return true;
-    }
-
     public void prepareForLaunch() {
         if (mIntent != null) return;
-
-        URL url = this.getDownloadUrl();
-        if (url != null) {
-            downloadBundle(url, this.mPatchFile);
-            postLoadProgressMessage(mPackageName, -1);
-        }
 
         if (mApplicableLauncher == null && sBundleLaunchers != null) {
             for (BundleLauncher launcher : sBundleLaunchers) {
@@ -455,24 +423,16 @@ public class Bundle {
         return url;
     }
 
-    public Object getPreloadData() {
-        return preloadData;
+    public File getBuiltinFile() {
+        return mBuiltinFile;
     }
 
-    public void setPreloadData(Object preloadData) {
-        this.preloadData = preloadData;
+    public File getPatchFile() {
+        return mPatchFile;
     }
 
-    public File getFile() {
-        return mFile;
-    }
-
-    public Drawable getIcon() {
-        return mIcon;
-    }
-
-    public void setIcon(Drawable icon) {
-        this.mIcon = icon;
+    public void setPatchFile(File file) {
+        mPatchFile = file;
     }
 
     public String getType() {
@@ -556,16 +516,20 @@ public class Bundle {
         this.enabled = enabled;
     }
 
-    public void setFile(File file) {
-        this.mFile = file;
+    public File getLoadingFile() {
+        return mLoadingFile;
     }
 
-    public String getFileName() {
-        return mFileName;
+    public void setLoadingFile(File mLoadingFile) {
+        this.mLoadingFile = mLoadingFile;
     }
 
-    public void setFileName(String mFileName) {
-        this.mFileName = mFileName;
+    public boolean isPatching() {
+        return patching;
+    }
+
+    public void setPatching(boolean patching) {
+        this.patching = patching;
     }
 
     //______________________________________________________________________________
