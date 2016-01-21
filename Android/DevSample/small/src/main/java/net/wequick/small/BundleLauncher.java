@@ -21,22 +21,10 @@ import android.content.Context;
 import android.net.Uri;
 import android.text.TextUtils;
 
-import java.io.InputStream;
-
 /**
  * Created by galen on 15/1/28.
  */
 public abstract class BundleLauncher {
-
-    /** Bundle upgrade type */
-    public enum UpgradeType {
-        REPLACE (0), // Replace the built-in bundle; 覆盖升级
-        OVERLAY (1), // Overlay with incremental package; 增量升级
-        FUSING (2); // Fusing previous `Overlay'; 熔断上次增量
-
-        private int value;
-        UpgradeType(int value) { this.value = value; }
-    }
 
     /**
      * LifeCircle #1: Setup launcher, execute on {Small} setup
@@ -83,6 +71,19 @@ public abstract class BundleLauncher {
         } else {
             context.startActivity(bundle.getIntent());
         }
+    }
+
+    /**
+     * Upgrade the bundle
+     * @param bundle
+     */
+    public void upgradeBundle(Bundle bundle) {
+        // Set flag to tell Small to upgrade bundle while launching application at next time
+        Small.setBundleUpgraded(bundle.getPackageName(), true);
+        // TODO: Hotfix
+//        bundle.setPatching(true);
+//        initBundle(bundle);
+//        bundle.setPatching(false);
     }
 
     /**

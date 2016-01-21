@@ -150,6 +150,25 @@ public class ReflectAccelerator {
         arrField.set(target, combined);
     }
 
+    public static void sliceArray(Object target, Field arrField, int deleteIndex)
+            throws  IllegalAccessException {
+        Object[] original = (Object[]) arrField.get(target);
+        if (original.length == 0) return;
+
+        Object[] sliced = (Object[]) Array.newInstance(
+                original.getClass().getComponentType(), original.length - 1);
+        if (deleteIndex > 0) {
+            // Copy left elements
+            System.arraycopy(original, 0, sliced, 0, deleteIndex);
+        }
+        int rightCount = original.length - deleteIndex - 1;
+        if (rightCount > 0) {
+            // Copy right elements
+            System.arraycopy(original, deleteIndex + 1, sliced, deleteIndex, rightCount);
+        }
+        arrField.set(target, sliced);
+    }
+
     private static void fillDexPathList(ClassLoader cl, Object element)
             throws NoSuchFieldException, IllegalAccessException {
         if (sPathListField == null) {
@@ -160,6 +179,21 @@ public class ReflectAccelerator {
             sDexElementsField = getDeclaredField(pathList.getClass(), "dexElements");
         }
         expandArray(pathList, sDexElementsField, new Object[]{element}, true);
+    }
+
+    public static void removeDexPathList(ClassLoader cl, int deleteIndex) {
+        try {
+            if (sPathListField == null) {
+                sPathListField = getDeclaredField(DexClassLoader.class.getSuperclass(), "pathList");
+            }
+            Object pathList = sPathListField.get(cl);
+            if (sDexElementsField == null) {
+                sDexElementsField = getDeclaredField(pathList.getClass(), "dexElements");
+            }
+            sliceArray(pathList, sDexElementsField, deleteIndex);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void setTheme(Activity activity, Resources.Theme theme) {
@@ -187,12 +221,16 @@ public class ReflectAccelerator {
     }
 
     public static void setResources(Application app, Resources resources) {
+        setResources(app.getBaseContext(), resources);
+    }
+
+    public static void setResources(Context context, Resources resources) {
         if (sContextImpl_mResources_field == null) {
             sContextImpl_mResources_field = getDeclaredField(
-                    app.getBaseContext().getClass(), "mResources");
+                    context.getClass(), "mResources");
             if (sContextImpl_mResources_field == null) return;
         }
-        setValue(sContextImpl_mResources_field, app.getBaseContext(), resources);
+        setValue(sContextImpl_mResources_field, context, resources);
     }
 
     public static Object getActivityThread(Context context) {
@@ -214,6 +252,20 @@ public class ReflectAccelerator {
             }
             return invoke(sActivityThread_currentActivityThread_method, null, (Object[]) null);
         }
+    }
+
+    public static AssetManager newAssetManager() {
+        AssetManager assets;
+        try {
+            assets = AssetManager.class.newInstance();
+        } catch (InstantiationException e1) {
+            e1.printStackTrace();
+            return null;
+        } catch (IllegalAccessException e1) {
+            e1.printStackTrace();
+            return null;
+        }
+        return assets;
     }
 
     public static Instrumentation.ActivityResult execStartActivityV21(

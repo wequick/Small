@@ -17,8 +17,10 @@
 package net.wequick.small;
 
 import android.app.Activity;
+import android.app.Application;
 import android.app.Instrumentation;
 import android.content.ComponentName;
+import android.content.ContextWrapper;
 import android.content.pm.ActivityInfo;
 import android.content.res.AssetManager;
 import android.content.res.Configuration;
@@ -35,9 +37,7 @@ import net.wequick.small.util.ReflectAccelerator;
 
 import java.io.File;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -47,24 +47,23 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by galen on 15/2/3.
  */
 public class ApkBundleLauncher extends SoBundleLauncher {
+
     private static final String PACKAGE_NAME = ApkBundleLauncher.class.getPackage().getName();
     private static final String STUB_ACTIVITY_PREFIX = PACKAGE_NAME + ".A.";
     private static final String TAG = "ApkBundleLauncher";
+    private static final String FD_STORAGE = "storage";
+    private static final String FD_LIBRARY = "lib";
+    private static final String FILE_DEX = "bundle.dex";
 
-    private static class PackageSpec {
-        public String name;
-        public String path;
-        public PackageInfo info;
+    private static class LoadedApk {
+        public String assetPath;
+        public int dexElementIndex;
+        public File dexFile;
+        public ActivityInfo[] activities;
     }
 
-    private static class ActivitySpec {
-        public PackageSpec packageSpec;
-        public ActivityInfo info;
-    }
-
-    private static ConcurrentHashMap<String, ActivitySpec> sActivitySpecs;
-    private static ConcurrentHashMap<String, PackageSpec> sPackageSpecs;
-    private static ArrayList<String> sAddedAssetPaths = new ArrayList<String>();
+    private static ConcurrentHashMap<String, LoadedApk> sLoadedApks;
+    private static ConcurrentHashMap<String, ActivityInfo> sLoadedActivities;
 
     private static Instrumentation sHostInstrumentation;
 
@@ -115,11 +114,11 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         /** Prepare resources for REAL */
         public void callActivityOnCreate(Activity activity, android.os.Bundle icicle) {
             do {
-                if (sActivitySpecs == null) break;
-                ActivitySpec as = sActivitySpecs.get(activity.getClass().getName());
-                if (as == null) break;
-                ensureAddAssetPath(activity, as.packageSpec);
-                applyActivityInfo(activity, as);
+                if (sLoadedActivities == null) break;
+                ActivityInfo ai = sLoadedActivities.get(activity.getClass().getName());
+                if (ai == null) break;
+                ensureAddAssetPath(activity);
+                applyActivityInfo(activity, ai);
             } while (false);
             super.callActivityOnCreate(activity, icicle);
         }
@@ -127,22 +126,22 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         @Override
         public void callActivityOnDestroy(Activity activity) {
             do {
-                if (sActivitySpecs == null) break;
+                if (sLoadedActivities == null) break;
                 String realClazz = activity.getClass().getName();
-                ActivitySpec as = sActivitySpecs.get(realClazz);
-                if (as == null) break;
-                inqueueStubActivity(as.info, realClazz);
+                ActivityInfo ai = sLoadedActivities.get(realClazz);
+                if (ai == null) break;
+                inqueueStubActivity(ai, realClazz);
             } while (false);
             super.callActivityOnDestroy(activity);
         }
 
         private void wrapIntent(Intent intent) {
             String realClazz = intent.getComponent().getClassName();
-            ActivitySpec spec = sActivitySpecs.get(realClazz);
-            if (spec == null) return;
+            ActivityInfo ai = sLoadedActivities.get(realClazz);
+            if (ai == null) return;
 
             intent.addCategory(REDIRECT_FLAG + realClazz);
-            String stubClazz = dequeueStubActivity(spec.info, realClazz);
+            String stubClazz = dequeueStubActivity(ai, realClazz);
             intent.setComponent(new ComponentName(Small.getContext(), stubClazz));
         }
 
@@ -238,16 +237,9 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                     field.setAccessible(true);
                     field.set(context, wrapper);
                 }
-            } catch (NoSuchFieldException e) {
-                e.printStackTrace();
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            } catch (NoSuchMethodException e) {
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
+            } catch (Exception ignored) {
+                ignored.printStackTrace();
+                // Usually, cannot reach here
             }
         }
     }
@@ -257,37 +249,81 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         return new String[] {"app", "lib"};
     }
 
+    private void unloadBundle(String packageName) {
+        if (sLoadedApks == null) return;
+        LoadedApk apk = sLoadedApks.get(packageName);
+        if (apk == null) return;
+
+        if (sLoadedActivities != null && apk.activities != null) {
+            for (ActivityInfo ai : apk.activities) {
+                sLoadedActivities.remove(ai.name);
+            }
+        }
+        sLoadedApks.remove(packageName);
+
+        // Remove asset path from application (Reset resources merger)
+        Context appContext = ((ContextWrapper) Small.getContext()).getBaseContext();
+        ResourcesMerger rm = ResourcesMerger.merge(appContext);
+        ReflectAccelerator.setResources(appContext, rm);
+        // TODO: Remove asset path from launching activities
+
+        // Remove dexElement from ClassLoader?
+        for (LoadedApk a : sLoadedApks.values()) {
+            if (a.dexElementIndex > apk.dexElementIndex) a.dexElementIndex--;
+        }
+        ReflectAccelerator.removeDexPathList(
+                appContext.getClassLoader(), apk.dexElementIndex);
+        if (apk.dexFile.exists()) apk.dexFile.delete();
+    }
+
     @Override
     public void loadBundle(Bundle bundle) {
+        boolean patching = bundle.isPatching();
         String packageName = bundle.getPackageName();
-        File plugin = bundle.getFile();
+        File plugin = bundle.getPatchFile().exists() ?
+                bundle.getPatchFile() : bundle.getBuiltinFile();
+
+        if (patching) {
+            // Unload bundle of the package name
+            unloadBundle(packageName);
+        }
 
         PackageManager pm = Small.getContext().getPackageManager();
         PackageInfo pluginInfo = pm.getPackageArchiveInfo(plugin.getPath(),
-                PackageManager.GET_ACTIVITIES );
+                PackageManager.GET_ACTIVITIES);
 
         // Load the bundle
         String apkPath = plugin.getPath();
-        if (sPackageSpecs == null) sPackageSpecs = new ConcurrentHashMap<String, PackageSpec>();
-        PackageSpec ps = sPackageSpecs.get(packageName);
-        if (ps == null) {
-            ps = new PackageSpec();
-            ps.name = packageName;
-            ps.path = apkPath;
-            ps.info = pluginInfo;
-            sPackageSpecs.put(packageName, ps);
+        if (sLoadedApks == null) sLoadedApks = new ConcurrentHashMap<String, LoadedApk>();
+        LoadedApk apk = sLoadedApks.get(packageName);
+        if (apk == null) {
+            apk = new LoadedApk();
+            apk.assetPath = apkPath;
+            apk.dexElementIndex = 0; // insert to header
+            apk.activities = pluginInfo.activities;
 
             // Add dex element to class loader's pathList
             Context context = Small.getContext();
-            File packagePath = context.getFileStreamPath("storage");
+            File packagePath = context.getFileStreamPath(FD_STORAGE);
             packagePath = new File(packagePath, packageName);
             if (!packagePath.exists()) {
                 packagePath.mkdirs();
             }
-            String libraryPath = packagePath + "/lib";
-            String optDexPath = packagePath + "/bundle.dex";
+            File libDir = new File(packagePath, FD_LIBRARY);
+            File optDexFile = new File(packagePath, FILE_DEX);
+
+            // Going to insert dexElement to header, so increase the index of the others
+            for (LoadedApk a : sLoadedApks.values()) a.dexElementIndex++;
+            if (Small.getBundleUpgraded(packageName)) {
+                // If upgraded, delete the opt dex file for recreating
+                if (optDexFile.exists()) optDexFile.delete();
+                Small.setBundleUpgraded(packageName, false);
+            }
             ReflectAccelerator.expandDexPathList(
-                    context.getClassLoader(), apkPath, libraryPath, optDexPath);
+                    context.getClassLoader(), apkPath, libDir.getPath(), optDexFile.getPath());
+
+            apk.dexFile = optDexFile;
+            sLoadedApks.put(packageName, apk);
         }
 
         if (pluginInfo.activities == null) {
@@ -297,12 +333,9 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
         // Record activities for intent redirection
         bundle.setEntrance(pluginInfo.activities[0].name);
-        if (sActivitySpecs == null) sActivitySpecs = new ConcurrentHashMap<String, ActivitySpec>();
+        if (sLoadedActivities == null) sLoadedActivities = new ConcurrentHashMap<String, ActivityInfo>();
         for (ActivityInfo ai : pluginInfo.activities) {
-            ActivitySpec as = new ActivitySpec();
-            as.packageSpec = ps;
-            as.info = ai;
-            sActivitySpecs.put(ai.name, as);
+            sLoadedActivities.put(ai.name, ai);
         }
     }
 
@@ -347,10 +380,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 // TODO: check package name
                 assert false;
             }
-            if (sPackageSpecs == null) return null;
-            PackageSpec ps = sPackageSpecs.get(packageName);
-            if (ps == null) return null;
-            ensureAddAssetPath((Activity) context, ps);
+            ensureAddAssetPath((Activity) context);
             if (type.endsWith("v4")) {
                 return (T) android.support.v4.app.Fragment.instantiate(context, fname);
             }
@@ -362,10 +392,9 @@ public class ApkBundleLauncher extends SoBundleLauncher {
     /**
      * Apply plugin activity info with plugin's AndroidManifest.xml
      * @param activity
-     * @param as
+     * @param ai
      */
-    private static void applyActivityInfo(Activity activity, ActivitySpec as) {
-        ActivityInfo ai = as.info;
+    private static void applyActivityInfo(Activity activity, ActivityInfo ai) {
         // Apply plugin theme
         ReflectAccelerator.setTheme(activity, null);
         activity.setTheme(ai.getThemeResource());
@@ -376,60 +405,41 @@ public class ApkBundleLauncher extends SoBundleLauncher {
     /**
      * Try to get plugin resource, if failed, add plugin asset path
      * @param activity
-     * @param ps
      */
-    private static void ensureAddAssetPath(Activity activity, PackageSpec ps) {
-        // Fix issue #2 by ymcao:
-        // Disappointed to find following cannot support for 6.0+ on some devices such as HTC A9.
-//        if (Build.VERSION.SDK_INT >= 21) { // 5.0+
-//            if (sAddedAssetPaths.contains(ps.path)) return;
-//            ReflectAccelerator.addAssetPath(
-//                    activity.getBaseContext().getResources().getAssets(), ps.path);
-//        ReflectAccelerator.addAssetPath(
-//                activity.getApplicationContext().getResources().getAssets(), ps.path);
-//            sAddedAssetPaths.add(ps.path);
-//            return;
-//        }
-
-        V20.addAssetPaths(activity);
+    private static void ensureAddAssetPath(Activity activity) {
+        Context appBase = activity.getApplication().getBaseContext();
+        Resources appRes = appBase.getResources();
+        Resources activityRes = activity.getResources();
+        if (appRes instanceof ResourcesMerger) {
+            // Synchronize resources from application
+            if (!activityRes.equals(appRes)) ReflectAccelerator.setResources(activity, appRes);
+        } else {
+            // Replace resources for application and activity
+            ResourcesMerger rm = ResourcesMerger.merge(activity.getBaseContext());
+            ReflectAccelerator.setResources(activity.getApplication(), rm);
+            ReflectAccelerator.setResources(activity, rm);
+        }
     }
 
-    private static class V20 {
-        static void addAssetPaths(Activity activity) {
-            ResourcesMerger rm = ResourcesMerger.merge(activity.getBaseContext());
-            ReflectAccelerator.setResources(activity, rm);
-            // Also replace the resources of application
-            ReflectAccelerator.setResources(activity.getApplication(), rm);
+    private static class ResourcesMerger extends Resources {
+        public ResourcesMerger(AssetManager assets,
+                               DisplayMetrics metrics, Configuration config) {
+            super(assets, metrics, config);
         }
 
-        private static class ResourcesMerger extends Resources {
-            public ResourcesMerger(AssetManager assets,
-                                   DisplayMetrics metrics, Configuration config) {
-                super(assets, metrics, config);
-            }
+        public static ResourcesMerger merge(Context context) {
+            AssetManager assets = ReflectAccelerator.newAssetManager();
 
-            public static ResourcesMerger merge(Context context) {
-                AssetManager assets;
-                try {
-                    assets = AssetManager.class.newInstance();
-                } catch (InstantiationException e1) {
-                    e1.printStackTrace();
-                    return null;
-                } catch (IllegalAccessException e1) {
-                    e1.printStackTrace();
-                    return null;
-                }
-                // Add plugin asset paths
-                for (PackageSpec ps : sPackageSpecs.values()){
-                    ReflectAccelerator.addAssetPath(assets, ps.path);
-                }
-                // Add host asset path
-                ReflectAccelerator.addAssetPath(assets, context.getPackageResourcePath());
-
-                Resources base = context.getResources();
-                return new ResourcesMerger(assets,
-                        base.getDisplayMetrics(), base.getConfiguration());
+            // Add plugin asset paths
+            for (LoadedApk apk : sLoadedApks.values()){
+                ReflectAccelerator.addAssetPath(assets, apk.assetPath);
             }
+            // Add host asset path
+            ReflectAccelerator.addAssetPath(assets, context.getPackageResourcePath());
+
+            Resources base = context.getResources();
+            return new ResourcesMerger(assets,
+                    base.getDisplayMetrics(), base.getConfiguration());
         }
     }
 }

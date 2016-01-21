@@ -48,8 +48,7 @@ public abstract class AssetBundleLauncher extends SoBundleLauncher {
     @Override
     public void loadBundle(Bundle bundle) {
         String packageName = bundle.getPackageName();
-        String soName = bundle.getFileName();
-        File plugin = bundle.getFile();
+        File plugin = bundle.getBuiltinFile();
 
         // Unzip the built-in plugin
         File unzipDir = new File(getBasePath(), packageName);
@@ -79,7 +78,7 @@ public abstract class AssetBundleLauncher extends SoBundleLauncher {
         }
 
         // Overlay patch bundle
-        File patchPlugin = new File(FileUtils.getDownloadBundlePath(), soName);
+        File patchPlugin = bundle.getPatchFile();
         if (patchPlugin.exists() && SignUtils.verifyPlugin(patchPlugin)) {
             try {
                 FileUtils.unZipFolder(plugin, unzipDir.getPath());
