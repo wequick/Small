@@ -248,15 +248,14 @@ protected void onStart() {
 3. 在QQ群或[Gitter][gitter]参与讨论，提供建议。
 4. 在[Bintray][bintray]上给我们的maven五星好评。
 
-#### 已知Issue
-  * \#11 [终极分离与去除警告](https://github.com/wequick/Small/issues/11)
-  * \#12 [加速生成AndroidManifest.xml](https://github.com/wequick/Small/issues/12)
-
 > 更多细节请参考[开源贡献指南](https://guides.github.com/activities/contributing-to-open-source/)。
 
-#### 开发中Feature
+#### TODO List
 
-  1. 下载插件与热更新
+  - [x] 下载插件
+  - [ ] 热更新（现在需要重启生效）
+  - [ ] [终极分离与去除警告](https://github.com/wequick/Small/issues/11)
+  - [ ] [加速生成AndroidManifest.xml](https://github.com/wequick/Small/issues/12)
 
 ## 文档
 [Wiki](https://github.com/wequick/small/wiki/Android)
