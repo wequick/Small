@@ -252,7 +252,7 @@ protected void onStart() {
 
 #### TODO List
 
-  - [x] 下载插件
+  - [x] 下载插件（maven还未发布，请先使用DevSample尝试）
   - [ ] 热更新（现在需要重启生效）
   - [ ] [终极分离与去除警告](https://github.com/wequick/Small/issues/11)
   - [ ] [加速生成AndroidManifest.xml](https://github.com/wequick/Small/issues/12)
