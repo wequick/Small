@@ -275,6 +275,10 @@ protected void onStart() {
 
 ## 联系我们
 
+当你决定这么做时，希望你已经下载了源码并成功运行。并且关注<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;_“如何**从Small中学到东西**以及**为Small做点什么**，促进**共同成长**。”_<br/>
+而非Small能为你做什么。
+
 <a target="_blank" href="http://shang.qq.com/wpa/qunwpa?idkey=d9b57f150084ba4b30c73d0a2b480e30c99b8718bf16bb7739af740f7d1e21f3"><img border="0" src="http://pub.idqqimg.com/wpa/images/group.png" alt="快客 - Small Android" title="快客 - Small Android"></a> 
 
 > 验证填写你是从何得知Small的，如qq, weibo, InfoQ, csdn, 朋友推荐, github搜索。<br/> 
