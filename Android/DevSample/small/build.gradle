@@ -26,3 +26,8 @@ task bintrayUpload(type: GradleBuild) {
     buildFile = 'publish.gradle'
     tasks = ['bintrayUpload']
 }
+
+task doc(type: GradleBuild) {
+    buildFile = 'publish.gradle'
+    tasks = ['javadoc']
+}
