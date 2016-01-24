@@ -24,7 +24,6 @@ import java.io.File;
 
 /**
  * Class to launch .so bundle.
- * Created by galen on 16/1/13.
  */
 public abstract class SoBundleLauncher extends BundleLauncher {
 

@@ -28,7 +28,6 @@ import android.webkit.ConsoleMessage;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
-import android.webkit.WebViewClient;
 import android.widget.Toast;
 
 import net.wequick.small.Small;
@@ -317,7 +316,7 @@ public class WebView extends android.webkit.WebView {
             }
         });
 
-        this.setWebViewClient(new WebViewClient() {
+        this.setWebViewClient(new android.webkit.WebViewClient() {
 
             private final String ANCHOR_SCHEME = "anchor";
 
@@ -358,8 +357,8 @@ public class WebView extends android.webkit.WebView {
                     // reload by window.location.reload or something
                     mInjected = false;
                 }
-                if (sOnLoadListener != null && url.equals(mLoadingUrl)) {
-                    sOnLoadListener.onPageStarted(WebViewPool.getContext(view),
+                if (sWebViewClient != null && url.equals(mLoadingUrl)) {
+                    sWebViewClient.onPageStarted(WebViewPool.getContext(view),
                             (WebView) view, url, favicon);
                 }
             }
@@ -393,8 +392,8 @@ public class WebView extends android.webkit.WebView {
                     mInjected = true;
                 }
 
-                if (sOnLoadListener != null && url.equals(mLoadingUrl)) {
-                    sOnLoadListener.onPageFinished(WebViewPool.getContext(view),
+                if (sWebViewClient != null && url.equals(mLoadingUrl)) {
+                    sWebViewClient.onPageFinished(WebViewPool.getContext(view),
                             (WebView) view, url);
                 }
             }
@@ -404,8 +403,8 @@ public class WebView extends android.webkit.WebView {
                                         String description, String failingUrl) {
                 super.onReceivedError(view, errorCode, description, failingUrl);
                 Log.e("Web", "error: " + description);
-                if (sOnLoadListener != null && failingUrl.equals(mLoadingUrl)) {
-                    sOnLoadListener.onReceivedError(WebViewPool.getContext(view),
+                if (sWebViewClient != null && failingUrl.equals(mLoadingUrl)) {
+                    sWebViewClient.onReceivedError(WebViewPool.getContext(view),
                             (WebView) view, errorCode, description, failingUrl);
                 }
             }
@@ -507,14 +506,14 @@ public class WebView extends android.webkit.WebView {
             if (internalInvoke(context, method, parameters, callbackFunctionId)) return;
 
             // User custom events
-            if (sOnLoadListener != null) {
-                JsResult jsResult = new JsResult(new OnFinishListener() {
+            if (sWebViewClient != null) {
+                JsResult jsResult = new JsResult(new JsResult.OnFinishListener() {
                     @Override
                     public void finish(Object result) {
                         callbackJS(callbackFunctionId, result);
                     }
                 });
-                sOnLoadListener.onJsInvoked(context, WebView.this, method, parameters, jsResult);
+                sWebViewClient.onJsInvoked(context, WebView.this, method, parameters, jsResult);
             }
         }
 
@@ -645,38 +644,9 @@ public class WebView extends android.webkit.WebView {
         }
     }
 
-    /** WebView Client */
-    public interface OnLoadListener {
-        void onPageStarted(Context context, WebView view, String url, Bitmap favicon);
+    private static WebViewClient sWebViewClient;
 
-        void onPageFinished(Context context, WebView view, String url);
-
-        void onReceivedError(Context context, WebView view, int errorCode,
-                             String description, String failingUrl);
-
-        void onJsInvoked(Context context, WebView view, String method,
-                         HashMap<String, Object> parameters, JsResult result);
-    }
-
-    public class JsResult {
-        private OnFinishListener mFinishListener;
-
-        public JsResult(OnFinishListener listener) {
-            mFinishListener = listener;
-        }
-
-        public void finish(Object result) {
-            mFinishListener.finish(result);
-        }
-    }
-
-    public interface OnFinishListener {
-        void finish(Object result);
-    }
-
-    private static OnLoadListener sOnLoadListener;
-
-    public static void setOnLoadListener(OnLoadListener listener) {
-        sOnLoadListener = listener;
+    public static void setWebViewClient(WebViewClient listener) {
+        sWebViewClient = listener;
     }
 }

@@ -31,7 +31,19 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
- * Created by galen on 15/1/28.
+ * This class launch the plugin html file with an internal {@link WebActivity}.
+ *
+ * <p>This class resolve the bundle who's <tt>pkg</tt> is specified as
+ * <i>"*.web.*"</i> in <tt>bundle.json</tt>.
+ *
+ * <p>The <tt>WebActivity</tt> use the <tt>WebView</tt> to show html content.
+ *
+ * <p>For speeding up the loading of html content, we use the <tt>WebViewPool</tt>
+ * to manager the web views.
+ *
+ * @see WebActivity
+ * @see net.wequick.small.webkit.WebView
+ * @see WebViewPool
  */
 public class WebBundleLauncher extends AssetBundleLauncher {
 

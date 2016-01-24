@@ -38,7 +38,7 @@ import dalvik.system.DexClassLoader;
 import dalvik.system.DexFile;
 
 /**
- * Created by galen on 15/11/2.
+ * This class consists exclusively of static methods that accelerate reflections.
  */
 public class ReflectAccelerator {
     // AssetManager.addAssetPath
@@ -49,13 +49,11 @@ public class ReflectAccelerator {
     private static Field sPathListField;
     private static Field sDexElementsField;
     // ApplicationInfo.resourceDirs
-    private static Field sApplicationInfo_resourceDirs_field;
     private static Field sContextThemeWrapper_mTheme_field;
     private static Field sContextThemeWrapper_mResources_field;
     private static Field sContextImpl_mResources_field;
     private static Field sActivity_mMainThread_field;
     private static Method sActivityThread_currentActivityThread_method;
-    private static Method sTheme_getNativeTheme_method;
     private static Method sInstrumentation_execStartActivityV21_method;
     private static Method sInstrumentation_execStartActivityV20_method;
 
@@ -70,7 +68,6 @@ public class ReflectAccelerator {
                     "addAssetPath", new Class[]{String.class});
         }
         if (sAddAssetPath == null) return 0;
-        // Fix issue #4 by hpj831112
         Integer ret = invoke(sAddAssetPath, assets, path);
         if (ret == null) return 0;
         return ret;

@@ -22,16 +22,78 @@ import android.net.Uri;
 import android.text.TextUtils;
 
 /**
- * Created by galen on 15/1/28.
+ * This class resolve the bundle and launch it.
+ *
+ * <p>In general the movement through a bundle launcher's lifecycle looks like
+ * this:</p>
+ *
+ * <table border="2" width="85%" align="center" frame="hsides" rules="rows">
+ *     <colgroup align="left" span="3" />
+ *     <colgroup align="left" />
+ *     <colgroup align="center" />
+ *
+ *     <thead>
+ *     <tr><th colspan="3">Method</th> <th>Description</th> <th>Next</th></tr>
+ *     </thead>
+ *
+ *     <tbody>
+ *     <tr><th colspan="3" align="left" border="0">{@link #setup(Context)}</th>
+ *         <td>Called when the <b>Small</b> is setUp by {@link Small#setUp(Context)}.
+ *             This is where you should do all of your normal static set up:
+ *             initialize the launcher, prepare for resolving bundle.</td>
+ *         <td align="center"><code>preloadBundle(Bundle)</code></td>
+ *     </tr>
+ *
+ *     <tr><td rowspan="5" style="border-left: none; border-right: none;">&nbsp;&nbsp;&nbsp;&nbsp;</td>
+ *         <th colspan="2" align="left" border="0">{@link #preloadBundle(Bundle)}</th>
+ *         <td>Called when loading bundles by {@link Bundle#loadLaunchableBundles(Bundle.OnLoadListener)}.
+ *             This is where you should do all of your normal validations and preparations.</td>
+ *         <td align="center"><code>loadBundle(Bundle)</code></td>
+ *     </tr>
+ *
+ *     <tr><th colspan="2" align="left" border="0">{@link #loadBundle(Bundle)}</th>
+ *         <td>Called when the bundle is becoming resolvable to the launcher.
+ *             <p>Followed by <code>preloadBundle(bundle)</code> if the bundle is validated.</td>
+ *         <td align="center">nothing</td>
+ *     </tr>
+ *
+ *     <tr><td rowspan="2" style="border-left: none;">&nbsp;&nbsp;&nbsp;&nbsp;</td>
+ *         <th align="left" border="0">{@link #prelaunchBundle(Bundle)}</th>
+ *         <td>Called when the launcher will start an activity from the bundle.
+ *             This is where you should do all of the preparation for the intent to the starting activity.
+ *             <p>Always followed by <code>Small.openUri(uri, context)</code>.</td>
+ *         <td align="center"><code>launchBundle(bundle)</code></td>
+ *     </tr>
+ *
+ *     <tr><th align="left" border="0">{@link #launchBundle(Bundle, Context)}</th>
+ *         <td>Called when the bundle is ready to launch. This is typically means the starting activity's
+ *             intent has been prepared.
+ *             <p>Followed by <code>prelaunchBundle(bundle)</code>.</td>
+ *         <td align="center">nothing</td>
+ *     </tr>
+ *     </tbody>
+ * </table>
  */
 public abstract class BundleLauncher {
 
     /**
-     * LifeCircle #1: Setup launcher, execute on {Small} setup
+     * Called when Small is setUp by {@link Small#setUp}. This is where most initialization
+     * should go: initialize the launcher context, prepare for resolving bundle.
+     *
+     * @param context the context passed by {@link Small#setUp}
      */
     public void setup(Context context) { }
 
-    public boolean initBundle(Bundle bundle) {
+    /**
+     * Called when loading bundles by {@link Bundle#loadLaunchableBundles(Bundle.OnLoadListener)}.
+     *
+     * <p>This method try to preload a bundle, if succeed, load it later.
+     *
+     * {@hide}
+     * @param bundle the loading bundle
+     * @return <tt>true</tt> if the <tt>bundle</tt> is resolved
+     */
+    public boolean resolveBundle(Bundle bundle) {
         if (!preloadBundle(bundle)) return false;
 
         loadBundle(bundle);
@@ -39,22 +101,44 @@ public abstract class BundleLauncher {
     }
 
     /**
-     * Preload bundle
-     * @param bundle
-     * @return true: can load the bundle, false: cannot
+     * Called when loading bundles by {@link Bundle#loadLaunchableBundles(Bundle.OnLoadListener)}.
+     * This is where validation and preparation should go:
+     * validate the <tt>bundle</tt> package name,
+     * validate the <tt>bundle</tt> signatures, record the <tt>bundle</tt> version for upgrade.
+     *
+     * @param bundle the loading bundle
+     * @return <tt>true</tt> if can load the <tt>bundle</tt>
      */
     public boolean preloadBundle(Bundle bundle) {
         return true;
     }
 
     /**
-     * Load a bundle
-     * @param bundle
+     * Called after {@link #preloadBundle(Bundle)} succeed. This is where most initialization
+     * should go: resolve the bundle activities or asset files,
+     * prepare the main entrance the bundle to start.
+     *
+     * @param bundle the loading bundle
      */
     public void loadBundle(Bundle bundle) { }
 
+    /**
+     * Called when launching a bundle by {@link Small#openUri}. This is where most initialization
+     * should go: prepare the intent of starting activity and passing parameters by the
+     * <tt>uri</tt> from {@link Small#openUri}.
+     *
+     * @param bundle the launching <tt>bundle</tt>
+     */
     public void prelaunchBundle(Bundle bundle) { }
 
+    /**
+     * Called after {@link #prelaunchBundle(Bundle)}.
+     *
+     * This is usually starting an activity.
+     *
+     * @param bundle the launching bundle
+     * @param context current context
+     */
     public void launchBundle(Bundle bundle, Context context) {
         if (!bundle.isLaunchable()) {
             // TODO: Exit app
@@ -64,7 +148,7 @@ public abstract class BundleLauncher {
 
         if (context instanceof Activity) {
             Activity activity = (Activity) context;
-            if (needsFinishActivity(activity)) {
+            if (shouldFinishPreviousActivity(activity)) {
                 activity.finish();
             }
             activity.startActivityForResult(bundle.getIntent(), Small.REQUEST_CODE_DEFAULT);
@@ -74,37 +158,48 @@ public abstract class BundleLauncher {
     }
 
     /**
-     * Upgrade the bundle
-     * @param bundle
+     * Upgrade the bundle.
+     *
+     * <p>This method should be called after you have downloaded the <tt>bundle</tt>'s
+     * patch file. {@code downloadFile(url, bundle.getPatchFile());}
+     *
+     * <p>Currently, we only set a flag in this method, and do upgrading while the application
+     * launched at next time.
+     *
+     * <p>We hope to accomplish hotfix on application running in the future.
+     *
+     * @param bundle the bundle to upgrade
      */
     public void upgradeBundle(Bundle bundle) {
         // Set flag to tell Small to upgrade bundle while launching application at next time
         Small.setBundleUpgraded(bundle.getPackageName(), true);
         // TODO: Hotfix
 //        bundle.setPatching(true);
-//        initBundle(bundle);
+//        resolveBundle(bundle);
 //        bundle.setPatching(false);
     }
 
     /**
-     * Create object with current launcher
-     * @param context
+     * Create object with current launcher.
+     *
+     * @param bundle the launching bundle
+     * @param context current context
      * @param type object type, like 'fragment', 'intent'
-     * @param <T>
-     * @return
+     * @param <T> the return type
+     * @return the object created
      */
     public <T> T createObject(Bundle bundle, Context context, String type) {
         return null;
     }
 
-//    /**
-//     * Upgrade bundle
-//     * @param is the stream download from server
-//     * @param type the type of upgrade
-//     */
-//    public abstract void upgrade(InputStream is, UpgradeType type);
-
-    private boolean needsFinishActivity(Activity activity) {
+    /**
+     * Called when starting a new activity. This is where to check if should finish previous
+     * activity before start a new one.
+     *
+     * @param activity
+     * @return <tt>true</tt> if should finish previous activity first
+     */
+    private boolean shouldFinishPreviousActivity(Activity activity) {
         Uri uri = Small.getUri(activity);
         if (uri != null) {
             String fullscreen = uri.getQueryParameter("_fullscreen");

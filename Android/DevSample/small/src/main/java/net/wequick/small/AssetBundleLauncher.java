@@ -28,8 +28,13 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
- * Class to launch asset bundle.
- * Created by galen on 16/1/13.
+ * This class launch the plugin asset by it's file name with an internal activity.
+ *
+ * <p>This class resolve the bundle who's <tt>pkg</tt> is specified as
+ * <i>"*.[neither app nor lib].*"</i> in <tt>bundle.json</tt>.
+ *
+ * <p>The <i>internal activity</i> parse the asset file and display it.
+ *
  */
 public abstract class AssetBundleLauncher extends SoBundleLauncher {
 

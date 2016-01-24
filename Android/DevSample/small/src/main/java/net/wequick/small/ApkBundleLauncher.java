@@ -43,8 +43,20 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Class to launch an apk (which fake as .so).
- * Created by galen on 15/2/3.
+ * This class launch the plugin activity by it's class name.
+ *
+ * <p>This class resolve the bundle who's <tt>pkg</tt> is specified as
+ * <i>"*.app.*"</i> or <i>*.lib.*</i> in <tt>bundle.json</tt>.
+ *
+ * <p>The <i>*.app.*</i> plugin contains some activities, While launching,
+ * this class takes the bundle's <tt>uri</tt> as a shortcut of
+ * the plugin launcher activity class name. the other activities
+ * can be specified by the bundle's <tt>rules</tt>.
+ *
+ * <p>The <i>*.lib.*</i> plugin usually consists exclusively of global methods
+ * that operate on your product services.
+ *
+ * @see ActivityLauncher
  */
 public class ApkBundleLauncher extends SoBundleLauncher {
 

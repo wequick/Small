@@ -31,6 +31,7 @@ import android.support.v4.content.LocalBroadcastManager;
 
 import net.wequick.small.util.ApplicationUtils;
 import net.wequick.small.webkit.WebView;
+import net.wequick.small.webkit.WebViewClient;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -40,7 +41,14 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by galen on 15/1/28.
+ * This class consists exclusively of static methods that operate on bundle.
+ *
+ * <h3>Core APIs</h3>
+ * <ul>
+ *     <li>{@link #openUri} launch the bundle</li>
+ *     <li>{@link #createObject} create object from the bundle</li>
+ *     <li>{@link #setWebViewClient(WebViewClient)} customize the web view for web bundle</li>
+ * </ul>
  */
 public final class Small {
     public static final String EVENT_OPENURI = "small-open";
@@ -59,10 +67,8 @@ public final class Small {
     private static HashMap<String, Class<?>> sActivityClasses;
     private static String sBaseUri = ""; // base url of uri
     private static String sBaseSrc = ""; // source url for remote bundle
-    private static boolean sIsNewHostApp; // 首次安装或升级
+    private static boolean sIsNewHostApp; // first launched or upgraded
     private static int sWebActivityTheme;
-
-    private static WebView.OnLoadListener onLoadListener;
 
     public static Context getContext() {
         if (sContext == null) {
@@ -124,13 +130,8 @@ public final class Small {
         Bundle.loadLaunchableBundles(listener);
     }
 
-    public static void setWebViewOnLoadListener(WebView.OnLoadListener listener) {
-        onLoadListener = listener;
-        WebView.setOnLoadListener(listener);
-    }
-
-    public static WebView.OnLoadListener gettWebViewOnLoadListener() {
-        return onLoadListener;
+    public static void setWebViewClient(WebViewClient client) {
+        WebView.setWebViewClient(client);
     }
 
     public static Map<String, Integer> getBundleVersions() {

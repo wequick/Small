@@ -36,7 +36,6 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -47,7 +46,20 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by galen on 15/1/28.
+ * This class consists exclusively of methods that operate on apk plugin.
+ *
+ * <p>All the <tt>bundles</tt> are loaded by <tt>bundle.json</tt>.
+ * The <tt>bundle.json</tt> format and usage are in
+ * <a href="https://github.com/wequick/Small/wiki/UI-route">UI Route</a>.
+ *
+ * <p>Each bundle is resolved by <tt>BundleLauncher</tt>.
+ *
+ * <p>If the <tt>pkg</tt> is specified in <tt>bundle.json</tt>,
+ * the <tt>bundle</tt> is refer to a plugin file with file name in converter
+ * {@code "lib" + pkg.replaceAll("\\.", "_") + ".so"}
+ * and resolved by a <tt>SoBundleLauncher</tt>.
+ *
+ * @see BundleLauncher
  */
 public class Bundle {
     //______________________________________________________________________________
@@ -361,7 +373,7 @@ public class Bundle {
 
         if (mApplicableLauncher == null && sBundleLaunchers != null) {
             for (BundleLauncher launcher : sBundleLaunchers) {
-                if (launcher.initBundle(this)) {
+                if (launcher.resolveBundle(this)) {
                     mApplicableLauncher = launcher;
                     break;
                 }
