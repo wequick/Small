@@ -116,7 +116,7 @@ public final class WebViewPool {
             if (webView != null)
                 return webView;
 
-            // 压入栈顶
+            // Push
             webView = createWebView(url);
             mWebViewSpecs.add(new WebViewSpec(url, webView));
             return webView;
@@ -125,7 +125,7 @@ public final class WebViewPool {
             if (webView != null)
                 return webView;
 
-            // 替换栈尾，并移到栈顶
+            // Replace tail and move to head
             WebViewSpec spec = mWebViewSpecs.get(0);
             spec.loadUrl(url);
             mWebViewSpecs.add(spec);

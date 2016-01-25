@@ -95,7 +95,6 @@ public class Bundle {
 
     private File mBuiltinFile = null;
     private File mPatchFile = null;
-    private File mLoadingFile = null; // for ApkBundleLauncher
     private long mSize = -1;
 
     private boolean launchable = true;
@@ -526,14 +525,6 @@ public class Bundle {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
-    }
-
-    public File getLoadingFile() {
-        return mLoadingFile;
-    }
-
-    public void setLoadingFile(File mLoadingFile) {
-        this.mLoadingFile = mLoadingFile;
     }
 
     public boolean isPatching() {

@@ -30,6 +30,8 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 
 import net.wequick.small.util.ApplicationUtils;
+import net.wequick.small.webkit.JsHandler;
+import net.wequick.small.webkit.JsResult;
 import net.wequick.small.webkit.WebView;
 import net.wequick.small.webkit.WebViewClient;
 
@@ -45,9 +47,10 @@ import java.util.Map;
  *
  * <h3>Core APIs</h3>
  * <ul>
- *     <li>{@link #openUri} launch the bundle</li>
+ *     <li>{@link #openUri} launch the bundle with specify activity by the <tt>uri</tt></li>
  *     <li>{@link #createObject} create object from the bundle</li>
- *     <li>{@link #setWebViewClient(WebViewClient)} customize the web view for web bundle</li>
+ *     <li>{@link #setWebViewClient(WebViewClient)} customize the web view behaviors for web bundle</li>
+ *     <li>{@link #registerJsHandler(String, JsHandler)} customize the javascript api for web bundle</li>
  * </ul>
  */
 public final class Small {
@@ -132,6 +135,10 @@ public final class Small {
 
     public static void setWebViewClient(WebViewClient client) {
         WebView.setWebViewClient(client);
+    }
+
+    public static void registerJsHandler(String method, JsHandler handler) {
+        WebView.registerJsHandler(method, handler);
     }
 
     public static Map<String, Integer> getBundleVersions() {

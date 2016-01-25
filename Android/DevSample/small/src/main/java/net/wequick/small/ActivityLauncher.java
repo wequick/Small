@@ -18,7 +18,6 @@ package net.wequick.small;
 
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 
 /**
  * This class launch the host activity by it's class name.

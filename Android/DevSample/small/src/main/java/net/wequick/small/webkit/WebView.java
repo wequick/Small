@@ -38,9 +38,23 @@ import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Created by galen on 15/5/29.
+ * <p>A View that displays web pages. This class is the basis upon which you
+ * can display native web pages or some online content within WebActivity.
+ *
+ * <p>This class brings the javascript bridge to connect native and web, all
+ * the usages are on <a href="https://github.com/wequick/Small/wiki/Javascript-API">Javascript API</a>.
+ *
+ * <p>What's more, it brings the ability of access native action bar by web. You can simply do it
+ * in you html meta content as following:
+ *
+ * <pre>
+ *     <meta data-owner="small" name="[$pos]-bar-item" content="type=[$type],onclick=[$handler]()">
+ * </pre>
+ *
+ * For more details see <a href="https://github.com/wequick/Small/wiki/Web/Navigation-bar">Navigation bar</a>.
  */
 public class WebView extends android.webkit.WebView {
     private static final String SMALL_SCHEME = "small";
@@ -94,6 +108,8 @@ public class WebView extends android.webkit.WebView {
             "return JSON.stringify(_ms);";
     /** Js scripts to get window close result */
     private static final String SMALL_GET_CLOSERET_JS = "return window._onclose()";
+
+    private static ConcurrentHashMap<String, JsHandler> sJsHandlers;
 
     private OnResultListener mOnResultListener = null;
     private Boolean mConfirmed = false;
@@ -380,7 +396,7 @@ public class WebView extends android.webkit.WebView {
                                 "var y=document.body.scrollTop;" +
                                 "var e=document.getElementsByName('" + anchor + "')[0];" +
                                 "while(e){" +
-                                    "y+=e.offsetTop-e.scrollTop+e.clientTop;e=e.offsetParent;}" +
+                                "y+=e.offsetTop-e.scrollTop+e.clientTop;e=e.offsetParent;}" +
                                 "location='" + ANCHOR_SCHEME + "://'+y;");
                     }
                 }
@@ -472,6 +488,16 @@ public class WebView extends android.webkit.WebView {
     }
 
     /**
+     * @hide Only for Small API
+     */
+    public static void registerJsHandler(String method, JsHandler handler) {
+        if (method == null || handler == null) return;
+
+        if (sJsHandlers == null) sJsHandlers = new ConcurrentHashMap<String, JsHandler>();
+        sJsHandlers.put(method, handler);
+    }
+
+    /**
      * Js Bridge
      */
     private class SmallJsBridge {
@@ -506,15 +532,17 @@ public class WebView extends android.webkit.WebView {
             if (internalInvoke(context, method, parameters, callbackFunctionId)) return;
 
             // User custom events
-            if (sWebViewClient != null) {
-                JsResult jsResult = new JsResult(new JsResult.OnFinishListener() {
-                    @Override
-                    public void finish(Object result) {
-                        callbackJS(callbackFunctionId, result);
-                    }
-                });
-                sWebViewClient.onJsInvoked(context, WebView.this, method, parameters, jsResult);
-            }
+            if (sJsHandlers == null) return;
+            JsHandler handler = sJsHandlers.get(method);
+            if (handler == null) return;
+
+            JsResult jsResult = new JsResult(new JsResult.OnFinishListener() {
+                @Override
+                public void finish(Object result) {
+                    callbackJS(callbackFunctionId, result);
+                }
+            });
+            handler.handle(context, parameters, jsResult);
         }
 
         /**
@@ -646,6 +674,9 @@ public class WebView extends android.webkit.WebView {
 
     private static WebViewClient sWebViewClient;
 
+    /**
+     * @hide Only for Small API
+     */
     public static void setWebViewClient(WebViewClient listener) {
         sWebViewClient = listener;
     }

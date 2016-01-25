@@ -23,7 +23,18 @@ import net.wequick.small.util.SignUtils;
 import java.io.File;
 
 /**
- * Class to launch .so bundle.
+ * This class resolve the bundle file with the extension of ".so".
+ *
+ * <p>All the bundle files are built in at application lib path ({@code bundle.getBuiltinFile()}).
+ *
+ * <p>All the bundles can be upgraded after you download the patch file to
+ * {@code bundle.getPatchFile()} and call {@code bundle.upgrade()}.
+ *
+ * There are two primary implements of this class:
+ * <ul>
+ *     <li>{@link ApkBundleLauncher} resolve the apk bundle</li>
+ *     <li>{@link WebBundleLauncher} resolve the native web bundle</li>
+ * </ul>
  */
 public abstract class SoBundleLauncher extends BundleLauncher {
 
@@ -68,8 +79,6 @@ public abstract class SoBundleLauncher extends BundleLauncher {
         // Record version code for upgrade
         bundle.setVersionCode(pluginInfo.versionCode);
         Small.setBundleVersionCode(packageName, pluginInfo.versionCode);
-
-        bundle.setLoadingFile(plugin);
 
         return true;
     }

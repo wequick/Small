@@ -161,12 +161,12 @@ public abstract class BundleLauncher {
      * Upgrade the bundle.
      *
      * <p>This method should be called after you have downloaded the <tt>bundle</tt>'s
-     * patch file. {@code downloadFile(url, bundle.getPatchFile());}
+     * patch file witch code like {@code downloadFile(url, bundle.getPatchFile());}.
      *
-     * <p>Currently, we only set a flag in this method, and do upgrading while the application
+     * <p>Currently, we only set a flag in this method and do upgrading while the application
      * launched at next time.
      *
-     * <p>We hope to accomplish hotfix on application running in the future.
+     * TODO: Accomplish hotfix on application running.
      *
      * @param bundle the bundle to upgrade
      */

@@ -33,10 +33,10 @@ import java.net.URL;
 /**
  * This class launch the plugin html file with an internal {@link WebActivity}.
  *
- * <p>This class resolve the bundle who's <tt>pkg</tt> is specified as
+ * <p>It resolves the bundle who's <tt>pkg</tt> is specified as
  * <i>"*.web.*"</i> in <tt>bundle.json</tt>.
  *
- * <p>The <tt>WebActivity</tt> use the <tt>WebView</tt> to show html content.
+ * <p>The <tt>WebActivity</tt> takes the <tt>WebView</tt> as content view to show html content.
  *
  * <p>For speeding up the loading of html content, we use the <tt>WebViewPool</tt>
  * to manager the web views.
