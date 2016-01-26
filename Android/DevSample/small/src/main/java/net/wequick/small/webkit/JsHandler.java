@@ -14,23 +14,17 @@
  * under the License.
  */
 
-package net.wequick.small.service;
+package net.wequick.small.webkit;
 
-import android.os.Handler;
-import android.os.ResultReceiver;
+import android.content.Context;
+
+import java.util.Map;
 
 /**
- * Created by galen on 15/7/16.
+ * This class do the native stuff for the registered Javascript method.
+ *
+ * @see net.wequick.small.Small#registerJsHandler(String, JsHandler)
  */
-public class UpgradeReceiver extends ResultReceiver {
-    /**
-     * Create a new ResultReceive to receive results.  Your
-     * {@link #onReceiveResult} method will be called from the thread running
-     * <var>handler</var> if given, or from an arbitrary thread if null.
-     *
-     * @param handler
-     */
-    public UpgradeReceiver(Handler handler) {
-        super(handler);
-    }
+public interface JsHandler {
+    void handle(Context context, Map<String, Object> parameters, JsResult result);
 }

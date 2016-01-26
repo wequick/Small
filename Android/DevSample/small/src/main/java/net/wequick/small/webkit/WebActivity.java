@@ -35,7 +35,18 @@ import net.wequick.small.Small;
 import java.util.HashMap;
 
 /**
- * Created by galen on 15/1/30.
+ * This class is the target activity launched by {@link net.wequick.small.WebBundleLauncher}.
+ *
+ * <p>The content view of this class is a WebView with an url passed by the launcher.
+ *
+ * <p>For speeding up the loading of web content, we use {@link WebViewPool} to manager
+ * all the web views.
+ *
+ * <p>For the ability of initialize native navigation bar by html content, we use the
+ * {@link android.support.v7.AppCompatActivity} to provide a common style action bar.
+ *
+ * @see WebView
+ * @see WebViewPool
  */
 public class WebActivity extends AppCompatActivity {
 

@@ -28,8 +28,13 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
- * Class to launch asset bundle.
- * Created by galen on 16/1/13.
+ * This class launch the plugin asset by it's file name with an internal activity.
+ *
+ * <p>This class resolve the bundle who's <tt>pkg</tt> is specified as
+ * <i>"*.[neither app nor lib].*"</i> in <tt>bundle.json</tt>.
+ *
+ * <p>The <i>internal activity</i> parse the asset file and display it.
+ *
  */
 public abstract class AssetBundleLauncher extends SoBundleLauncher {
 
@@ -48,8 +53,7 @@ public abstract class AssetBundleLauncher extends SoBundleLauncher {
     @Override
     public void loadBundle(Bundle bundle) {
         String packageName = bundle.getPackageName();
-        String soName = bundle.getFileName();
-        File plugin = bundle.getFile();
+        File plugin = bundle.getBuiltinFile();
 
         // Unzip the built-in plugin
         File unzipDir = new File(getBasePath(), packageName);
@@ -79,7 +83,7 @@ public abstract class AssetBundleLauncher extends SoBundleLauncher {
         }
 
         // Overlay patch bundle
-        File patchPlugin = new File(FileUtils.getDownloadBundlePath(), soName);
+        File patchPlugin = bundle.getPatchFile();
         if (patchPlugin.exists() && SignUtils.verifyPlugin(patchPlugin)) {
             try {
                 FileUtils.unZipFolder(plugin, unzipDir.getPath());

@@ -31,17 +31,13 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 /**
- * Created by galen on 15/1/30.
+ * This class consists exclusively of static methods that operate on file.
  */
 public final class FileUtils {
     private static final String DOWNLOAD_PATH = "small_patch";
 
     public interface OnProgressListener {
         void onProgress(int length);
-    }
-
-    public static void unZipFolder(String zipFile, String outPath) throws Exception {
-        unZipFolder(new FileInputStream(zipFile), outPath, null);
     }
 
     public static void unZipFolder(File zipFile, String outPath) throws Exception {
@@ -97,33 +93,5 @@ public final class FileUtils {
 
     public static File getDownloadBundlePath() {
         return getInternalFilesPath(DOWNLOAD_PATH);
-    }
-
-    public static String saveDownloadBundle(String name, InputStream is) {
-        try {
-            File file = new File(getDownloadBundlePath() + "/" + name);
-            OutputStream os = new FileOutputStream(file);
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = is.read(buffer)) != -1) {
-                os.write(buffer, 0, length);
-            }
-            os.flush();
-            return file.getAbsolutePath();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public static InputStream readDownloadBundle(String name) {
-        File file = new File(getDownloadBundlePath(), name);
-        try {
-            return new FileInputStream(file);
-        } catch (FileNotFoundException e) {
-            return null;
-        }
     }
 }
