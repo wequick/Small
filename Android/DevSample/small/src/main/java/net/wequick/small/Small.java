@@ -69,7 +69,6 @@ public final class Small {
     private static Context sContext = null;
     private static HashMap<String, Class<?>> sActivityClasses;
     private static String sBaseUri = ""; // base url of uri
-    private static String sBaseSrc = ""; // source url for remote bundle
     private static boolean sIsNewHostApp; // first launched or upgraded
     private static int sWebActivityTheme;
 
@@ -305,10 +304,9 @@ public final class Small {
     }
 
     /**
-     * 获取[AndroidManifest.xml]注册的类
+     * Get the activity class registered in the host's <tt>AndroidManifest.xml</tt>
      *
-     * @param clazz
-     * @return
+     * @param clazz the activity class name
      */
     protected static Class<?> getRegisteredClass(String clazz) {
         Class<?> aClass = null;
@@ -321,8 +319,8 @@ public final class Small {
         return aClass;
     }
 
-    /**
-     * 记录[AndroidManifest.xml]注册的类
+    /*
+     * Record the registered activity classes of host.
      */
     private static void saveActivityClasses(Context context) {
         try {
@@ -357,14 +355,6 @@ public final class Small {
         sWebActivityTheme = webActivityTheme;
     }
 
-    public static String getBaseSrc() {
-        return sBaseSrc;
-    }
-
-    public static void setBaseSrc(String baseSrc) {
-        sBaseSrc = baseSrc;
-    }
-
     private static class OpenUriReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -374,7 +364,7 @@ public final class Small {
     }
 
     /**
-     * 清除app缓存
+     * Clear cache for application
      */
     public static void clearAppCache(Context context) {
         File file = context.getCacheDir();
