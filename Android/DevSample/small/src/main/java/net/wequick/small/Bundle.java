@@ -221,10 +221,6 @@ public class Bundle {
         }
     }
 
-    /**
-     *
-     * @return
-     */
     public static List<Bundle> getLaunchableBundles() {
         return sPreloadBundles;
     }
@@ -239,7 +235,7 @@ public class Bundle {
     public static void setupLaunchers(Context context) {
         if (sBundleLaunchers == null) return;
         for (BundleLauncher launcher : sBundleLaunchers) {
-            launcher.setup(context);
+            launcher.setUp(context);
         }
     }
 
@@ -293,6 +289,7 @@ public class Bundle {
         if (srcPath.equals("")) {
             dstPath = srcPath;
         } else {
+            srcPath = srcPath.substring(1); // bypass '/'
             for (String key : this.rules.keySet()) {
                 // TODO: regex match and replace
                 if (key.equals(srcPath)) dstPath = this.rules.get(key);

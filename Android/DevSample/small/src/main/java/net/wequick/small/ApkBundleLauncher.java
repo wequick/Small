@@ -17,7 +17,6 @@
 package net.wequick.small;
 
 import android.app.Activity;
-import android.app.Application;
 import android.app.Instrumentation;
 import android.content.ComponentName;
 import android.content.ContextWrapper;
@@ -230,8 +229,8 @@ public class ApkBundleLauncher extends SoBundleLauncher {
     }
 
     @Override
-    public void setup(Context context) {
-        super.setup(context);
+    public void setUp(Context context) {
+        super.setUp(context);
         // Inject instrumentation
         if (sHostInstrumentation == null) {
             try {
@@ -360,6 +359,8 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         String activityName = bundle.getPath();
         if (activityName == null || activityName.equals("")) {
             activityName = bundle.getEntrance();
+        } else if (activityName.startsWith(".")) {
+            activityName = bundle.getPackageName() + activityName;
         }
         intent.setComponent(new ComponentName(Small.getContext(), activityName));
         // Intent extras - params
