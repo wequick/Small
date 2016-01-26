@@ -37,7 +37,7 @@ import android.text.TextUtils;
  *     </thead>
  *
  *     <tbody>
- *     <tr><th colspan="3" align="left" border="0">{@link #setup(Context)}</th>
+ *     <tr><th colspan="3" align="left" border="0">{@link #setUp(Context)}</th>
  *         <td>Called when the <b>Small</b> is setUp by {@link Small#setUp(Context)}.
  *             This is where you should do all of your normal static set up:
  *             initialize the launcher, prepare for resolving bundle.</td>
@@ -60,7 +60,8 @@ import android.text.TextUtils;
  *     <tr><td rowspan="2" style="border-left: none;">&nbsp;&nbsp;&nbsp;&nbsp;</td>
  *         <th align="left" border="0">{@link #prelaunchBundle(Bundle)}</th>
  *         <td>Called when the launcher will start an activity from the bundle.
- *             This is where you should do all of the preparation for the intent to the starting activity.
+ *             This is where you should do all of the intent build up:
+ *             resolve the starting activity class, set the query parameters.
  *             <p>Always followed by <code>Small.openUri(uri, context)</code>.</td>
  *         <td align="center"><code>launchBundle(bundle)</code></td>
  *     </tr>
@@ -82,14 +83,14 @@ public abstract class BundleLauncher {
      *
      * @param context the context passed by {@link Small#setUp}
      */
-    public void setup(Context context) { }
+    public void setUp(Context context) { }
 
     /**
      * Called when loading bundles by {@link Bundle#loadLaunchableBundles(Bundle.OnLoadListener)}.
      *
      * <p>This method try to preload a bundle, if succeed, load it later.
      *
-     * {@hide}
+     * @hide
      * @param bundle the loading bundle
      * @return <tt>true</tt> if the <tt>bundle</tt> is resolved
      */
