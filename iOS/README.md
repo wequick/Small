@@ -5,8 +5,10 @@
 * _使用者模式Sample (暂不可用）_
 * 开发者模式[DevSample](DevSample)
 
-> 各个组件需要签名后才支持代码级别更新。示例中更新例子为xib内容更新。
+> 各个组件需要签名后才支持代码级别更新。示例中更新例子为xib内容更新。<br/>
 > 在没有设置签名之前，请在模拟器上跑示例。
+
+需要将并行编译模式去掉：Edit Scheme...->Build->Build Options-> [ ] Parallelize Build
 
 ## 加入我们
 
