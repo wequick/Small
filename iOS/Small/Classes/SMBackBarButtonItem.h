@@ -18,6 +18,6 @@
 
 @interface SMBackBarButtonItem : UIBarButtonItem
 
-- (instancetype)initWithTitle:(nullable NSString *)title image:(UIImage *)image target:(nullable id)target action:(nullable SEL)action;
+- (instancetype)initWithTitle:(NSString *)title image:(UIImage *)image target:(id)target action:(SEL)action;
 
 @end
