@@ -6,7 +6,7 @@
 [![License Apache2.0](https://img.shields.io/hexpm/l/plug.svg)][license]
 
 
-支持平台：[Android](Android) API 15(4.0.3)+  `iOS 7.0+ 敬请期待`
+支持平台：[Android](Android) API 15(4.0.3)+  [iOS](iOS) 7.0+
 
 ![Small][icon]
 
@@ -21,7 +21,7 @@
 * **无缝链接**
   - 通过设定URI，宿主、本地化应用插件、本地化web插件、在线网页，以及任何自定义的插件之间能够相互调起与传递参数
 * **跨平台**
-  - 目前已支持[Android](Android)、iOS以及html5插件。并且三者之间可以通过同一套javascript接口进行通信。
+  - 目前已支持[Android](Android)、[iOS](iOS)以及html5插件。并且三者之间可以通过同一套Javascript接口进行通信。
 
 ## 文档
 开发细节、代码原理见 [Small Wiki][wiki]
@@ -32,6 +32,8 @@ Apache License 2.0
 ## 重要入口贴三遍
 
 [Android](Android) [Android](Android) [Android](Android)
+
+[iOS](iOS) [iOS](iOS) [iOS](iOS)
 
 # 以下装逼请忽略
 
