@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="9059" systemVersion="14F1509" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9049"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="ESHomeController">
+            <connections>
+                <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view clearsContextBeforeDrawing="NO" contentMode="scaleToFill" id="i5M-Pr-FkT">
+            <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Hello World from app.home!" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="2aW-CZ-bPh">
+                    <rect key="frame" x="16" y="80" width="215" height="21"/>
+                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                    <nil key="highlightedColor"/>
+                </label>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Pxe-EO-5Nj">
+                    <rect key="frame" x="16" y="113" width="343" height="30"/>
+                    <color key="backgroundColor" red="0.93333333333333335" green="0.93333333333333335" blue="0.93333333333333335" alpha="1" colorSpace="calibratedRGB"/>
+                    <state key="normal" title="Open app.detail"/>
+                    <connections>
+                        <action selector="detailClick:" destination="-1" eventType="touchUpInside" id="hru-sn-wo7"/>
+                    </connections>
+                </button>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Kb8-EP-CTH">
+                    <rect key="frame" x="16" y="151" width="343" height="30"/>
+                    <color key="backgroundColor" red="0.93333333330000001" green="0.93333333330000001" blue="0.93333333330000001" alpha="1" colorSpace="calibratedRGB"/>
+                    <state key="normal" title="Open web.about"/>
+                    <connections>
+                        <action selector="aboutClick:" destination="-1" eventType="touchUpInside" id="VRs-u2-JOD"/>
+                    </connections>
+                </button>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="B5d-On-wE1">
+                    <rect key="frame" x="16" y="189" width="343" height="30"/>
+                    <color key="backgroundColor" red="0.93333333330000001" green="0.93333333330000001" blue="0.93333333330000001" alpha="1" colorSpace="calibratedRGB"/>
+                    <state key="normal" title="Call lib.utils"/>
+                    <connections>
+                        <action selector="utilsClick:" destination="-1" eventType="touchUpInside" id="a94-4H-g58"/>
+                    </connections>
+                </button>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="vKk-gn-avB">
+                    <rect key="frame" x="16" y="227" width="343" height="30"/>
+                    <color key="backgroundColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                    <state key="normal" title="Check upgrade">
+                        <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    </state>
+                    <connections>
+                        <action selector="upgradeClick:" destination="-1" eventType="touchUpInside" id="maJ-ih-JNg"/>
+                    </connections>
+                </button>
+            </subviews>
+            <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+            <constraints>
+                <constraint firstItem="B5d-On-wE1" firstAttribute="leading" secondItem="Kb8-EP-CTH" secondAttribute="leading" id="AGm-SL-u1Q"/>
+                <constraint firstItem="vKk-gn-avB" firstAttribute="leading" secondItem="B5d-On-wE1" secondAttribute="leading" id="LcN-9s-MPa"/>
+                <constraint firstItem="Kb8-EP-CTH" firstAttribute="leading" secondItem="Pxe-EO-5Nj" secondAttribute="leading" id="Pvg-x6-AGX"/>
+                <constraint firstAttribute="trailing" secondItem="Pxe-EO-5Nj" secondAttribute="trailing" constant="16" id="ar3-TL-w6b"/>
+                <constraint firstItem="2aW-CZ-bPh" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" constant="80" id="fR0-Dy-bgJ"/>
+                <constraint firstItem="B5d-On-wE1" firstAttribute="width" secondItem="Kb8-EP-CTH" secondAttribute="width" id="ga4-gs-sO2"/>
+                <constraint firstItem="Kb8-EP-CTH" firstAttribute="top" secondItem="Pxe-EO-5Nj" secondAttribute="bottom" constant="8" id="lU6-wS-xPw"/>
+                <constraint firstItem="Kb8-EP-CTH" firstAttribute="width" secondItem="Pxe-EO-5Nj" secondAttribute="width" id="qdA-Wh-Zge"/>
+                <constraint firstItem="Pxe-EO-5Nj" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" constant="16" id="rNx-tD-Rve"/>
+                <constraint firstItem="Pxe-EO-5Nj" firstAttribute="top" secondItem="2aW-CZ-bPh" secondAttribute="bottom" constant="12" id="tAC-dD-Khy"/>
+                <constraint firstItem="B5d-On-wE1" firstAttribute="top" secondItem="Kb8-EP-CTH" secondAttribute="bottom" constant="8" id="tH9-KY-vBr"/>
+                <constraint firstItem="vKk-gn-avB" firstAttribute="width" secondItem="B5d-On-wE1" secondAttribute="width" id="u6g-3E-yMX"/>
+                <constraint firstItem="vKk-gn-avB" firstAttribute="top" secondItem="B5d-On-wE1" secondAttribute="bottom" constant="8" id="uB8-f1-Xts"/>
+                <constraint firstItem="2aW-CZ-bPh" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" constant="16" id="wAh-Ng-JpV"/>
+            </constraints>
+            <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina47"/>
+            <point key="canvasLocation" x="225.5" y="279.5"/>
+        </view>
+    </objects>
+</document>
