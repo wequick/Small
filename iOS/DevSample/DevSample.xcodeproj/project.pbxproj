@@ -630,7 +630,7 @@
 				INFOPLIST_FILE = DevSample/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = cn.273.Broker;
+				PRODUCT_BUNDLE_IDENTIFIER = net.wequick.example.small;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 			};
@@ -645,7 +645,7 @@
 				INFOPLIST_FILE = DevSample/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = cn.273.Broker;
+				PRODUCT_BUNDLE_IDENTIFIER = net.wequick.example.small;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 			};
