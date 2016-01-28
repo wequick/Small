@@ -55,6 +55,7 @@ A small framework to split app into small parts.
 ## Getting Started
 
 * [Android](Android)
+* [iOS](iOS)
 
 ## Documentation
 The development details and the code principles are on [Small Wiki][wiki].
