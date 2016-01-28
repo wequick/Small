@@ -21,6 +21,10 @@ DerivedData
 *.xcuserstate
 project.xcworkspace
 
+# CocoaPods
+Pods/
+Podfile.lock
+
 # Gradle
 build/
 **/build/

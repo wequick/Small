@@ -25,5 +25,5 @@ task clean(type: Delete) {
 apply plugin: 'net.wequick.small'
 
 small {
-    aarVersion = '0.1.2'
+    aarVersion = '0.2.0'
 }
