@@ -2,13 +2,11 @@
 
 ## Examples
 
-* _使用者模式Sample (暂不可用）_
+* 使用者模式[Sample](Sample)
 * 开发者模式[DevSample](DevSample)
 
 > 各个组件需要签名后才支持代码级别更新。示例中更新例子为xib内容更新。<br/>
 > 在没有设置签名之前，请在模拟器上跑示例。
-
-需要将并行编译模式去掉：Edit Scheme...->Build->Build Options-> [ ] Parallelize Build
 
 ## 加入我们
 
@@ -22,7 +20,7 @@
 
 #### TODO List
 
-  - [ ] Sample支持CocoaPods
+  - [x] Sample支持CocoaPods
   - [ ] 设置签名脚本（现在需要对每个组件Project手动设置签名）
   - [ ] 热更新（现在需要重启生效）
 
