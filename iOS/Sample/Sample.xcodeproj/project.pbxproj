@@ -7,7 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1BB3946C3661C9F885E56442 /* Pods_Sample.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 108ED5151086A43DBA8C30B9 /* Pods_Sample.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
+		1BB3946C3661C9F885E56442 /* Pods_Sample.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 108ED5151086A43DBA8C30B9 /* Pods_Sample.framework */; };
+		F8B344F91C5A0712003AA7C3 /* net_wequick_example_small_app_detail.framework in Resources */ = {isa = PBXBuildFile; fileRef = F8B344EC1C5A06ED003AA7C3 /* net_wequick_example_small_app_detail.framework */; };
+		F8B344FA1C5A0718003AA7C3 /* net_wequick_example_small_app_home.framework in Resources */ = {isa = PBXBuildFile; fileRef = F8B344E61C5A06E4003AA7C3 /* net_wequick_example_small_app_home.framework */; };
+		F8B344FB1C5A071D003AA7C3 /* net_wequick_example_small_app_main.framework in Resources */ = {isa = PBXBuildFile; fileRef = F8B344E01C5A06D9003AA7C3 /* net_wequick_example_small_app_main.framework */; };
+		F8B344FC1C5A0722003AA7C3 /* net_wequick_example_small_app_mine.framework in Resources */ = {isa = PBXBuildFile; fileRef = F8B344DA1C5A06CE003AA7C3 /* net_wequick_example_small_app_mine.framework */; };
+		F8B344FD1C5A0728003AA7C3 /* net_wequick_example_small_lib_utils.framework in Resources */ = {isa = PBXBuildFile; fileRef = F8B344D41C5A06BD003AA7C3 /* net_wequick_example_small_lib_utils.framework */; };
+		F8B344FE1C5A072D003AA7C3 /* net_wequick_example_small_web_about.bundle in Resources */ = {isa = PBXBuildFile; fileRef = F8B344CE1C5A06B1003AA7C3 /* net_wequick_example_small_web_about.bundle */; };
+		F8B345061C5A0804003AA7C3 /* bundle.json in Resources */ = {isa = PBXBuildFile; fileRef = F8B345051C5A0804003AA7C3 /* bundle.json */; };
 		F8E4AD301C51F83400BB6DD4 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = F8E4AD2F1C51F83400BB6DD4 /* main.m */; };
 		F8E4AD331C51F83400BB6DD4 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = F8E4AD321C51F83400BB6DD4 /* AppDelegate.m */; };
 		F8E4AD361C51F83400BB6DD4 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F8E4AD351C51F83400BB6DD4 /* ViewController.m */; };
@@ -16,10 +23,104 @@
 		F8E4AD3E1C51F83400BB6DD4 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F8E4AD3C1C51F83400BB6DD4 /* LaunchScreen.storyboard */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		F8B344CD1C5A06B1003AA7C3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F8B344C91C5A06B1003AA7C3 /* web.about.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = F8F023BD1C574A8C002B0A00;
+			remoteInfo = web.about;
+		};
+		F8B344D31C5A06BD003AA7C3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F8B344CF1C5A06BD003AA7C3 /* lib.utils.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = F8F023E71C575D89002B0A00;
+			remoteInfo = lib.utils;
+		};
+		F8B344D91C5A06CE003AA7C3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F8B344D51C5A06CE003AA7C3 /* app.mine.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = F8F023361C573D21002B0A00;
+			remoteInfo = app.mine;
+		};
+		F8B344DF1C5A06D9003AA7C3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F8B344DB1C5A06D9003AA7C3 /* app.main.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = F8F022B91C55FC2D002B0A00;
+			remoteInfo = app.main;
+		};
+		F8B344E51C5A06E4003AA7C3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F8B344E11C5A06E4003AA7C3 /* app.home.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = F8F023011C5718C0002B0A00;
+			remoteInfo = app.home;
+		};
+		F8B344EB1C5A06ED003AA7C3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F8B344E71C5A06ED003AA7C3 /* app.detail.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = F8F0235C1C57417B002B0A00;
+			remoteInfo = app.detail;
+		};
+		F8B344ED1C5A0700003AA7C3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F8B344E71C5A06ED003AA7C3 /* app.detail.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = F8F0235B1C57417B002B0A00;
+			remoteInfo = app.detail;
+		};
+		F8B344EF1C5A0700003AA7C3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F8B344E11C5A06E4003AA7C3 /* app.home.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = F8F023001C5718C0002B0A00;
+			remoteInfo = app.home;
+		};
+		F8B344F11C5A0700003AA7C3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F8B344DB1C5A06D9003AA7C3 /* app.main.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = F8F022B81C55FC2D002B0A00;
+			remoteInfo = app.main;
+		};
+		F8B344F31C5A0700003AA7C3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F8B344D51C5A06CE003AA7C3 /* app.mine.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = F8F023351C573D21002B0A00;
+			remoteInfo = app.mine;
+		};
+		F8B344F51C5A0700003AA7C3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F8B344CF1C5A06BD003AA7C3 /* lib.utils.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = F8F023E61C575D89002B0A00;
+			remoteInfo = lib.utils;
+		};
+		F8B344F71C5A0700003AA7C3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F8B344C91C5A06B1003AA7C3 /* web.about.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = F8F023BC1C574A8C002B0A00;
+			remoteInfo = web.about;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		03E1C57749D4DB39A2D2ED8F /* Pods-Sample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Sample.release.xcconfig"; path = "Pods/Target Support Files/Pods-Sample/Pods-Sample.release.xcconfig"; sourceTree = "<group>"; };
 		0AB84EAC349478DC0FBE2595 /* Pods-Sample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Sample.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Sample/Pods-Sample.debug.xcconfig"; sourceTree = "<group>"; };
 		108ED5151086A43DBA8C30B9 /* Pods_Sample.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Sample.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		F8B344C91C5A06B1003AA7C3 /* web.about.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = web.about.xcodeproj; path = bundles/web.about/web.about.xcodeproj; sourceTree = SOURCE_ROOT; };
+		F8B344CF1C5A06BD003AA7C3 /* lib.utils.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = lib.utils.xcodeproj; path = bundles/lib.utils/lib.utils.xcodeproj; sourceTree = SOURCE_ROOT; };
+		F8B344D51C5A06CE003AA7C3 /* app.mine.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = app.mine.xcodeproj; path = bundles/app.mine/app.mine.xcodeproj; sourceTree = SOURCE_ROOT; };
+		F8B344DB1C5A06D9003AA7C3 /* app.main.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = app.main.xcodeproj; path = bundles/app.main/app.main.xcodeproj; sourceTree = SOURCE_ROOT; };
+		F8B344E11C5A06E4003AA7C3 /* app.home.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = app.home.xcodeproj; path = bundles/app.home/app.home.xcodeproj; sourceTree = SOURCE_ROOT; };
+		F8B344E71C5A06ED003AA7C3 /* app.detail.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = app.detail.xcodeproj; path = bundles/app.detail/app.detail.xcodeproj; sourceTree = SOURCE_ROOT; };
+		F8B345051C5A0804003AA7C3 /* bundle.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = bundle.json; sourceTree = "<group>"; };
 		F8E4AD2B1C51F83400BB6DD4 /* Sample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F8E4AD2F1C51F83400BB6DD4 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		F8E4AD311C51F83400BB6DD4 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -61,6 +162,67 @@
 			name = Pods;
 			sourceTree = "<group>";
 		};
+		F8B344C81C5A0663003AA7C3 /* bundles */ = {
+			isa = PBXGroup;
+			children = (
+				F8B344E71C5A06ED003AA7C3 /* app.detail.xcodeproj */,
+				F8B344E11C5A06E4003AA7C3 /* app.home.xcodeproj */,
+				F8B344DB1C5A06D9003AA7C3 /* app.main.xcodeproj */,
+				F8B344D51C5A06CE003AA7C3 /* app.mine.xcodeproj */,
+				F8B344CF1C5A06BD003AA7C3 /* lib.utils.xcodeproj */,
+				F8B344C91C5A06B1003AA7C3 /* web.about.xcodeproj */,
+			);
+			name = bundles;
+			sourceTree = "<group>";
+		};
+		F8B344CA1C5A06B1003AA7C3 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F8B344CE1C5A06B1003AA7C3 /* net_wequick_example_small_web_about.bundle */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		F8B344D01C5A06BD003AA7C3 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F8B344D41C5A06BD003AA7C3 /* net_wequick_example_small_lib_utils.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		F8B344D61C5A06CE003AA7C3 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F8B344DA1C5A06CE003AA7C3 /* net_wequick_example_small_app_mine.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		F8B344DC1C5A06D9003AA7C3 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F8B344E01C5A06D9003AA7C3 /* net_wequick_example_small_app_main.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		F8B344E21C5A06E4003AA7C3 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F8B344E61C5A06E4003AA7C3 /* net_wequick_example_small_app_home.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		F8B344E81C5A06ED003AA7C3 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F8B344EC1C5A06ED003AA7C3 /* net_wequick_example_small_app_detail.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		F8E4AD221C51F83400BB6DD4 = {
 			isa = PBXGroup;
 			children = (
@@ -82,6 +244,7 @@
 		F8E4AD2D1C51F83400BB6DD4 /* Sample */ = {
 			isa = PBXGroup;
 			children = (
+				F8B344C81C5A0663003AA7C3 /* bundles */,
 				F8E4AD311C51F83400BB6DD4 /* AppDelegate.h */,
 				F8E4AD321C51F83400BB6DD4 /* AppDelegate.m */,
 				F8E4AD341C51F83400BB6DD4 /* ViewController.h */,
@@ -90,6 +253,7 @@
 				F8E4AD3A1C51F83400BB6DD4 /* Assets.xcassets */,
 				F8E4AD3C1C51F83400BB6DD4 /* LaunchScreen.storyboard */,
 				F8E4AD3F1C51F83400BB6DD4 /* Info.plist */,
+				F8B345051C5A0804003AA7C3 /* bundle.json */,
 				F8E4AD2E1C51F83400BB6DD4 /* Supporting Files */,
 			);
 			path = Sample;
@@ -120,6 +284,12 @@
 			buildRules = (
 			);
 			dependencies = (
+				F8B344EE1C5A0700003AA7C3 /* PBXTargetDependency */,
+				F8B344F01C5A0700003AA7C3 /* PBXTargetDependency */,
+				F8B344F21C5A0700003AA7C3 /* PBXTargetDependency */,
+				F8B344F41C5A0700003AA7C3 /* PBXTargetDependency */,
+				F8B344F61C5A0700003AA7C3 /* PBXTargetDependency */,
+				F8B344F81C5A0700003AA7C3 /* PBXTargetDependency */,
 			);
 			name = Sample;
 			productName = Sample;
@@ -151,6 +321,32 @@
 			mainGroup = F8E4AD221C51F83400BB6DD4;
 			productRefGroup = F8E4AD2C1C51F83400BB6DD4 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = F8B344E81C5A06ED003AA7C3 /* Products */;
+					ProjectRef = F8B344E71C5A06ED003AA7C3 /* app.detail.xcodeproj */;
+				},
+				{
+					ProductGroup = F8B344E21C5A06E4003AA7C3 /* Products */;
+					ProjectRef = F8B344E11C5A06E4003AA7C3 /* app.home.xcodeproj */;
+				},
+				{
+					ProductGroup = F8B344DC1C5A06D9003AA7C3 /* Products */;
+					ProjectRef = F8B344DB1C5A06D9003AA7C3 /* app.main.xcodeproj */;
+				},
+				{
+					ProductGroup = F8B344D61C5A06CE003AA7C3 /* Products */;
+					ProjectRef = F8B344D51C5A06CE003AA7C3 /* app.mine.xcodeproj */;
+				},
+				{
+					ProductGroup = F8B344D01C5A06BD003AA7C3 /* Products */;
+					ProjectRef = F8B344CF1C5A06BD003AA7C3 /* lib.utils.xcodeproj */;
+				},
+				{
+					ProductGroup = F8B344CA1C5A06B1003AA7C3 /* Products */;
+					ProjectRef = F8B344C91C5A06B1003AA7C3 /* web.about.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				F8E4AD2A1C51F83400BB6DD4 /* Sample */,
@@ -158,11 +354,63 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXReferenceProxy section */
+		F8B344CE1C5A06B1003AA7C3 /* net_wequick_example_small_web_about.bundle */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = net_wequick_example_small_web_about.bundle;
+			remoteRef = F8B344CD1C5A06B1003AA7C3 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		F8B344D41C5A06BD003AA7C3 /* net_wequick_example_small_lib_utils.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = net_wequick_example_small_lib_utils.framework;
+			remoteRef = F8B344D31C5A06BD003AA7C3 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		F8B344DA1C5A06CE003AA7C3 /* net_wequick_example_small_app_mine.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = net_wequick_example_small_app_mine.framework;
+			remoteRef = F8B344D91C5A06CE003AA7C3 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		F8B344E01C5A06D9003AA7C3 /* net_wequick_example_small_app_main.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = net_wequick_example_small_app_main.framework;
+			remoteRef = F8B344DF1C5A06D9003AA7C3 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		F8B344E61C5A06E4003AA7C3 /* net_wequick_example_small_app_home.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = net_wequick_example_small_app_home.framework;
+			remoteRef = F8B344E51C5A06E4003AA7C3 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		F8B344EC1C5A06ED003AA7C3 /* net_wequick_example_small_app_detail.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = net_wequick_example_small_app_detail.framework;
+			remoteRef = F8B344EB1C5A06ED003AA7C3 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
 /* Begin PBXResourcesBuildPhase section */
 		F8E4AD291C51F83400BB6DD4 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F8B344FE1C5A072D003AA7C3 /* net_wequick_example_small_web_about.bundle in Resources */,
+				F8B344FD1C5A0728003AA7C3 /* net_wequick_example_small_lib_utils.framework in Resources */,
+				F8B344FC1C5A0722003AA7C3 /* net_wequick_example_small_app_mine.framework in Resources */,
+				F8B345061C5A0804003AA7C3 /* bundle.json in Resources */,
+				F8B344FB1C5A071D003AA7C3 /* net_wequick_example_small_app_main.framework in Resources */,
+				F8B344FA1C5A0718003AA7C3 /* net_wequick_example_small_app_home.framework in Resources */,
+				F8B344F91C5A0712003AA7C3 /* net_wequick_example_small_app_detail.framework in Resources */,
 				F8E4AD3E1C51F83400BB6DD4 /* LaunchScreen.storyboard in Resources */,
 				F8E4AD3B1C51F83400BB6DD4 /* Assets.xcassets in Resources */,
 				F8E4AD391C51F83400BB6DD4 /* Main.storyboard in Resources */,
@@ -231,6 +479,39 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		F8B344EE1C5A0700003AA7C3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = app.detail;
+			targetProxy = F8B344ED1C5A0700003AA7C3 /* PBXContainerItemProxy */;
+		};
+		F8B344F01C5A0700003AA7C3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = app.home;
+			targetProxy = F8B344EF1C5A0700003AA7C3 /* PBXContainerItemProxy */;
+		};
+		F8B344F21C5A0700003AA7C3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = app.main;
+			targetProxy = F8B344F11C5A0700003AA7C3 /* PBXContainerItemProxy */;
+		};
+		F8B344F41C5A0700003AA7C3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = app.mine;
+			targetProxy = F8B344F31C5A0700003AA7C3 /* PBXContainerItemProxy */;
+		};
+		F8B344F61C5A0700003AA7C3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = lib.utils;
+			targetProxy = F8B344F51C5A0700003AA7C3 /* PBXContainerItemProxy */;
+		};
+		F8B344F81C5A0700003AA7C3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = web.about;
+			targetProxy = F8B344F71C5A0700003AA7C3 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		F8E4AD371C51F83400BB6DD4 /* Main.storyboard */ = {

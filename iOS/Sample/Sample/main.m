@@ -1,6 +1,6 @@
 //
 //  main.m
-//  Sample
+//  DevSample
 //
 //  Created by galen on 16/1/22.
 //  Copyright © 2016年 galen. All rights reserved.

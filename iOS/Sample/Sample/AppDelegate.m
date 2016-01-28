@@ -1,19 +1,19 @@
 //
 //  AppDelegate.m
-//  Sample
+//  DevSample
 //
 //  Created by galen on 16/1/22.
 //  Copyright © 2016年 galen. All rights reserved.
 //
 
 #import "AppDelegate.h"
+#import <Small/Small.h>
 
 @interface AppDelegate ()
 
 @end
 
 @implementation AppDelegate
-
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
