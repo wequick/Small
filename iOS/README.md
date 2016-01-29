@@ -23,6 +23,8 @@
   - [x] Sample支持CocoaPods
   - [ ] 设置签名脚本（现在需要对每个组件Project手动设置签名）
   - [ ] 热更新（现在需要重启生效）
+  - [ ] Xcode Template for creating new `Small Bundle`
+  - [ ] Bundle Slicing
 
 ## 文档
 [Wiki/iOS](https://github.com/wequick/small/wiki/iOS)
