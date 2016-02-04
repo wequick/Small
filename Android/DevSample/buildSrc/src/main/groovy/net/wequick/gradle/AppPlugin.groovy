@@ -382,9 +382,10 @@ class AppPlugin extends BundlePlugin {
     /**
      * Generate a random package id in range [0x03, 0x7e] by bundle's name.
      * [0x00, 0x02] reserved for android system resources.
+     * [0x03, 0x0f] reserved for the fucking crazy manufacturers.
      */
     private static int genRandomPackageId(String bundleName) {
-        int minPP = 0x03
+        int minPP = 0x10
         int maxPP = 0x7e
         int d = maxPP - minPP
         int hash = bundleName.hashCode() & 0x000000ff
