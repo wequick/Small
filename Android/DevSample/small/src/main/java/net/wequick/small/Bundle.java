@@ -62,7 +62,7 @@ import java.util.List;
 public class Bundle {
     //______________________________________________________________________________
     // Fields
-    public static final String BUNDLE_MANIFEST_NAME = "bundles.json";
+    public static final String BUNDLE_MANIFEST_NAME = "bundle.json";
     public static final String BUNDLES_KEY = "bundles";
     public static final String HOST_PACKAGE = "main";
 
