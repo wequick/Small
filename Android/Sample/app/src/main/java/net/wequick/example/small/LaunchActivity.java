@@ -38,19 +38,9 @@ public class LaunchActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        Small.setUp(this, new net.wequick.small.Bundle.OnLoadListener() {
+        Small.setUp(this, new net.wequick.small.Small.OnCompleteListener() {
             @Override
-            public void onStart(int bundleCount, int upgradeBundlesCount, long upgradeBundlesSize) {
-
-            }
-
-            @Override
-            public void onProgress(int bundleIndex, String bundleName, long loadedSize, long bundleSize) {
-
-            }
-
-            @Override
-            public void onComplete(Boolean success) {
+            public void onComplete() {
                 mContentView.postDelayed(new Runnable() {
                     @Override
                     public void run() {
