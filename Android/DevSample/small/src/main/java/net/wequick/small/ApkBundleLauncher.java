@@ -148,6 +148,8 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
         private void wrapIntent(Intent intent) {
             String realClazz = intent.getComponent().getClassName();
+            if (sLoadedActivities == null) return;
+
             ActivityInfo ai = sLoadedActivities.get(realClazz);
             if (ai == null) return;
 
