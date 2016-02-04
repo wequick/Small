@@ -2,7 +2,7 @@
 
 ## Examples
 
-* 使用者模式[Sample](Sample)
+* 使用者模式Sample(暂不可用)
 * 开发者模式[DevSample](DevSample)
 
 > 各个组件需要签名后才支持代码级别更新。示例中更新例子为xib内容更新。<br/>
@@ -20,9 +20,11 @@
 
 #### TODO List
 
-  - [x] Sample支持CocoaPods
+  - [ ] Sample支持CocoaPods
   - [ ] 设置签名脚本（现在需要对每个组件Project手动设置签名）
   - [ ] 热更新（现在需要重启生效）
+  - [ ] Xcode Template for creating new `Small Bundle`
+  - [ ] Bundle Slicing
 
 ## 文档
 [Wiki/iOS](https://github.com/wequick/small/wiki/iOS)

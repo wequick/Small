@@ -47,6 +47,7 @@ import java.util.Map;
  *
  * <h3>Core APIs</h3>
  * <ul>
+ *     <li>{@link #setUp(Context, OnCompleteListener)} resolve the <tt>bundle.json</tt> to setup bundle launchers.</li>
  *     <li>{@link #openUri} launch the bundle with specify activity by the <tt>uri</tt></li>
  *     <li>{@link #createObject} create object from the bundle</li>
  *     <li>{@link #setWebViewClient(WebViewClient)} customize the web view behaviors for web bundle</li>
@@ -72,6 +73,10 @@ public final class Small {
     private static boolean sIsNewHostApp; // first launched or upgraded
     private static int sWebActivityTheme;
 
+    public interface OnCompleteListener {
+        void onComplete();
+    }
+
     public static Context getContext() {
         if (sContext == null) {
             try {
@@ -96,11 +101,7 @@ public final class Small {
         return sIsNewHostApp;
     }
 
-    public static void setUp(Context context) {
-        setUp(context, null);
-    }
-
-    public static void setUp(Context context, Bundle.OnLoadListener listener) {
+    public static void setUp(Context context, OnCompleteListener listener) {
         Context appContext = context.getApplicationContext();
         sContext = appContext;
         saveActivityClasses(appContext);

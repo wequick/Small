@@ -36,14 +36,12 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 /**
  * This class consists exclusively of methods that operate on apk plugin.
@@ -64,7 +62,7 @@ import java.util.Map;
 public class Bundle {
     //______________________________________________________________________________
     // Fields
-    public static final String BUNDLE_MANIFEST_NAME = "bundles.json";
+    public static final String BUNDLE_MANIFEST_NAME = "bundle.json";
     public static final String BUNDLES_KEY = "bundles";
     public static final String HOST_PACKAGE = "main";
 
@@ -72,13 +70,10 @@ public class Bundle {
     private static List<Bundle> sPreloadBundles = null;
 
     // Thread & Handler
-    private static final int MSG_START = 1;
-    private static final int MSG_PROGRESS = 2;
-    private static final int MSG_COMPLETE = 3;
+    private static final int MSG_COMPLETE = 1;
     private static final int MSG_INIT_WEBVIEW = 100;
-    private static LoadBundleHandler mHandler;
-    private static LoadBundleThread mThread;
-    private static OnLoadListener mListener;
+    private static LoadBundleHandler sHandler;
+    private static LoadBundleThread sThread;
 
     private String mPackageName;
     private String uriString;
@@ -95,7 +90,6 @@ public class Bundle {
 
     private File mBuiltinFile = null;
     private File mPatchFile = null;
-    private long mSize = -1;
 
     private boolean launchable = true;
     private boolean enabled = true;
@@ -123,12 +117,10 @@ public class Bundle {
     /**
      * Load bundles from manifest
      */
-    public static void loadLaunchableBundles(OnLoadListener listener) {
-        mListener = listener;
+    public static void loadLaunchableBundles(Small.OnCompleteListener listener) {
         Context context = Small.getContext();
         // Read manifest file
         File manifestFile = new File(context.getFilesDir(), BUNDLE_MANIFEST_NAME);
-        manifestFile.delete();
         String manifestJson;
         if (!manifestFile.exists()) {
             // Copy asset to files
@@ -170,7 +162,7 @@ public class Bundle {
         try {
             JSONObject jsonObject = new JSONObject(manifestJson);
             String version = jsonObject.getString("version");
-            loadManifest(version, jsonObject);
+            loadManifest(version, jsonObject, listener);
         } catch (JSONException e) {
             e.printStackTrace();
             return;
@@ -178,14 +170,15 @@ public class Bundle {
     }
 
     public static Boolean isLoadingAsync() {
-        return (mThread != null);
+        return (sThread != null);
     }
 
-    private static boolean loadManifest(String version, JSONObject jsonObject) {
+    private static boolean loadManifest(String version, JSONObject jsonObject,
+                                        Small.OnCompleteListener listener) {
         if (version.equals("1.0.0")) {
             try {
                 JSONArray bundles = jsonObject.getJSONArray(BUNDLES_KEY);
-                loadBundles(bundles);
+                loadBundles(bundles, listener);
                 return true;
             } catch (JSONException e) {
                 return false;
@@ -195,29 +188,11 @@ public class Bundle {
         throw new UnsupportedOperationException("Unknown version " + version);
     }
 
-    private static void loadBundles(JSONArray bundles) {
-        if (mListener != null) {
-            if (mThread == null) {
-                mThread = new LoadBundleThread(bundles);
-                mHandler = new LoadBundleHandler(mListener);
-                mThread.start();
-            }
-        } else {
-            for (int index = 0; index < bundles.length(); index++) {
-                JSONObject jsonObject = null;
-                try {
-                    jsonObject = bundles.getJSONObject(index);
-                } catch (JSONException e) {
-                    // Ignored
-                }
-                Bundle bundle = new Bundle(jsonObject);
-                bundle.prepareForLaunch();
-
-                if (sPreloadBundles == null) {
-                    sPreloadBundles = new ArrayList<Bundle>();
-                }
-                sPreloadBundles.add(bundle);
-            }
+    private static void loadBundles(JSONArray bundles, Small.OnCompleteListener listener) {
+        if (sThread == null) {
+            sThread = new LoadBundleThread(bundles);
+            sHandler = new LoadBundleHandler(listener);
+            sThread.start();
         }
     }
 
@@ -377,24 +352,6 @@ public class Bundle {
         }
     }
 
-    public URL getDownloadUrl() {
-        if (mPackageName == null) return null;
-
-        Map<String, String> urls = Small.getBundleUpgradeUrls();
-        if (urls == null) return null;
-
-        String src = urls.get(mPackageName);
-        if (src == null) return null;
-
-        try {
-            return new URL(src);
-        } catch (MalformedURLException ignored) {
-            // ignored
-        }
-
-        return null;
-    }
-
     public void launchFrom(Context context) {
         if (mApplicableLauncher != null) {
             mApplicableLauncher.launchBundle(this, context);
@@ -449,27 +406,6 @@ public class Bundle {
 
     public void setType(String type) {
         this.type = type;
-    }
-
-    public long getSize() {
-        if (this.mSize != -1) {
-            return this.mSize;
-        }
-        URL url = this.getDownloadUrl();
-        if (url != null) {
-            try {
-                HttpURLConnection urlConn = (HttpURLConnection) url.openConnection();
-                urlConn.setRequestMethod("HEAD");
-                urlConn.getInputStream();
-                this.mSize = urlConn.getContentLength();
-            } catch (IOException e) {
-                this.mSize = 0;
-                e.printStackTrace();
-            }
-        } else {
-            this.mSize = 0;
-        }
-        return this.mSize;
     }
 
     public String getQuery() {
@@ -535,12 +471,6 @@ public class Bundle {
     //______________________________________________________________________________
     // Internal class
 
-    public interface OnLoadListener {
-        void onStart(int bundleCount, int upgradeBundlesCount, long upgradeBundlesSize);
-        void onProgress(int bundleIndex, String bundleName, long loadedSize, long bundleSize);
-        void onComplete(Boolean success);
-    }
-
     private static class LoadBundleThread extends Thread {
         JSONArray bundleDescs;
 
@@ -549,91 +479,48 @@ public class Bundle {
         }
         @Override
         public void run() {
+            // Instantiate bundle
             List<Bundle> bundles = new ArrayList<Bundle>(bundleDescs.length());
-            long totalSize = 0;
-            // 1. Calculate size
             for (int i = 0; i < bundleDescs.length(); i++) {
                 try {
                     JSONObject object = bundleDescs.getJSONObject(i);
                     Bundle bundle = new Bundle(object);
                     bundles.add(bundle);
-                    long size = bundle.getSize();
-                    totalSize += size;
                 } catch (JSONException e) {
                     // Ignored
                 }
             }
             sPreloadBundles = bundles;
 
-            // 2. Prepare bundle | Download
-            mHandler.obtainMessage(MSG_START, totalSize).sendToTarget();
+            // Prepare bundle
             for (Bundle bundle : bundles) {
                 bundle.prepareForLaunch();
             }
-            // 3. Clear upgrade urls
-            Small.setBundleUpgradeUrls(null);
-            mHandler.obtainMessage(MSG_COMPLETE).sendToTarget();
+
+            sHandler.obtainMessage(MSG_COMPLETE).sendToTarget();
         }
     }
 
-    protected static void postLoadProgressMessage(String name, long loadedSize) {
-        ProgressMsgObj progress = new ProgressMsgObj();
-        progress.name = name;
-        progress.size = loadedSize;
-        mHandler.obtainMessage(MSG_PROGRESS, progress).sendToTarget();
-    }
-
     protected static void postInitWebViewMessage(String url) {
-        mHandler.obtainMessage(MSG_INIT_WEBVIEW, url).sendToTarget();
-    }
-
-    private static class ProgressMsgObj {
-        public String name;
-        public long size;
+        sHandler.obtainMessage(MSG_INIT_WEBVIEW, url).sendToTarget();
     }
 
     private static class LoadBundleHandler extends Handler {
-        private OnLoadListener mListener;
+        private Small.OnCompleteListener mListener;
 
-        public LoadBundleHandler(OnLoadListener listener) {
+        public LoadBundleHandler(Small.OnCompleteListener listener) {
             mListener = listener;
         }
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
-                case MSG_START:
-                    if (mListener != null) {
-                        Map<String, String> urls = Small.getBundleUpgradeUrls();
-                        int upgradeCount = 0;
-                        if (urls != null) {
-                            upgradeCount = urls.size();
-                        }
-                        mListener.onStart(sPreloadBundles.size(), upgradeCount, (Long) msg.obj);
-                    }
-                    break;
-                case MSG_PROGRESS:
-                    if (mListener != null) {
-                        ProgressMsgObj progress = (ProgressMsgObj) msg.obj;
-                        int index = 0;
-                        long bundleSize = 0;
-                        for (; index < sPreloadBundles.size(); index++) {
-                            Bundle bundle = sPreloadBundles.get(index);
-                            if (bundle.getPackageName().equals(progress.name)) {
-                                bundleSize = bundle.getSize();
-                                break;
-                            }
-                        }
-                        long loadedSize = progress.size == -1 ? bundleSize : progress.size;
-                        mListener.onProgress(index, progress.name, loadedSize, bundleSize);
-                    }
-                    break;
                 case MSG_COMPLETE:
                     if (mListener != null) {
-                        mListener.onComplete(true);
+                        mListener.onComplete();
                     }
                     mListener = null;
-                    mThread = null;
-                    mHandler = null;
+                    sThread = null;
+                    sHandler = null;
                     break;
                 case MSG_INIT_WEBVIEW:
                     String url = (String) msg.obj;
