@@ -1,5 +1,6 @@
 package net.wequick.example.small;
 
+import android.os.Build;
 import android.support.v7.app.ActionBar;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -27,6 +28,7 @@ public class LaunchActivity extends AppCompatActivity {
             actionBar.hide();
         }
         // Remove the status and navigation bar
+        if (Build.VERSION.SDK_INT < 14) return;
         mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
                 | View.SYSTEM_UI_FLAG_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
@@ -38,19 +40,9 @@ public class LaunchActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        Small.setUp(this, new net.wequick.small.Bundle.OnLoadListener() {
+        Small.setUp(this, new net.wequick.small.Small.OnCompleteListener() {
             @Override
-            public void onStart(int bundleCount, int upgradeBundlesCount, long upgradeBundlesSize) {
-
-            }
-
-            @Override
-            public void onProgress(int bundleIndex, String bundleName, long loadedSize, long bundleSize) {
-
-            }
-
-            @Override
-            public void onComplete(Boolean success) {
+            public void onComplete() {
                 mContentView.postDelayed(new Runnable() {
                     @Override
                     public void run() {

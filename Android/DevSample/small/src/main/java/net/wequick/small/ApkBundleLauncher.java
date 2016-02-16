@@ -47,13 +47,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>This class resolve the bundle who's <tt>pkg</tt> is specified as
  * <i>"*.app.*"</i> or <i>*.lib.*</i> in <tt>bundle.json</tt>.
  *
- * <p>The <i>*.app.*</i> plugin contains some activities, While launching,
- * this class takes the bundle's <tt>uri</tt> as a shortcut of
- * the plugin launcher activity class name. the other activities
- * can be specified by the bundle's <tt>rules</tt>.
+ * <ul>
+ * <li>The <i>app</i> plugin contains some activities usually, while launching,
+ * takes the bundle's <tt>uri</tt> as default activity. the other activities
+ * can be specified by the bundle's <tt>rules</tt>.</li>
  *
- * <p>The <i>*.lib.*</i> plugin usually consists exclusively of global methods
- * that operate on your product services.
+ * <li>The <i>lib</i> plugin which can be included by <i>app</i> plugin
+ * consists exclusively of global methods that operate on your product services.</li>
+ * </ul>
  *
  * @see ActivityLauncher
  */
@@ -148,6 +149,8 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
         private void wrapIntent(Intent intent) {
             String realClazz = intent.getComponent().getClassName();
+            if (sLoadedActivities == null) return;
+
             ActivityInfo ai = sLoadedActivities.get(realClazz);
             if (ai == null) return;
 

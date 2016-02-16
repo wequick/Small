@@ -17,7 +17,9 @@ package net.wequick.small;
 
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.os.Build;
 
+import net.wequick.small.util.ReflectAccelerator;
 import net.wequick.small.util.SignUtils;
 
 import java.io.File;
@@ -89,6 +91,10 @@ public abstract class SoBundleLauncher extends BundleLauncher {
         PackageManager pm = Small.getContext().getPackageManager();
         PackageInfo pluginInfo = pm.getPackageArchiveInfo(plugin.getPath(),
                 PackageManager.GET_SIGNATURES);
+
+        if (Build.VERSION.SDK_INT < 14) {
+            pluginInfo.signatures = ReflectAccelerator.getSignaturesV13(plugin);
+        }
         return pluginInfo;
     }
 }

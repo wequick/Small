@@ -236,7 +236,7 @@ public class WebView extends android.webkit.WebView {
                 if (context == null) return false;
 
                 AlertDialog.Builder dlg = new AlertDialog.Builder(context);
-                dlg.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                dlg.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         mConfirmed = true;
@@ -263,14 +263,14 @@ public class WebView extends android.webkit.WebView {
                                        final android.webkit.JsResult result) {
                 Context context = WebViewPool.getContext(view);
                 AlertDialog.Builder dlg = new AlertDialog.Builder(context);
-                dlg.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                dlg.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         mConfirmed = true;
                         result.confirm();
                     }
                 });
-                dlg.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                dlg.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         mConfirmed = true;

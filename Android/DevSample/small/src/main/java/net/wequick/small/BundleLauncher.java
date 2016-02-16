@@ -38,7 +38,7 @@ import android.text.TextUtils;
  *
  *     <tbody>
  *     <tr><th colspan="3" align="left" border="0">{@link #setUp(Context)}</th>
- *         <td>Called when the <b>Small</b> is setUp by {@link Small#setUp(Context)}.
+ *         <td>Called when the <b>Small</b> is setUp by {@link Small#setUp(Context, Small.OnCompleteListener)}.
  *             This is where you should do all of your normal static set up:
  *             initialize the launcher, prepare for resolving bundle.</td>
  *         <td align="center"><code>preloadBundle(Bundle)</code></td>
@@ -46,7 +46,7 @@ import android.text.TextUtils;
  *
  *     <tr><td rowspan="5" style="border-left: none; border-right: none;">&nbsp;&nbsp;&nbsp;&nbsp;</td>
  *         <th colspan="2" align="left" border="0">{@link #preloadBundle(Bundle)}</th>
- *         <td>Called when loading bundles by {@link Bundle#loadLaunchableBundles(Bundle.OnLoadListener)}.
+ *         <td>Called when loading bundles by {@link Bundle#loadLaunchableBundles(Small.OnCompleteListener)}.
  *             This is where you should do all of your normal validations and preparations.</td>
  *         <td align="center"><code>loadBundle(Bundle)</code></td>
  *     </tr>
@@ -86,7 +86,7 @@ public abstract class BundleLauncher {
     public void setUp(Context context) { }
 
     /**
-     * Called when loading bundles by {@link Bundle#loadLaunchableBundles(Bundle.OnLoadListener)}.
+     * Called when loading bundles by {@link Bundle#loadLaunchableBundles(Small.OnCompleteListener)}.
      *
      * <p>This method try to preload a bundle, if succeed, load it later.
      *
@@ -102,13 +102,13 @@ public abstract class BundleLauncher {
     }
 
     /**
-     * Called when loading bundles by {@link Bundle#loadLaunchableBundles(Bundle.OnLoadListener)}.
+     * Called when loading bundles by {@link Bundle#loadLaunchableBundles(Small.OnCompleteListener)}.
      * This is where validation and preparation should go:
      * validate the <tt>bundle</tt> package name,
      * validate the <tt>bundle</tt> signatures, record the <tt>bundle</tt> version for upgrade.
      *
      * @param bundle the loading bundle
-     * @return <tt>true</tt> if can load the <tt>bundle</tt>
+     * @return <tt>true</tt> if the <tt>bundle</tt> can be loaded
      */
     public boolean preloadBundle(Bundle bundle) {
         return true;

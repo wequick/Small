@@ -26,7 +26,9 @@ import net.wequick.small.Small;
 import java.util.ArrayList;
 
 /**
- * Created by galen on 15/3/27.
+ * This class manage the allocation and deallocation of WebViews.
+ *
+ * <p>The pool size is default to 8.
  */
 public final class WebViewPool {
     private static final int POOL_SIZE = 8;

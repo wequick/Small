@@ -69,9 +69,8 @@ class AppPlugin extends BundlePlugin {
 
         if (!isBuildingRelease()) return
 
-        initPackageId()
-
         project.afterEvaluate {
+            initPackageId()
             resolveReleaseDependencies()
 
             project.android.dexOptions {
@@ -309,6 +308,11 @@ class AppPlugin extends BundlePlugin {
         small.dex.doLast {
             small.bkAarDir.renameTo(small.aarDir)
         }
+
+        // Hook clean task to unset package id
+        project.clean.doLast {
+            sPackageIds.remove(project.name)
+        }
     }
 
     @Override
@@ -355,36 +359,59 @@ class AppPlugin extends BundlePlugin {
      * 'gradle.properties', generate a random one
      */
     protected void initPackageId() {
-        Integer pp = sPackageIds.get(project.name)
-        if (pp != null) {
-            small.packageId = pp
-            small.packageIdStr = String.format('%02x', pp)
-            return
+        Integer pp
+        String ppStr = null
+        Integer usingPP = sPackageIds.get(project.name)
+        boolean addsNewPP = true
+        // Get user defined package id
+        if (project.hasProperty('packageId')) {
+            def userPP = project.packageId
+            if (userPP instanceof Integer) {
+                // Set in build.gradle with 'ext.packageId=0x7e' as an Integer
+                pp = userPP
+            } else {
+                // Set in gradle.properties with 'packageId=7e' as a String
+                ppStr = userPP
+                pp = Integer.parseInt(ppStr, 16)
+            }
+
+            if (usingPP != null && pp != usingPP) {
+                // TODO: clean last build
+                throw new Exception("Package id for ${project.name} has changed! " +
+                        "You should call clean first.")
+            }
+        } else {
+            if (usingPP != null) {
+                pp = usingPP
+                addsNewPP = false
+            } else {
+                pp = genRandomPackageId(project.name)
+            }
         }
 
-        if (project.hasProperty('packageId')) {
-            pp = project.packageId
-        } else {
-            pp = genRandomPackageId(project.name)
-        }
+        small.packageId = pp
+        small.packageIdStr = ppStr != null ? ppStr : String.format('%02x', pp)
+        if (!addsNewPP) return
+
+        // Check if the new package id has been used
         sPackageIds.each { name, id ->
             if (id == pp) {
                 throw new Exception("Duplicate package id 0x${String.format('%02x', pp)} " +
                         "with $name and ${project.name}!\nPlease redefine one of them " +
-                        "in bundle's build.gradle or gradle.properties.")
+                        "in build.gradle (e.g. 'ext.packageId=0x7e') " +
+                        "or gradle.properties (e.g. 'packageId=7e').")
             }
         }
-        small.packageId = pp
-        small.packageIdStr = String.format('%02x', pp)
         sPackageIds.put(project.name, pp)
     }
 
     /**
      * Generate a random package id in range [0x03, 0x7e] by bundle's name.
      * [0x00, 0x02] reserved for android system resources.
+     * [0x03, 0x0f] reserved for the fucking crazy manufacturers.
      */
     private static int genRandomPackageId(String bundleName) {
-        int minPP = 0x03
+        int minPP = 0x10
         int maxPP = 0x7e
         int d = maxPP - minPP
         int hash = bundleName.hashCode() & 0x000000ff
