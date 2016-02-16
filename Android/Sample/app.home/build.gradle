@@ -19,6 +19,11 @@ android {
     }
 }
 
+// Example for customize package id
+//ext {
+//    packageId = 0x7d
+//}
+
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
