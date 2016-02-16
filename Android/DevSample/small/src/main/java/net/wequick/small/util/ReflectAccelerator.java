@@ -21,13 +21,17 @@ import android.app.Application;
 import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.os.Build;
 import android.os.IBinder;
+import android.util.DisplayMetrics;
 import android.view.ContextThemeWrapper;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -56,6 +60,12 @@ public class ReflectAccelerator {
     private static Method sActivityThread_currentActivityThread_method;
     private static Method sInstrumentation_execStartActivityV21_method;
     private static Method sInstrumentation_execStartActivityV20_method;
+    // Signatures - V13
+    private static Constructor sPackageParser_constructor;
+    private static Method sPackageParser_parsePackage_method;
+    private static Method sPackageParser_collectCertificates_method;
+    private static Field sPackageParser$Package_mSignatures_field;
+
 
     private ReflectAccelerator() { /** cannot be instantiated */ }
 
@@ -110,14 +120,36 @@ public class ReflectAccelerator {
 
     public static boolean expandDexPathList(ClassLoader cl, String dexPath,
                                      String libraryPath, String optDexPath) {
-        try {
-            File pkg = new File(dexPath);
-            DexFile dexFile = DexFile.loadDex(dexPath, optDexPath, 0);
-            Object element = makeDexElement(pkg, dexFile);
-            fillDexPathList(cl, element);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
+        if (Build.VERSION.SDK_INT < 14) {
+            try {
+                Field field = getDeclaredField(cl.getClass(), "mFiles");
+                File pathFile = new File(dexPath);
+                expandArray(cl, field, new Object[]{pathFile}, true);
+
+                field = getDeclaredField(cl.getClass(), "mPaths");
+                expandArray(cl, field, new Object[]{dexPath}, true);
+
+                field = getDeclaredField(cl.getClass(), "mZips");
+                ZipFile zipFile = new ZipFile(dexPath);
+                expandArray(cl, field, new Object[]{zipFile}, true);
+
+                field = getDeclaredField(cl.getClass(), "mDexs");
+                DexFile dexFile = DexFile.loadDex(dexPath, optDexPath, 0);
+                expandArray(cl, field, new Object[]{dexFile}, true);
+
+            } catch (Exception e) {
+                return false;
+            }
+        } else {
+            try {
+                File pkg = new File(dexPath);
+                DexFile dexFile = DexFile.loadDex(dexPath, optDexPath, 0);
+                Object element = makeDexElement(pkg, dexFile);
+                fillDexPathList(cl, element);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
         }
         return true;
     }
@@ -293,6 +325,48 @@ public class ReflectAccelerator {
         if (sInstrumentation_execStartActivityV20_method == null) return null;
         return invoke(sInstrumentation_execStartActivityV20_method, instrumentation,
                 who, contextThread, token, target, intent, requestCode);
+    }
+
+    /**
+     *
+     * @see <a href="https://github.com/android/platform_frameworks_base/blob/gingerbread-release/core%2Fjava%2Fandroid%2Fcontent%2Fpm%2FPackageParser.java">PackageParser.java</a>
+     * @param path
+     * @return
+     */
+    public static Signature[] getSignaturesV13(File plugin) {
+        try {
+            if (sPackageParser_constructor == null) {
+                Class clazz = Class.forName("android.content.pm.PackageParser");
+                sPackageParser_constructor = clazz.getConstructors()[0];
+                if (sPackageParser_constructor == null) return null;
+
+                sPackageParser_parsePackage_method = getDeclaredMethod(clazz, "parsePackage",
+                        new Class[]{File.class, String.class, DisplayMetrics.class, Integer.TYPE});
+                if (sPackageParser_parsePackage_method == null) return null;
+
+                Class pkgClazz = sPackageParser_parsePackage_method.getReturnType();
+                sPackageParser_collectCertificates_method = getDeclaredMethod(clazz,
+                        "collectCertificates",
+                        new Class[]{pkgClazz, Integer.TYPE});
+                if (sPackageParser_collectCertificates_method == null) return null;
+
+                sPackageParser$Package_mSignatures_field = getDeclaredField(pkgClazz, "mSignatures");
+                if (sPackageParser$Package_mSignatures_field == null) return null;
+            }
+
+            String path = plugin.getPath();
+            Object parser = sPackageParser_constructor.newInstance(path);
+            DisplayMetrics metrics = new DisplayMetrics();
+            metrics.setToDefaults();
+            Object pkg = sPackageParser_parsePackage_method.invoke(parser,
+                    plugin, path, metrics, PackageManager.GET_SIGNATURES);
+            sPackageParser_collectCertificates_method.invoke(parser,
+                    pkg, PackageManager.GET_SIGNATURES);
+            return getValue(sPackageParser$Package_mSignatures_field, pkg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     //______________________________________________________________________________________________
