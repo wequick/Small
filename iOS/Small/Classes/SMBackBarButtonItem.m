@@ -21,7 +21,7 @@
     UIButton *_backButton;
 }
 
-- (instancetype)initWithTitle:(nullable NSString *)title image:(UIImage *)image target:(nullable id)target action:(nullable SEL)action
+- (instancetype)initWithTitle:(NSString *)title image:(UIImage *)image target:(id)target action:(SEL)action
 {
     UIButton *backButton = [UIButton buttonWithType:101];
     if (self = [super initWithCustomView:backButton]) {
@@ -49,12 +49,12 @@
     _backButton = nil;
 }
 
-- (void)setTitle:(NSString * _Nullable)title
+- (void)setTitle:(NSString *)title
 {
     [_backButton setTitle:title forState:UIControlStateNormal];
 }
 
-- (void)setTintColor:(UIColor * _Nullable)tintColor
+- (void)setTintColor:(UIColor *)tintColor
 {
     [_backButton setTintColor:tintColor];
 }
