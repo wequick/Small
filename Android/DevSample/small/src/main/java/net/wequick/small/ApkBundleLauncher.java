@@ -17,6 +17,7 @@
 package net.wequick.small;
 
 import android.app.Activity;
+import android.app.Application;
 import android.app.Instrumentation;
 import android.content.ComponentName;
 import android.content.ContextWrapper;
@@ -338,6 +339,19 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
             apk.dexFile = optDexFile;
             sLoadedApks.put(packageName, apk);
+        }
+
+        // Call bundle application onCreate
+        String bundleApplicationName = pluginInfo.applicationInfo.className;
+        if (bundleApplicationName != null) {
+            try {
+                Class applicationClass = Class.forName(bundleApplicationName);
+                Application bundleApplication = Instrumentation.newApplication(
+                        applicationClass, Small.getContext());
+                sHostInstrumentation.callApplicationOnCreate(bundleApplication);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         if (pluginInfo.activities == null) {
