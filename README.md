@@ -6,7 +6,7 @@
 [![License Apache2.0](https://img.shields.io/hexpm/l/plug.svg)][license]
 
 
-支持平台：[Android](Android) API 15(4.0.3)+  [iOS](iOS) 7.0+
+支持平台：[Android](Android) API 8(2.2)+  [iOS](iOS) 7.0+
 
 ![Small][icon]
 
