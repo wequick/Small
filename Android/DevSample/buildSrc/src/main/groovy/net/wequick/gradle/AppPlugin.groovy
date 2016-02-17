@@ -413,9 +413,10 @@ class AppPlugin extends BundlePlugin {
     private static int genRandomPackageId(String bundleName) {
         int minPP = 0x10
         int maxPP = 0x7e
+        int maxHash = 0xffff
         int d = maxPP - minPP
-        int hash = bundleName.hashCode() & 0x000000ff
-        int pp = (hash * d / 0xff) + minPP
+        int hash = bundleName.hashCode() & maxHash
+        int pp = (hash * d / maxHash) + minPP
         return pp
     }
 }
