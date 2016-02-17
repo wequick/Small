@@ -65,6 +65,11 @@ public class ReflectAccelerator {
     private static Method sPackageParser_parsePackage_method;
     private static Method sPackageParser_collectCertificates_method;
     private static Field sPackageParser$Package_mSignatures_field;
+    // DexClassLoader - V13
+    private static Field sDexClassLoader_mFiles_field;
+    private static Field sDexClassLoader_mPaths_field;
+    private static Field sDexClassLoader_mZips_field;
+    private static Field sDexClassLoader_mDexs_field;
 
 
     private ReflectAccelerator() { /** cannot be instantiated */ }
@@ -122,21 +127,29 @@ public class ReflectAccelerator {
                                      String libraryPath, String optDexPath) {
         if (Build.VERSION.SDK_INT < 14) {
             try {
-                Field field = getDeclaredField(cl.getClass(), "mFiles");
+                if (sDexClassLoader_mFiles_field == null) {
+                    sDexClassLoader_mFiles_field = getDeclaredField(cl.getClass(), "mFiles");
+                    sDexClassLoader_mPaths_field = getDeclaredField(cl.getClass(), "mPaths");
+                    sDexClassLoader_mZips_field = getDeclaredField(cl.getClass(), "mZips");
+                    sDexClassLoader_mDexs_field = getDeclaredField(cl.getClass(), "mDexs");
+                }
+                if (sDexClassLoader_mFiles_field == null
+                        || sDexClassLoader_mPaths_field == null
+                        || sDexClassLoader_mZips_field == null
+                        || sDexClassLoader_mDexs_field == null) {
+                    return false;
+                }
+                
                 File pathFile = new File(dexPath);
-                expandArray(cl, field, new Object[]{pathFile}, true);
+                expandArray(cl, sDexClassLoader_mFiles_field, new Object[]{pathFile}, true);
 
-                field = getDeclaredField(cl.getClass(), "mPaths");
-                expandArray(cl, field, new Object[]{dexPath}, true);
+                expandArray(cl, sDexClassLoader_mPaths_field, new Object[]{dexPath}, true);
 
-                field = getDeclaredField(cl.getClass(), "mZips");
                 ZipFile zipFile = new ZipFile(dexPath);
-                expandArray(cl, field, new Object[]{zipFile}, true);
+                expandArray(cl, sDexClassLoader_mZips_field, new Object[]{zipFile}, true);
 
-                field = getDeclaredField(cl.getClass(), "mDexs");
                 DexFile dexFile = DexFile.loadDex(dexPath, optDexPath, 0);
-                expandArray(cl, field, new Object[]{dexFile}, true);
-
+                expandArray(cl, sDexClassLoader_mDexs_field, new Object[]{dexFile}, true);
             } catch (Exception e) {
                 return false;
             }
@@ -328,10 +341,7 @@ public class ReflectAccelerator {
     }
 
     /**
-     *
      * @see <a href="https://github.com/android/platform_frameworks_base/blob/gingerbread-release/core%2Fjava%2Fandroid%2Fcontent%2Fpm%2FPackageParser.java">PackageParser.java</a>
-     * @param path
-     * @return
      */
     public static Signature[] getSignaturesV13(File plugin) {
         try {
