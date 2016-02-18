@@ -39,7 +39,7 @@ public class Aapt {
      * @param pp new package id
      * @param idMaps
      */
-    void filterPackage(List retainedTypes, int pp, Map idMaps) {
+    void filterPackage(List retainedTypes, int pp, Map idMaps, List retainedStyleables) {
         File arscFile = new File(mAssetDir, 'resources.arsc')
         if (retainedTypes.size() == 0) {
             // Remove everything
@@ -52,9 +52,9 @@ public class Aapt {
         def arscEditor = new ArscEditor(arscFile)
 
         // Filter R.java
-        filterRjava(mJavaFile, retainedTypes, null)
+        filterRjava(mJavaFile, retainedTypes, retainedStyleables, null)
         // Filter R.txt
-        if (mSymbolFile != null) filterRtext(mSymbolFile, retainedTypes)
+        if (mSymbolFile != null) filterRtext(mSymbolFile, retainedTypes, retainedStyleables)
         // Filter resources.arsc
         arscEditor.slice(pp, idMaps, retainedTypes)
 
@@ -164,11 +164,13 @@ public class Aapt {
     /**
      * Filter specify types for R.java
      * @param rJavaFile
-     * @param retainedTypes types to keep
-     * @param dynamicIds ids needs to map at runtime
+     * @param retainedTypes types that to keep
+     * @param retainedStyleables styleables that to keep
+     * @param dynamicIds ids that needs to map at runtime
      * @return
      */
-    private static def filterRjava(File rJavaFile, List retainedTypes, List dynamicIds) {
+    private static def filterRjava(File rJavaFile, List retainedTypes, List retainedStyleables,
+                                   List dynamicIds) {
         def final clazzStart = '    public static final class '
         def final clazzEnd = '    }'
         def final varStart = '        public static final '
@@ -250,6 +252,15 @@ public class Aapt {
             pw.println dynamicIdsStr
             pw.println clazzEnd
         }
+
+        if (retainedStyleables.size() > 0) {
+            pw.println '    public static final class styleable {'
+            retainedStyleables.each {
+                pw.println "        public static final ${it.vtype} ${it.key} = ${it.idStr};"
+            }
+            pw.println clazzEnd
+        }
+
         pw.println('}')
 
         pw.flush()
@@ -264,14 +275,16 @@ public class Aapt {
      * @param rText
      * @param retainedTypes
      */
-    private static def filterRtext(File rtext, List retainedTypes) {
+    private static def filterRtext(File rtext, List retainedTypes, List retainedStyleables) {
         rtext.write('')
         def pw = rtext.newPrintWriter()
         retainedTypes.each { t ->
             t.entries.each { e ->
-//            println "-- write ${t.type} ${t.name} ${e.name} ${e._vs}"
                 pw.write("${t.type} ${t.name} ${e.name} ${e._vs}\n")
             }
+        }
+        retainedStyleables.each {
+            pw.write("${it.vtype} ${it.type} ${it.key} ${it.idStr}\n")
         }
         pw.flush()
         pw.close()

@@ -97,7 +97,7 @@ class RootPlugin extends BasePlugin {
         // Copy jars
         def preJarDir = small.preBaseJarDir
         if (!preJarDir.exists()) preJarDir.mkdirs()
-        //  - copy package.R jar (host only)
+        //  - copy package.R jar
         if (lib.hasProperty('jarReleaseClasses')) {
             def rJar = lib.jarReleaseClasses.archivePath
             project.copy {
@@ -165,6 +165,19 @@ class RootPlugin extends BasePlugin {
         idsPw.close()
         keysPw.flush()
         keysPw.close()
+
+        // Backup R.txt to public.txt
+        if (libName != 'app') {
+            AppExtension ext = lib.small
+            def publicIdsPw = new PrintWriter(ext.publicSymbolFile.newWriter(false))
+            dstIdsFile.eachLine { s ->
+                if (!s.contains("styleable")) {
+                    publicIdsPw.println(s)
+                }
+            }
+            publicIdsPw.flush()
+            publicIdsPw.close()
+        }
     }
 
     private void logStartBuild(Project project) {

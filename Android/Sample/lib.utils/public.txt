@@ -1,0 +1,4 @@
+int attr label 0x73010000
+int string s_util_aa 0x73020000
+int string s_util_bb 0x73020002
+int string s_util_hello 0x73020001

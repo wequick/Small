@@ -44,19 +44,43 @@ public final class SymbolParser {
      */
     public static def getResourceEntry(String str) {
         def i = str.indexOf(' ')
-        def vtype = str.substring(0, i) // value type
+        def vtype = str.substring(0, i) // value type (int or int[])
         str = str.substring(i + 1)
         i = str.indexOf(' ')
-        def type = str.substring(0, i) // resource type
-        if (type == 'styleable') return null
+        def type = str.substring(0, i) // resource type (attr/string/color etc.)
         str = str.substring(i + 1)
         i = str.indexOf(' ')
         String key = str.substring(0, i)
         String idStr = str.substring(i + 1)
+
+        if (type == 'styleable') {
+            // Styleables won't be compiled to resources.arsc file but saved in `R.java',
+            // it just stores the 'attr/*' ids which are used to access values from AttributeSet.
+            // As example:
+            //   'int[] styleable MyTextView { 0x7f010055, 0x7f010056 }'
+            //   'int styleable MyTextView_label 0'
+            //   'int styleable MyTextView_label2 1'
+            //
+            //   TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.MyTextView);
+            //   String label = ta.getString(R.styleable.MyTextView_label);
+            //
+            // The id 0x7f010055 and 0x7f010056 refer to 'attr/label' and 'attr/label2', so the
+            // reading TypedArray contains the values of them.
+            // The id 0 and 1 specify the value location in TypedArray.
+            def e = [vtype: vtype, type: type, key: key, idStr: idStr, isStyleable: true]
+            def idLen = idStr.length()
+            if (idLen > 4) { // hereby, vtype must be int[] and the idStr is not empty as '{ }'
+                def ids = idStr.substring(2, idStr.length() - 2) // bypass '{ ' and ' }'
+                e.idStrs = ids.split(', ') as List<String>
+            }
+            return e
+        }
+
         int typeId = Integer.parseInt(idStr.substring(4, 6), 16)
         int entryId = Integer.parseInt(idStr.substring(7), 16)
         int id = Integer.decode(idStr)
-        return [vtype:vtype, type:type, typeId:typeId, entryId:entryId, key:key, idStr:idStr, id:id]
+        return [vtype: vtype, type: type, key: key,
+                typeId: typeId, entryId: entryId, idStr: idStr, id: id, isStyleable: false]
     }
 
     /**
@@ -66,6 +90,8 @@ public final class SymbolParser {
      */
     public static def getResourceEntries(File file) {
         def es = [:]
+        if (!file.exists()) return es
+
         file.eachLine { str ->
             def entry = getResourceEntry(str)
             if (entry == null) return

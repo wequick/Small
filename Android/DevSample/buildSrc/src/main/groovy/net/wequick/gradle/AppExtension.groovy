@@ -56,10 +56,14 @@ public class AppExtension extends BundleExtension {
     /** File of merger.xml */
     File mergerXml
 
+    /** Public symbol file - public.txt */
+    File publicSymbolFile
+
     LinkedHashMap<Integer, Integer> idMaps
     LinkedHashMap<String, String> idStrMaps
     ArrayList retainedTypes
     ArrayList dynamicIds
+    ArrayList retainedStyleables
 
     AppExtension(Project project) {
         super(project)
@@ -68,5 +72,6 @@ public class AppExtension extends BundleExtension {
 
         aarDir = new File(interDir, 'exploded-aar')
         bkAarDir = new File(interDir, 'exploded-aar~')
+        publicSymbolFile = new File(project.projectDir, 'public.txt')
     }
 }
