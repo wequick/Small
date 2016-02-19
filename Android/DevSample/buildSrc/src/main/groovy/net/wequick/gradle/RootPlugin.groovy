@@ -183,9 +183,10 @@ class RootPlugin extends BasePlugin {
     private void logStartBuild(Project project) {
         BaseExtension ext = project.small
         switch (ext.type) {
-            case PluginType.Host:
             case PluginType.Library:
-                if (isBuildingBundle) return
+                LibraryPlugin lp = project.plugins.findPlugin(LibraryPlugin.class)
+                if (!lp.isBuildingRelease()) return
+            case PluginType.Host:
                 Log.header "building library ${ext.buildIndex} of ${small.libCount} - " +
                         "${project.name} (0x${ext.packageIdStr})"
                 break
