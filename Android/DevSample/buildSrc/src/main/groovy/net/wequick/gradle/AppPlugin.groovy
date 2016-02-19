@@ -167,23 +167,16 @@ class AppPlugin extends BundlePlugin {
 
         RootExtension rootExt = (RootExtension) project.rootProject.small
 
-        def staticLibEntries = [:]
-        def dynamicLibEntries = [:]
+        def libEntries = [:]
         rootExt.preIdsDir.listFiles().each {
             if (it.name.endsWith('R.txt') && !it.name.startsWith(project.name)) {
-                def entries = SymbolParser.getResourceEntries(it)
-                if (it.name.startsWith('lib.')) {
-                    dynamicLibEntries += entries
-                } else {
-                    staticLibEntries += entries
-                }
+                libEntries += SymbolParser.getResourceEntries(it)
             }
         }
         def publicEntries = SymbolParser.getResourceEntries(small.publicSymbolFile)
         def bundleEntries = SymbolParser.getResourceEntries(idsFile)
         def staticIdMaps = [:]
         def staticIdStrMaps = [:]
-        def dynamicIds = []
         def retainedEntries = []
         def retainedStyleables = []
         def reservedKeys = getReservedResourceKeys()
@@ -205,33 +198,21 @@ class AppPlugin extends BundlePlugin {
                 return
             }
 
-            le = staticLibEntries.get(k)
+            le = libEntries.get(k)
             if (le != null) {
-                // Static Lib: the lib compiles into host apk like `appcompat', `design',
-                // add static id maps to host resources and map it later at compiletime
-                // with the aapt-generated `resources.arsc' and `R.java' file
-                if (be.id != le.id) {
-                    staticIdMaps.put(be.id, le.id)
-                    staticIdStrMaps.put(be.idStr, le.idStr)
-                }
+                // Add static id maps to host or library resources and map it later at
+                // compile-time with the aapt-generated `resources.arsc' and `R.java' file
+                staticIdMaps.put(be.id, le.id)
+                staticIdStrMaps.put(be.idStr, le.idStr)
                 return
             }
 
-            le = dynamicLibEntries.get(k)
-            if (le != null) {
-                // TODO: Dynamic Lib: the lib compiles alone as `[package]_lib_*.so',
-                // TODO: add dynamic id and map it later at runtime
-//                dynamicIds.add(be.idStr)
-                if (be.id != le.id) {
-                    staticIdMaps.put(be.id, le.id)
-                    staticIdStrMaps.put(be.idStr, le.idStr)
-                }
-                return
+            if (be.type != 'id') {
+                throw new Exception("Missing resolving for resource: $be")
             }
-
             be.isStyleable ? retainedStyleables.add(be) : retainedEntries.add(be)
         }
-//        assert false
+
         if (retainedEntries.size() == 0) {
             small.retainedTypes = [] // Doesn't have any resources
             return
@@ -245,13 +226,15 @@ class AppPlugin extends BundlePlugin {
         def pid = (small.packageId << 24)
         def tid = 0
         def eid
-        def currType = null
+        def types = [:]
         // Ensure first type is `attr'
         def attrEntry = retainedEntries[0]
         if (attrEntry.type != 'attr') tid = 1 // skip `attr'
         retainedEntries.each { e ->
             // Prepare entry id maps for resolving resources.arsc and binary xml files
-            if (currType == null || currType.id != e.typeId) {
+            def needsInsert = false
+            def currType = types[e.type]
+            if (currType == null) {
                 // New type
                 if (e._typeId != UNSET_TYPEID) {
                     tid = e._typeId
@@ -260,13 +243,29 @@ class AppPlugin extends BundlePlugin {
                 }
                 currType = [type: e.vtype, name: e.type, id: e.typeId, _id: tid, entries: []]
                 retainedTypes.add(currType)
+                types[e.type] = currType
                 eid = 0
             } else {
                 // Previous type
                 if (e._entryId != UNSET_ENTRYID) {
                     eid = e._entryId
                 } else {
-                    eid++
+                    def entryCount = currType.entries.size()
+                    if (eid >= entryCount) {
+                        // The entry ids are not continuous
+                        needsInsert = true
+                        for (int i = 0; i < entryCount - 1; i++) {
+                            def a = currType.entries[i]
+                            def b = currType.entries[i + 1]
+                            def _id = a._id + 1
+                            if (_id < b._id) {
+                                eid = _id
+                                break
+                            }
+                        }
+                    } else {
+                        eid++
+                    }
                 }
             }
             def newResId = pid | (tid << 16) | eid
@@ -285,10 +284,17 @@ class AppPlugin extends BundlePlugin {
                     }
                 }
             }
-            currType.entries.add([name: e.key, id: e.entryId, _id: eid, v: e.id, _v:newResId,
-                                  vs: e.idStr, _vs: newResIdStr])
+
+            def entry = [name: e.key, id: e.entryId, _id: eid, v: e.id, _v:newResId,
+                         vs: e.idStr, _vs: newResIdStr]
+            if (needsInsert) {
+                currType.entries.insert(entry, eid)
+            } else {
+                currType.entries.add(entry)
+            }
         }
 
+        // Update the id array for styleables
         retainedStyleables.findAll { it.mapped != null }.each {
             it.idStr = "{ ${it.idStrs.join(', ')} }"
             it.idStrs = null
@@ -297,7 +303,6 @@ class AppPlugin extends BundlePlugin {
         small.idMaps = staticIdMaps
         small.idStrMaps = staticIdStrMaps
         small.retainedTypes = retainedTypes
-        small.dynamicIds = dynamicIds
         small.retainedStyleables = retainedStyleables
     }
 
@@ -397,22 +402,25 @@ class AppPlugin extends BundlePlugin {
 
                     it.children().each {
                         type = it.name()
-                        if (type == 'declare-styleable') { // <declare-styleable name="MyTextView">
-                            def styleable = it.@name
-                            def key = "styleable/$styleable"
-                            if (!resourceKeys.contains(key)) resourceKeys.add(key)
+                        def name = it.@name
+                        if (type == 'string') {
+                            if (name == 'app_name') return // DON'T NEED IN BUNDLE
+                        } else if (type == 'style') {
+                            name = name.replaceAll("\\.", "_")
+                        } else if (type == 'declare-styleable') {
+                            // <declare-styleable name="MyTextView">
+                            type = 'styleable'
                             it.children().each { // <attr format="string" name="label"/>
                                 def attr = it.@name
-                                key = "attr/$attr"
+                                def key = "attr/$attr"
                                 if (!resourceKeys.contains(key)) resourceKeys.add(key)
-                                key = "styleable/${styleable}_${attr}"
+                                key = "styleable/${name}_${attr}"
                                 if (!resourceKeys.contains(key)) resourceKeys.add(key)
                             }
-                        } else { // <color name="colorAccent">#FF4081</color>
-                            def key = "$type/${it.@name}" // color/colorAccent
-                            if (key == 'string/app_name') return // DON'T NEED IN BUNDLE
-                            if (!resourceKeys.contains(key)) resourceKeys.add(key)
                         }
+
+                        def key = "$type/$name"
+                        if (!resourceKeys.contains(key)) resourceKeys.add(key)
                     }
                 }
             }

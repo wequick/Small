@@ -26,5 +26,6 @@ dependencies {
     compile 'com.android.support:design:23.1.1'
     compile 'com.android.support:support-annotations:23.1.1'
     // User libraries
+    compile project(':lib.style')
     compile project(':lib.utils')
 }

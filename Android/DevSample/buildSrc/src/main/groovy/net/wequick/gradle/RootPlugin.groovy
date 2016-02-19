@@ -170,7 +170,7 @@ class RootPlugin extends BasePlugin {
         if (libName != 'app') {
             AppExtension ext = lib.small
             def publicIdsPw = new PrintWriter(ext.publicSymbolFile.newWriter(false))
-            dstIdsFile.eachLine { s ->
+            ext.symbolFile.eachLine { s ->
                 if (!s.contains("styleable")) {
                     publicIdsPw.println(s)
                 }

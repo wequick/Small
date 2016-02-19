@@ -62,7 +62,6 @@ public class AppExtension extends BundleExtension {
     LinkedHashMap<Integer, Integer> idMaps
     LinkedHashMap<String, String> idStrMaps
     ArrayList retainedTypes
-    ArrayList dynamicIds
     ArrayList retainedStyleables
 
     AppExtension(Project project) {

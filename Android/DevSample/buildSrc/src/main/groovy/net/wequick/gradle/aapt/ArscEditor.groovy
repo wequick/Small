@@ -100,6 +100,9 @@ public class ArscEditor extends AssetEditor {
                 def emptyCount = 0
                 es.each { e ->
                     def entry = it.entries[e.id]
+                    if (entry == null) {
+                        throw new Exception("Missing entry at ${e} on ${it}!")
+                    }
                     entries.add(entry)
                     if (entry.isEmpty()) {
                         offsets.add(-1)
