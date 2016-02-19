@@ -121,6 +121,7 @@ public class Bundle {
         Context context = Small.getContext();
         // Read manifest file
         File manifestFile = new File(context.getFilesDir(), BUNDLE_MANIFEST_NAME);
+        manifestFile.delete();
         String manifestJson;
         if (!manifestFile.exists()) {
             // Copy asset to files
@@ -264,7 +265,6 @@ public class Bundle {
         if (srcPath.equals("")) {
             dstPath = srcPath;
         } else {
-            srcPath = srcPath.substring(1); // bypass '/'
             for (String key : this.rules.keySet()) {
                 // TODO: regex match and replace
                 if (key.equals(srcPath)) dstPath = this.rules.get(key);
@@ -334,7 +334,7 @@ public class Bundle {
             Iterator<String> it = rulesObj.keys();
             while (it.hasNext()) {
                 String key = it.next();
-                this.rules.put(key, rulesObj.getString(key));
+                this.rules.put("/" + key, rulesObj.getString(key));
             }
         }
     }
