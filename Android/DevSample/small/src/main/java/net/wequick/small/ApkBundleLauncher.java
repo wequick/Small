@@ -295,8 +295,17 @@ public class ApkBundleLauncher extends SoBundleLauncher {
     public void loadBundle(Bundle bundle) {
         boolean patching = bundle.isPatching();
         String packageName = bundle.getPackageName();
-        File plugin = bundle.getPatchFile().exists() ?
-                bundle.getPatchFile() : bundle.getBuiltinFile();
+        File plugin = bundle.getBuiltinFile();
+
+        File patch = bundle.getPatchFile();
+        if (patch.exists()) {
+            if (patch.lastModified() <= plugin.lastModified()) {
+                Log.e(TAG, "Patch file should be later than built-in!");
+                patch.delete();
+            } else {
+                plugin = patch;
+            }
+        }
 
         if (patching) {
             // Unload bundle of the package name
