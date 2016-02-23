@@ -296,14 +296,20 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         boolean patching = bundle.isPatching();
         String packageName = bundle.getPackageName();
         File plugin = bundle.getBuiltinFile();
+        PackageManager pm = Small.getContext().getPackageManager();
+        PackageInfo pluginInfo = pm.getPackageArchiveInfo(plugin.getPath(),
+                PackageManager.GET_ACTIVITIES);
 
         File patch = bundle.getPatchFile();
         if (patch.exists()) {
-            if (patch.lastModified() <= plugin.lastModified()) {
-                Log.e(TAG, "Patch file should be later than built-in!");
+            PackageInfo patchInfo = pm.getPackageArchiveInfo(plugin.getPath(),
+                    PackageManager.GET_ACTIVITIES);
+            if (patchInfo.versionCode < pluginInfo.versionCode) {
+                Log.d(TAG, "Patch file should be later than built-in!");
                 patch.delete();
             } else {
                 plugin = patch;
+                pluginInfo = patchInfo;
             }
         }
 
@@ -311,10 +317,6 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             // Unload bundle of the package name
             unloadBundle(packageName);
         }
-
-        PackageManager pm = Small.getContext().getPackageManager();
-        PackageInfo pluginInfo = pm.getPackageArchiveInfo(plugin.getPath(),
-                PackageManager.GET_ACTIVITIES);
 
         // Load the bundle
         String apkPath = plugin.getPath();
