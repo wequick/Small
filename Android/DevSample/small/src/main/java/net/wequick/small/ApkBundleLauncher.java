@@ -302,7 +302,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
         File patch = bundle.getPatchFile();
         if (patch.exists()) {
-            PackageInfo patchInfo = pm.getPackageArchiveInfo(plugin.getPath(),
+            PackageInfo patchInfo = pm.getPackageArchiveInfo(patch.getPath(),
                     PackageManager.GET_ACTIVITIES);
             if (patchInfo.versionCode < pluginInfo.versionCode) {
                 Log.d(TAG, "Patch file should be later than built-in!");
