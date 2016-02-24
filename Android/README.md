@@ -192,19 +192,10 @@ compile 'com.android.support:design:23.1.1'
 protected void onStart() {
     super.onStart();
     Small.setBaseUri("http://example.com/");
-    Small.setUp(this, new net.wequick.small.Bundle.OnLoadListener() {
-        @Override
-        public void onStart(int bundleCount, int upgradeBundlesCount, long upgradeBundlesSize) {
-
-        }
+    Small.setUp(this, new net.wequick.small.Small.OnCompleteListener() {
 
         @Override
-        public void onProgress(int bundleIndex, String bundleName, long loadedSize, long bundleSize) {
-
-        }
-
-        @Override
-        public void onComplete(Boolean success) {
+        public void onComplete() {
             Small.openUri("main", LaunchActivity.this);
         }
     });
