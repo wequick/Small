@@ -137,7 +137,7 @@ File->New->Module来创建插件模块，需要满足：
 
 右键`app`模块->New->Folder->Assets Folder，新建`assets`目录，
 
-右键`assets`目录->New->File，新建`bundles.json`文件，加入：
+右键`assets`目录->New->File，新建`bundle.json`文件，加入：
 
 ```json
 {
