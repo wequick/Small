@@ -137,7 +137,7 @@ File->New->Module来创建插件模块，需要满足：
 
 右键`app`模块->New->Folder->Assets Folder，新建`assets`目录，
 
-右键`assets`目录->New->File，新建`bundles.json`文件，加入：
+右键`assets`目录->New->File，新建`bundle.json`文件，加入：
 
 ```json
 {
@@ -192,19 +192,10 @@ compile 'com.android.support:design:23.1.1'
 protected void onStart() {
     super.onStart();
     Small.setBaseUri("http://example.com/");
-    Small.setUp(this, new net.wequick.small.Bundle.OnLoadListener() {
-        @Override
-        public void onStart(int bundleCount, int upgradeBundlesCount, long upgradeBundlesSize) {
-
-        }
+    Small.setUp(this, new net.wequick.small.Small.OnCompleteListener() {
 
         @Override
-        public void onProgress(int bundleIndex, String bundleName, long loadedSize, long bundleSize) {
-
-        }
-
-        @Override
-        public void onComplete(Boolean success) {
+        public void onComplete() {
             Small.openUri("main", LaunchActivity.this);
         }
     });
