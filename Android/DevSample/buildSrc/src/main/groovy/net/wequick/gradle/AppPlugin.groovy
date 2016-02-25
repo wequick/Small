@@ -208,7 +208,8 @@ class AppPlugin extends BundlePlugin {
             }
 
             if (be.type != 'id') {
-                throw new Exception("Missing resolving for resource: $be")
+                throw new Exception(
+                        "Missing library resource entry: \"$k\", try to cleanLib and buildLib.")
             }
             be.isStyleable ? retainedStyleables.add(be) : retainedEntries.add(be)
         }

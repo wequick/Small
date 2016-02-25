@@ -93,13 +93,14 @@ class RootPlugin extends BasePlugin {
 
     void buildLib(Project lib) {
         def libName = lib.name
+        def ext = (AndroidExtension) lib.small
 
         // Copy jars
         def preJarDir = small.preBaseJarDir
         if (!preJarDir.exists()) preJarDir.mkdirs()
         //  - copy package.R jar
-        if (lib.hasProperty('jarReleaseClasses')) {
-            def rJar = lib.jarReleaseClasses.archivePath
+        if (ext.jar != null) {
+            def rJar = ext.jar.archivePath
             project.copy {
                 from rJar
                 into preJarDir
@@ -129,7 +130,7 @@ class RootPlugin extends BasePlugin {
         }
 
         // Copy *.ap_
-        def aapt = lib.processReleaseResources
+        def aapt = ext.aapt
         def preApDir = small.preApDir
         if (!preApDir.exists()) preApDir.mkdir()
         def apFile = aapt.packageOutputFile
@@ -168,9 +169,9 @@ class RootPlugin extends BasePlugin {
 
         // Backup R.txt to public.txt
         if (libName != 'app') {
-            AppExtension ext = lib.small
-            def publicIdsPw = new PrintWriter(ext.publicSymbolFile.newWriter(false))
-            ext.symbolFile.eachLine { s ->
+            AppExtension appExt = (AppExtension) ext
+            def publicIdsPw = new PrintWriter(appExt.publicSymbolFile.newWriter(false))
+            appExt.symbolFile.eachLine { s ->
                 if (!s.contains("styleable")) {
                     publicIdsPw.println(s)
                 }
@@ -199,12 +200,15 @@ class RootPlugin extends BasePlugin {
     }
 
     private void logFinishBuild(Project project) {
-        if (!(project.small instanceof AndroidExtension)) return
+        project.android.applicationVariants.each { variant ->
+            if (variant.buildType.name != 'release') return
 
-        AndroidExtension ext = project.small
-        def outFile = ext.outputFile
-        Log.footer "-- output: ${outFile.parentFile.name}/${outFile.name} " +
-                "(${outFile.length()} bytes = ${getFileSize(outFile)})"
+            variant.outputs.each { out ->
+                File outFile = out.outputFile
+                Log.footer "-- output: ${outFile.parentFile.name}/${outFile.name} " +
+                        "(${outFile.length()} bytes = ${getFileSize(outFile)})"
+            }
+        }
     }
 
     private static String getFileSize(File file) {

@@ -35,9 +35,6 @@ public class AppExtension extends BundleExtension {
     /** Directory of split compiled java classes */
     File bkClassesDir
 
-    /** Task of android packager */
-    Task aapt
-
     /** Symbol file - R.txt */
     File symbolFile
 

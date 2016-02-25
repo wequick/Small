@@ -25,7 +25,7 @@ class AndroidPlugin extends BasePlugin {
             if (!project.android.hasProperty('applicationVariants')) return
 
             project.android.applicationVariants.all { variant ->
-                if (variant.name != 'release') return
+                if (variant.buildType.name != 'release') return
 
                 // While release variant created, everything of `Android Plugin' should be ready
                 // and then we can do some extensions with it
