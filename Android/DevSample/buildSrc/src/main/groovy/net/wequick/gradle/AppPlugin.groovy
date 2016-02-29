@@ -461,8 +461,13 @@ class AppPlugin extends BundlePlugin {
                             type = 'styleable'
                             it.children().each { // <attr format="string" name="label"/>
                                 def attr = it.@name
-                                def key = "attr/$attr"
-                                if (!resourceKeys.contains(key)) resourceKeys.add(key)
+                                def key
+                                if (attr.startsWith('android:')) {
+                                    attr = attr.replaceAll(':', '_')
+                                } else {
+                                    key = "attr/$attr"
+                                    if (!resourceKeys.contains(key)) resourceKeys.add(key)
+                                }
                                 key = "styleable/${name}_${attr}"
                                 if (!resourceKeys.contains(key)) resourceKeys.add(key)
                             }
