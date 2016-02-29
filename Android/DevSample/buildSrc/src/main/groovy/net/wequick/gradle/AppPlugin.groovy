@@ -270,38 +270,43 @@ class AppPlugin extends BundlePlugin {
 
         // Reassign resource type ids and entry ids
         def lastEntryIds = [:]
-        if (retainedEntries[0].type != 'attr') {
-            // reserved for `attr'
-            if (maxPublicTypeId == 0) maxPublicTypeId = 1
-            if (unusedTypeIds.size() > 0) unusedTypeIds.poll()
-        }
-        retainedEntries.each { e ->
-            def publicType = publicTypes[e.type]
-            if (publicType != null) {
-                e._typeId = publicType.id
-                if (publicType.unusedEntryIds.size() > 0) {
-                    e._entryId = publicType.unusedEntryIds.poll()
-                } else {
-                    e._entryId = ++publicType.maxEntryId
-                }
-            } else {
-                if (unusedTypeIds.size() > 0) {
-                    e._typeId = unusedTypeIds.poll()
-                } else {
-                    e._typeId = ++maxPublicTypeId
-                }
-
-                def entryId = lastEntryIds[e.type]
-                if (entryId == null) {
-                    entryId = 0
-                } else {
-                    entryId++
-                }
-                e._entryId = lastEntryIds[e.type] = entryId
+        if (retainedEntries.size() > 0) {
+            if (retainedEntries[0].type != 'attr') {
+                // reserved for `attr'
+                if (maxPublicTypeId == 0) maxPublicTypeId = 1
+                if (unusedTypeIds.size() > 0) unusedTypeIds.poll()
             }
+            retainedEntries.each { e ->
+                def publicType = publicTypes[e.type]
+                if (publicType != null) {
+                    e._typeId = publicType.id
+                    if (publicType.unusedEntryIds.size() > 0) {
+                        e._entryId = publicType.unusedEntryIds.poll()
+                    } else {
+                        e._entryId = ++publicType.maxEntryId
+                    }
+                } else {
+                    if (unusedTypeIds.size() > 0) {
+                        e._typeId = unusedTypeIds.poll()
+                    } else {
+                        e._typeId = ++maxPublicTypeId
+                    }
+
+                    def entryId = lastEntryIds[e.type]
+                    if (entryId == null) {
+                        entryId = 0
+                    } else {
+                        entryId++
+                    }
+                    e._entryId = lastEntryIds[e.type] = entryId
+                }
+            }
+
+            retainedEntries += retainedPublicEntries
+        } else {
+            retainedEntries = retainedPublicEntries
         }
 
-        retainedEntries += retainedPublicEntries
         retainedEntries.sort { a, b ->
             a._typeId <=> b._typeId ?: a._entryId <=> b._entryId
         }
