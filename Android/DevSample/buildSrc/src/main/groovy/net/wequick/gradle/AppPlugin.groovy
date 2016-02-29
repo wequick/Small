@@ -178,8 +178,10 @@ class AppPlugin extends BundlePlugin {
         def staticIdMaps = [:]
         def staticIdStrMaps = [:]
         def retainedEntries = []
+        def retainedPublicEntries = []
         def retainedStyleables = []
         def reservedKeys = getReservedResourceKeys()
+
         bundleEntries.each { k, be ->
             be._typeId = UNSET_TYPEID // for sort
             be._entryId = UNSET_ENTRYID
@@ -189,7 +191,8 @@ class AppPlugin extends BundlePlugin {
                 // Use last built id
                 be._typeId = le.typeId
                 be._entryId = le.entryId
-                retainedEntries.add(be)
+                retainedPublicEntries.add(be)
+                publicEntries.remove(k)
                 return
             }
 
@@ -214,85 +217,125 @@ class AppPlugin extends BundlePlugin {
             be.isStyleable ? retainedStyleables.add(be) : retainedEntries.add(be)
         }
 
-        if (retainedEntries.size() == 0) {
+        // TODO: retain deleted public entries
+        if (publicEntries.size() > 0) {
+            publicEntries.each { k, e ->
+                e._typeId = e.typeId
+                e._entryId = e.entryId
+                e.entryId = Aapt.ID_DELETED
+
+                def re = retainedPublicEntries.find{it.type == e.type}
+                e.typeId = (re != null) ? re.typeId : Aapt.ID_DELETED
+            }
+            publicEntries.each { k, e ->
+                retainedPublicEntries.add(e)
+            }
+        }
+        if (retainedEntries.size() == 0 && retainedPublicEntries.size() == 0) {
             small.retainedTypes = [] // Doesn't have any resources
             return
         }
 
-        // Resort retained resources
-        def retainedTypes = []
-        retainedEntries.sort { a, b ->
-            a._typeId <=> b._typeId ?: (a.typeId <=> b.typeId ?: a.entryId <=> b.entryId)
-        }
-        def pid = (small.packageId << 24)
-        def tid = 0
-        def eid
-        def types = [:]
-        // Ensure first type is `attr'
-        def attrEntry = retainedEntries[0]
-        if (attrEntry.type != 'attr') tid = 1 // skip `attr'
-        retainedEntries.each { e ->
-            // Prepare entry id maps for resolving resources.arsc and binary xml files
-            def needsInsert = false
-            def currType = types[e.type]
-            if (currType == null) {
-                // New type
-                if (e._typeId != UNSET_TYPEID) {
-                    tid = e._typeId
+        // Prepare public types
+        def publicTypes = [:]
+        def maxPublicTypeId = 0
+        def unusedTypeIds = [] as Queue
+        if (retainedPublicEntries.size() > 0) {
+            retainedPublicEntries.each { e ->
+                def typeId = e._typeId
+                def entryId = e._entryId
+                def type = publicTypes[e.type]
+                if (type == null) {
+                    publicTypes[e.type] = [id: typeId, maxEntryId: entryId,
+                                           entryIds:[entryId], unusedEntryIds:[] as Queue]
+                    maxPublicTypeId = Math.max(typeId, maxPublicTypeId)
                 } else {
-                    tid++
+                    type.maxEntryId = Math.max(entryId, type.maxEntryId)
+                    type.entryIds.add(entryId)
                 }
-                currType = [type: e.vtype, name: e.type, id: e.typeId, _id: tid, entries: []]
-                retainedTypes.add(currType)
-                types[e.type] = currType
-                eid = 0
-            } else {
-                // Previous type
-                if (e._entryId != UNSET_ENTRYID) {
-                    eid = e._entryId
-                } else {
-                    def entryCount = currType.entries.size()
-                    if (eid >= entryCount) {
-                        // The entry ids are not continuous
-                        needsInsert = true
-                        for (int i = 0; i < entryCount - 1; i++) {
-                            def a = currType.entries[i]
-                            def b = currType.entries[i + 1]
-                            def _id = a._id + 1
-                            if (_id < b._id) {
-                                eid = _id
-                                break
-                            }
-                        }
-                    } else {
-                        eid++
+            }
+            if (maxPublicTypeId != publicTypes.size()) {
+                for (int i = 1; i < maxPublicTypeId; i++) {
+                    if (publicTypes.find{ k, t -> t.id == i } == null) unusedTypeIds.add(i)
+                }
+            }
+            publicTypes.each { k, t ->
+                if (t.maxEntryId != t.entryIds.size()) {
+                    for (int i = 0; i < t.maxEntryId; i++) {
+                        if (!t.entryIds.contains(i)) t.unusedEntryIds.add(i)
                     }
                 }
             }
-            def newResId = pid | (tid << 16) | eid
+        }
+
+        // Reassign resource type ids and entry ids
+        def lastEntryIds = [:]
+        if (retainedEntries[0].type != 'attr') {
+            // reserved for `attr'
+            if (maxPublicTypeId == 0) maxPublicTypeId = 1
+            if (unusedTypeIds.size() > 0) unusedTypeIds.poll()
+        }
+        retainedEntries.each { e ->
+            def publicType = publicTypes[e.type]
+            if (publicType != null) {
+                e._typeId = publicType.id
+                if (publicType.unusedEntryIds.size() > 0) {
+                    e._entryId = publicType.unusedEntryIds.poll()
+                } else {
+                    e._entryId = ++publicType.maxEntryId
+                }
+            } else {
+                if (unusedTypeIds.size() > 0) {
+                    e._typeId = unusedTypeIds.poll()
+                } else {
+                    e._typeId = ++maxPublicTypeId
+                }
+
+                def entryId = lastEntryIds[e.type]
+                if (entryId == null) {
+                    entryId = 0
+                } else {
+                    entryId++
+                }
+                e._entryId = lastEntryIds[e.type] = entryId
+            }
+        }
+
+        retainedEntries += retainedPublicEntries
+        retainedEntries.sort { a, b ->
+            a._typeId <=> b._typeId ?: a._entryId <=> b._entryId
+        }
+
+        // Resort retained resources
+        def retainedTypes = []
+        def pid = (small.packageId << 24)
+        def currType = null
+        retainedEntries.each { e ->
+            // Prepare entry id maps for resolving resources.arsc and binary xml files
+            if (currType == null || currType.name != e.type) {
+                // New type
+                currType = [type: e.vtype, name: e.type, id: e.typeId, _id: e._typeId, entries: []]
+                retainedTypes.add(currType)
+            }
+            def newResId = pid | (e._typeId << 16) | e._entryId
             def newResIdStr = "0x${Integer.toHexString(newResId)}"
-            if (e.id != newResId) {
-                staticIdMaps.put(e.id, newResId)
-                staticIdStrMaps.put(e.idStr, newResIdStr)
-                // Prepare styleable id maps for resolving R.java
-                if (retainedStyleables.size() > 0 && e.typeId == 1) {
-                    retainedStyleables.findAll { it.idStrs != null }.each {
-                        def index = it.idStrs.indexOf(e.idStr)
-                        if (index >= 0) {
-                            it.idStrs[index] = newResIdStr
-                            it.mapped = true
-                        }
+            staticIdMaps.put(e.id, newResId)
+            staticIdStrMaps.put(e.idStr, newResIdStr)
+
+            // Prepare styleable id maps for resolving R.java
+            if (retainedStyleables.size() > 0 && e.typeId == 1) {
+                retainedStyleables.findAll { it.idStrs != null }.each {
+                    def index = it.idStrs.indexOf(e.idStr)
+                    if (index >= 0) {
+                        it.idStrs[index] = newResIdStr
+                        it.mapped = true
                     }
                 }
             }
 
-            def entry = [name: e.key, id: e.entryId, _id: eid, v: e.id, _v:newResId,
+            def entry = [name: e.key, id: e.entryId, _id: e._entryId, v: e.id, _v:newResId,
                          vs: e.idStr, _vs: newResIdStr]
-            if (needsInsert) {
-                currType.entries.insert(entry, eid)
-            } else {
-                currType.entries.add(entry)
-            }
+            currType.entries.add(entry)
         }
 
         // Update the id array for styleables

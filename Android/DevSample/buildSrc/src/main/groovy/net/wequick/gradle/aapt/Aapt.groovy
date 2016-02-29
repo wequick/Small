@@ -23,6 +23,8 @@ import org.gradle.api.Project
  */
 public class Aapt {
 
+    public static final int ID_DELETED = -1
+
     private File mAssetDir
     private File mJavaFile
     private File mSymbolFile
