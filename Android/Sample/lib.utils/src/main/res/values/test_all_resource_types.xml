@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Resource Types
+      @see http://developer.android.com/intl/zh-cn/guide/topics/resources/available-resources.html
+      @see http://developer.android.com/intl/zh-cn/guide/topics/resources/more-resources.html -->
+    <bool name="my_test_bool">true</bool>
+    <color name="my_test_color1">#FFF</color>
+    <color name="my_test_color2">#CCC</color>
+    <dimen name="my_test_dimen">25dp</dimen>
+    <item type="id" name="my_test_id" />
+    <integer name="my_test_integer">1</integer>
+    <string-array name="my_test_strings">
+        <item>Hello</item>
+        <item>Small</item>
+    </string-array>
+    <integer-array name="my_test_integers">
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
+    <array name="my_test_colors">
+        <item>@color/my_test_color1</item>
+        <item>@color/my_test_color2</item>
+    </array>
+</resources>

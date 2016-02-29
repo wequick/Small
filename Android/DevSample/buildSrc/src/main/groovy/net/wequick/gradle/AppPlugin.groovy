@@ -480,6 +480,9 @@ class AppPlugin extends BundlePlugin {
                                 key = "styleable/${name}_${attr}"
                                 if (!resourceKeys.contains(key)) resourceKeys.add(key)
                             }
+                        } else if (type.endsWith('-array')) {
+                            // string-array or integer-array
+                            type = 'array'
                         }
 
                         def key = "$type/$name"
