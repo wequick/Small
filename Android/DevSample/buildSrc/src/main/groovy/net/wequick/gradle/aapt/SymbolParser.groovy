@@ -43,6 +43,8 @@ public final class SymbolParser {
      * @return entry map, e.g. [type:string, typeId:6, entryId:21, key:hello, id:0x7f060015]
      */
     public static def getResourceEntry(String str) {
+        if (str == '') return null
+
         def i = str.indexOf(' ')
         def vtype = str.substring(0, i) // value type (int or int[])
         str = str.substring(i + 1)

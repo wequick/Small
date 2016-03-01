@@ -268,6 +268,11 @@ class AppPlugin extends BundlePlugin {
             }
         }
 
+        // First sort with origin(full) resources order
+        retainedEntries.sort { a, b ->
+            a.typeId <=> b.typeId ?: a.entryId <=> b.entryId
+        }
+
         // Reassign resource type id (_typeId) and entry id (_entryId)
         def lastEntryIds = [:]
         if (retainedEntries.size() > 0) {
@@ -316,6 +321,7 @@ class AppPlugin extends BundlePlugin {
             retainedEntries = retainedPublicEntries
         }
 
+        // Resort with reassigned resources order
         retainedEntries.sort { a, b ->
             a._typeId <=> b._typeId ?: a._entryId <=> b._entryId
         }
