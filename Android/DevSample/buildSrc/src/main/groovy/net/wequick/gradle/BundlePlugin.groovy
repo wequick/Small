@@ -83,6 +83,11 @@ abstract class BundlePlugin extends AndroidPlugin {
         def p = sp.projectDir
         def t = sp.taskNames[0]
         def pn = null
+
+        if (t == null) { // Nothing to do
+            return false
+        }
+
         if (p == null) {
             if (t.startsWith(':')) {
                 // gradlew :app.main:assembleRelease
