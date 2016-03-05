@@ -62,7 +62,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ApkBundleLauncher extends SoBundleLauncher {
 
     private static final String PACKAGE_NAME = ApkBundleLauncher.class.getPackage().getName();
-    private static final String STUB_ACTIVITY_PREFIX = PACKAGE_NAME + ".A.";
+    private static final String STUB_ACTIVITY_PREFIX = PACKAGE_NAME + ".A";
     private static final String TAG = "ApkBundleLauncher";
     private static final String FD_STORAGE = "storage";
     private static final String FD_LIBRARY = "lib";
@@ -78,7 +78,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
     private static ConcurrentHashMap<String, LoadedApk> sLoadedApks;
     private static ConcurrentHashMap<String, ActivityInfo> sLoadedActivities;
 
-    private static Instrumentation sHostInstrumentation;
+    protected static Instrumentation sHostInstrumentation;
 
     /**
      * Class for redirect activity from Stub(AndroidManifest.xml) to Real(Plugin)
@@ -126,14 +126,40 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         @Override
         /** Prepare resources for REAL */
         public void callActivityOnCreate(Activity activity, android.os.Bundle icicle) {
+            boolean needsRestoreInstanceState = false;
             do {
                 if (sLoadedActivities == null) break;
                 ActivityInfo ai = sLoadedActivities.get(activity.getClass().getName());
                 if (ai == null) break;
+
                 ensureAddAssetPath(activity);
                 applyActivityInfo(activity, ai);
+
+                if (icicle != null) break;
+
+                // If killed in background, we are now redirecting by `net.wequick.small.A'.
+                android.os.Bundle extras = activity.getIntent().getExtras();
+                if (extras != null) {
+                    icicle = extras.getBundle(Small.KEY_SAVED_INSTANCE_STATE);
+                    needsRestoreInstanceState = (icicle != null);
+                }
             } while (false);
+
             super.callActivityOnCreate(activity, icicle);
+            if (needsRestoreInstanceState) {
+                super.callActivityOnRestoreInstanceState(activity, icicle);
+            }
+        }
+
+        @Override
+        public void callActivityOnSaveInstanceState(Activity activity, android.os.Bundle outState) {
+            super.callActivityOnSaveInstanceState(activity, outState);
+            // If killed in background, save the REAL activity for `net.wequick.small.A' to jump.
+            outState.putString(Small.KEY_ACTIVITY, activity.getClass().getName());
+            android.os.Bundle extras = activity.getIntent().getExtras();
+            if (extras != null) {
+                outState.putString(Small.KEY_QUERY, extras.getString(Small.KEY_QUERY));
+            }
         }
 
         @Override
@@ -184,7 +210,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         private String dequeueStubActivity(ActivityInfo ai, String realActivityClazz) {
             if (ai.launchMode == ActivityInfo.LAUNCH_MULTIPLE) {
                 // In standard mode, the stub activity is reusable.
-                return STUB_ACTIVITY_PREFIX + ai.launchMode;
+                return STUB_ACTIVITY_PREFIX;
             }
 
             int availableId = -1;
@@ -212,7 +238,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 // TODO:
                 Log.e(TAG, "Launch mode " + ai.launchMode + " is full");
             }
-            return STUB_ACTIVITY_PREFIX + ai.launchMode + "$" + availableId;
+            return STUB_ACTIVITY_PREFIX + ai.launchMode + availableId;
         }
 
         /** Unbind the stub activity from real activity */

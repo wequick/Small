@@ -10,22 +10,22 @@
     <application>
         <!-- Stub Activities -->
         <!-- 1 standard mode -->
-        <activity android:name=".A.0" android:launchMode="standard"/>
+        <activity android:name=".A" android:launchMode="standard"/>
         <!-- 4 singleTask mode -->
-        <activity android:name=".A.1$0" android:launchMode="singleTask"/>
-        <activity android:name=".A.1$1" android:launchMode="singleTask"/>
-        <activity android:name=".A.1$2" android:launchMode="singleTask"/>
-        <activity android:name=".A.1$3" android:launchMode="singleTask"/>
+        <activity android:name=".A10" android:launchMode="singleTask"/>
+        <activity android:name=".A11" android:launchMode="singleTask"/>
+        <activity android:name=".A12" android:launchMode="singleTask"/>
+        <activity android:name=".A13" android:launchMode="singleTask"/>
         <!-- 4 singleTop mode -->
-        <activity android:name=".A.2$0" android:launchMode="singleTop"/>
-        <activity android:name=".A.2$1" android:launchMode="singleTop"/>
-        <activity android:name=".A.2$2" android:launchMode="singleTop"/>
-        <activity android:name=".A.2$3" android:launchMode="singleTop"/>
+        <activity android:name=".A20" android:launchMode="singleTop"/>
+        <activity android:name=".A21" android:launchMode="singleTop"/>
+        <activity android:name=".A22" android:launchMode="singleTop"/>
+        <activity android:name=".A23" android:launchMode="singleTop"/>
         <!-- 4 singleInstance mode -->
-        <activity android:name=".A.3$0" android:launchMode="singleInstance"/>
-        <activity android:name=".A.3$1" android:launchMode="singleInstance"/>
-        <activity android:name=".A.3$2" android:launchMode="singleInstance"/>
-        <activity android:name=".A.3$3" android:launchMode="singleInstance"/>
+        <activity android:name=".A30" android:launchMode="singleInstance"/>
+        <activity android:name=".A31" android:launchMode="singleInstance"/>
+        <activity android:name=".A32" android:launchMode="singleInstance"/>
+        <activity android:name=".A33" android:launchMode="singleInstance"/>
 
         <!-- Web Activity -->
         <activity android:name=".webkit.WebActivity"
