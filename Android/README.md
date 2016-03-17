@@ -68,7 +68,7 @@ File->New->New Project...
 假设宿主包名为`com.example.mysmall`
 
 1. 设置**Application name**为`MySmall`
-2. 修改**Company Domain**为`com.example.mysmall`
+2. 修改**Company Domain**为`mysmall.example.com`
 
   > 这步是个技巧，在Step3新建Module时将会自动带上该前缀
   
