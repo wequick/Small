@@ -93,13 +93,14 @@ class RootPlugin extends BasePlugin {
 
     void buildLib(Project lib) {
         def libName = lib.name
+        def ext = (AndroidExtension) lib.small
 
         // Copy jars
         def preJarDir = small.preBaseJarDir
         if (!preJarDir.exists()) preJarDir.mkdirs()
-        //  - copy package.R jar (host only)
-        if (lib.hasProperty('jarReleaseClasses')) {
-            def rJar = lib.jarReleaseClasses.archivePath
+        //  - copy package.R jar
+        if (ext.jar != null) {
+            def rJar = ext.jar.archivePath
             project.copy {
                 from rJar
                 into preJarDir
@@ -129,7 +130,7 @@ class RootPlugin extends BasePlugin {
         }
 
         // Copy *.ap_
-        def aapt = lib.processReleaseResources
+        def aapt = ext.aapt
         def preApDir = small.preApDir
         if (!preApDir.exists()) preApDir.mkdir()
         def apFile = aapt.packageOutputFile
@@ -165,14 +166,28 @@ class RootPlugin extends BasePlugin {
         idsPw.close()
         keysPw.flush()
         keysPw.close()
+
+        // Backup R.txt to public.txt
+        if (libName != 'app') {
+            AppExtension appExt = (AppExtension) ext
+            def publicIdsPw = new PrintWriter(appExt.publicSymbolFile.newWriter(false))
+            appExt.symbolFile.eachLine { s ->
+                if (!s.contains("styleable")) {
+                    publicIdsPw.println(s)
+                }
+            }
+            publicIdsPw.flush()
+            publicIdsPw.close()
+        }
     }
 
     private void logStartBuild(Project project) {
         BaseExtension ext = project.small
         switch (ext.type) {
-            case PluginType.Host:
             case PluginType.Library:
-                if (isBuildingBundle) return
+                LibraryPlugin lp = project.plugins.findPlugin(LibraryPlugin.class)
+                if (!lp.isBuildingRelease()) return
+            case PluginType.Host:
                 Log.header "building library ${ext.buildIndex} of ${small.libCount} - " +
                         "${project.name} (0x${ext.packageIdStr})"
                 break
@@ -185,12 +200,15 @@ class RootPlugin extends BasePlugin {
     }
 
     private void logFinishBuild(Project project) {
-        if (!(project.small instanceof AndroidExtension)) return
+        project.android.applicationVariants.each { variant ->
+            if (variant.buildType.name != 'release') return
 
-        AndroidExtension ext = project.small
-        def outFile = ext.outputFile
-        Log.footer "-- output: ${outFile.parentFile.name}/${outFile.name} " +
-                "(${outFile.length()} bytes = ${getFileSize(outFile)})"
+            variant.outputs.each { out ->
+                File outFile = out.outputFile
+                Log.footer "-- output: ${outFile.parentFile.name}/${outFile.name} " +
+                        "(${outFile.length()} bytes = ${getFileSize(outFile)})"
+            }
+        }
     }
 
     private static String getFileSize(File file) {

@@ -13,6 +13,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            System.out.println("savedInstanceState: " + savedInstanceState);
+        }
+
         setContentView(R.layout.activity_main);
         setTitle("Detail");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -34,5 +38,11 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putString("Hello", "Small");
+        super.onSaveInstanceState(outState);
     }
 }

@@ -6,6 +6,10 @@
       "pkg": "net.wequick.example.small.lib.utils"
     },
     {
+      "uri": "lib.style",
+      "pkg": "com.example.mysmall.lib.style"
+    },
+    {
       "uri": "main",
       "pkg": "net.wequick.example.small.app.main"
     },

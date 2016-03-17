@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="MyTextView">
+        <attr name="label" format="string"/>
+        <attr name="android:cacheColorHint"/>
+    </declare-styleable>
+</resources>
