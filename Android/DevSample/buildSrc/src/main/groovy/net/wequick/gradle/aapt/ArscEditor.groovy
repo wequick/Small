@@ -78,6 +78,11 @@ public class ArscEditor extends AssetEditor {
         }
         // Filter typeSpecs
         retainedTypes.each {
+            if (it.id == Aapt.ID_DELETED) {
+                // TODO: Add empty entry to default config
+                throw new UnsupportedOperationException("No support deleting resources on lib.* now")
+            }
+
             def ts = t.typeList.specs[it.id - 1]
             def es = it.entries
             def newEntryCount = es.size()
@@ -86,7 +91,8 @@ public class ArscEditor extends AssetEditor {
             // Filter flags
             def flags = []
             es.each { e ->
-                flags.add(ts.flags[e.id])
+                def flag = (e.id == Aapt.ID_DELETED) ? 0 : ts.flags[e.id]
+                flags.add(flag)
             }
             ts.flags = flags
             ts.header.size -= d
@@ -99,63 +105,75 @@ public class ArscEditor extends AssetEditor {
                 int offset = 0
                 def emptyCount = 0
                 es.each { e ->
+                    if (e.id == Aapt.ID_DELETED) {
+                        // TODO: Add empty entry to default config
+                        throw new UnsupportedOperationException("No support deleting resources on lib.* now")
+                    }
+
                     def entry = it.entries[e.id]
+                    if (entry == null) {
+                        throw new Exception("Missing entry at ${e} on ${it}!")
+                    }
+
                     entries.add(entry)
                     if (entry.isEmpty()) {
                         offsets.add(-1)
                         emptyCount++
-                    } else {
-                        offsets.add(offset)
-                        offset += entry.allSize
-                        if (!retainedKeyIds.contains(entry.key)) retainedKeyIds.add(entry.key)
-                        retainedEntries.add(entry)
-                        if (entry.value != null) {
-                            // Reset entry ids
-                            if (entry.value.dataType == ResValueDataType.TYPE_STRING) {
-                                // String reference
-                                retainedStringIds.add(entry.value.data)
-                                entry.value.data = retainedStringIds.size() - 1
-                            } else if (entry.value.dataType == ResValueDataType.TYPE_REFERENCE) {
-                                def id = idMaps.get(entry.value.data)
-                                if (id != null) {
-                                    if (DEBUG_NOISY) println "\t -- map ResTable_entry.value: " +
-                                            "${String.format('0x%08x', entry.value.data)} -> " +
-                                            "${String.format('0x%08x', id)}"
-                                    entry.value.data = id
-                                }
-                            }
-                        } else if (entry.maps != null) {
-                            // Reset entry parent
-                            def id = idMaps.get(entry.parent)
+                        return
+                    }
+
+                    offsets.add(offset)
+                    offset += entry.allSize
+                    if (!retainedKeyIds.contains(entry.key)) retainedKeyIds.add(entry.key)
+                    retainedEntries.add(entry)
+                    if (entry.value != null) {
+                        // Reset entry ids
+                        if (entry.value.dataType == ResValueDataType.TYPE_STRING) {
+                            // String reference
+                            retainedStringIds.add(entry.value.data)
+                            entry.value.data = retainedStringIds.size() - 1
+                        } else if (entry.value.dataType == ResValueDataType.TYPE_REFERENCE) {
+                            def id = idMaps.get(entry.value.data)
                             if (id != null) {
-                                if (DEBUG_NOISY) println "\t -- map ResTable_map_entry.parent: " +
-                                        "${String.format('0x%08x', entry.parent)} -> " +
+                                if (DEBUG_NOISY) println "\t -- map ResTable_entry.value: " +
+                                        "${String.format('0x%08x', entry.value.data)} -> " +
                                         "${String.format('0x%08x', id)}"
-                                entry.parent = id
+                                entry.value.data = id
                             }
-                            entry.maps.each {
-                                // Reset map ids
-                                id = idMaps.get(it.name)
+                        }
+                    } else if (entry.maps != null) {
+                        // Reset entry parent
+                        def id = idMaps.get(entry.parent)
+                        if (id != null) {
+                            if (DEBUG_NOISY) println "\t -- map ResTable_map_entry.parent: " +
+                                    "${String.format('0x%08x', entry.parent)} -> " +
+                                    "${String.format('0x%08x', id)}"
+                            entry.parent = id
+                        }
+                        entry.maps.each {
+                            // Reset map ids
+                            id = idMaps.get(it.name)
+                            if (id != null) {
+                                if (DEBUG_NOISY) println "\t -- map ResTable_map.name: " +
+                                        "${String.format('0x%08x', it.name)} -> " +
+                                        "${String.format('0x%08x', id)}"
+                                it.name = id
+                            }
+                            if (it.value.dataType == ResValueDataType.TYPE_REFERENCE) {
+                                id = idMaps.get(it.value.data)
                                 if (id != null) {
-                                    if (DEBUG_NOISY) println "\t -- map ResTable_map.name: " +
-                                            "${String.format('0x%08x', it.name)} -> " +
+                                    if (DEBUG_NOISY) println "\t -- map ResTable_map.value: " +
+                                            "${String.format('0x%08x', it.value.data)} -> " +
                                             "${String.format('0x%08x', id)}"
-                                    it.name = id
-                                }
-                                if (it.value.dataType == ResValueDataType.TYPE_REFERENCE) {
-                                    id = idMaps.get(it.value.data)
-                                    if (id != null) {
-                                        if (DEBUG_NOISY) println "\t -- map ResTable_map.value: " +
-                                                "${String.format('0x%08x', it.value.data)} -> " +
-                                                "${String.format('0x%08x', id)}"
-                                        it.value.data = id
-                                    }
+                                    it.value.data = id
                                 }
                             }
                         }
                     }
                 }
+
                 if (emptyCount == ts.entryCount) return
+
                 it.entries = entries
                 it.entryOffsets = offsets
                 it.entryCount = ts.entryCount
@@ -164,6 +182,7 @@ public class ArscEditor extends AssetEditor {
                 it.id = ts.id
                 configs.add(it)
             }
+
             ts.configs = configs
             retainedTypeSpecs.add(ts)
             retainedTypeIds.add(it.id - 1)
@@ -204,7 +223,7 @@ public class ArscEditor extends AssetEditor {
         lib.entries.add(libEntry)
 
         // Reset sizes & offsets
-        short size = lib.header.size
+        int size = lib.header.size
         t.typeList.specs.each { ts ->
             size += ts.header.size
             ts.configs.each {
@@ -651,11 +670,14 @@ public class ArscEditor extends AssetEditor {
         return s
     }
 
-    /** Dump table as `aapt d resources' */
     private def dumpTable() {
         seek(0)
         def t = readTable()
+        dumpTable(t)
+    }
 
+    /** Dump table as `aapt d resources' */
+    private def dumpTable(t) {
         println "String Pool:"
         dumpStringPool(t.stringPool)
         println "Type String Pool:"

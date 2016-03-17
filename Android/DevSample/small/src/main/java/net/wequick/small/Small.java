@@ -30,7 +30,10 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 
 import net.wequick.small.util.ApplicationUtils;
+import net.wequick.small.webkit.JsHandler;
+import net.wequick.small.webkit.JsResult;
 import net.wequick.small.webkit.WebView;
+import net.wequick.small.webkit.WebViewClient;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -40,11 +43,22 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by galen on 15/1/28.
+ * This class consists exclusively of static methods that operate on bundle.
+ *
+ * <h3>Core APIs</h3>
+ * <ul>
+ *     <li>{@link #setUp(Context, OnCompleteListener)} resolve the <tt>bundle.json</tt> to setup bundle launchers.</li>
+ *     <li>{@link #openUri} launch the bundle with specify activity by the <tt>uri</tt></li>
+ *     <li>{@link #createObject} create object from the bundle</li>
+ *     <li>{@link #setWebViewClient(WebViewClient)} customize the web view behaviors for web bundle</li>
+ *     <li>{@link #registerJsHandler(String, JsHandler)} customize the javascript api for web bundle</li>
+ * </ul>
  */
 public final class Small {
     public static final String EVENT_OPENURI = "small-open";
     public static final String KEY_QUERY = "small-query";
+    public static final String KEY_ACTIVITY = "small-act";
+    public static final String KEY_SAVED_INSTANCE_STATE = "small-sis";
     public static final String EXTRAS_KEY_RET = "small-ret";
     public static final String SHARED_PREFERENCES_SMALL = "small";
     public static final String SHARED_PREFERENCES_KEY_UPGRADE = "upgrade";
@@ -52,16 +66,18 @@ public final class Small {
     public static final String SHARED_PREFERENCES_BUNDLE_VERSIONS = "small.app-versions";
     public static final String SHARED_PREFERENCES_BUNDLE_URLS = "small.app-urls";
     public static final String SHARED_PREFERENCES_BUNDLE_MODIFIES = "small.app-modifies";
+    public static final String SHARED_PREFERENCES_BUNDLE_UPGRADES = "small.app-upgrades";
     public static final int REQUEST_CODE_DEFAULT = 10000;
 
     private static Context sContext = null;
     private static HashMap<String, Class<?>> sActivityClasses;
     private static String sBaseUri = ""; // base url of uri
-    private static String sBaseSrc = ""; // source url for remote bundle
-    private static boolean sIsNewHostApp; // 首次安装或升级
+    private static boolean sIsNewHostApp; // first launched or upgraded
     private static int sWebActivityTheme;
 
-    private static WebView.OnLoadListener onLoadListener;
+    public interface OnCompleteListener {
+        void onComplete();
+    }
 
     public static Context getContext() {
         if (sContext == null) {
@@ -87,11 +103,7 @@ public final class Small {
         return sIsNewHostApp;
     }
 
-    public static void setUp(Context context) {
-        setUp(context, null);
-    }
-
-    public static void setUp(Context context, Bundle.OnLoadListener listener) {
+    public static void setUp(Context context, OnCompleteListener listener) {
         Context appContext = context.getApplicationContext();
         sContext = appContext;
         saveActivityClasses(appContext);
@@ -123,13 +135,12 @@ public final class Small {
         Bundle.loadLaunchableBundles(listener);
     }
 
-    public static void setWebViewOnLoadListener(WebView.OnLoadListener listener) {
-        onLoadListener = listener;
-        WebView.setOnLoadListener(listener);
+    public static void setWebViewClient(WebViewClient client) {
+        WebView.setWebViewClient(client);
     }
 
-    public static WebView.OnLoadListener gettWebViewOnLoadListener() {
-        return onLoadListener;
+    public static void registerJsHandler(String method, JsHandler handler) {
+        WebView.registerJsHandler(method, handler);
     }
 
     public static Map<String, Integer> getBundleVersions() {
@@ -201,6 +212,21 @@ public final class Small {
                 getSharedPreferences(SHARED_PREFERENCES_BUNDLE_MODIFIES, 0);
         if (sp == null) return 0;
         return sp.getLong(bundleName, 0);
+    }
+
+    public static void setBundleUpgraded(String bundleName, boolean flag) {
+        SharedPreferences sp = getContext().
+                getSharedPreferences(SHARED_PREFERENCES_BUNDLE_UPGRADES, 0);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putBoolean(bundleName, flag);
+        editor.commit();
+    }
+
+    public static boolean getBundleUpgraded(String bundleName) {
+        SharedPreferences sp = getContext().
+                getSharedPreferences(SHARED_PREFERENCES_BUNDLE_UPGRADES, 0);
+        if (sp == null) return false;
+        return sp.getBoolean(bundleName, false);
     }
 
     public static void openUri(String uriString, Context context) {
@@ -281,10 +307,9 @@ public final class Small {
     }
 
     /**
-     * 获取[AndroidManifest.xml]注册的类
+     * Get the activity class registered in the host's <tt>AndroidManifest.xml</tt>
      *
-     * @param clazz
-     * @return
+     * @param clazz the activity class name
      */
     protected static Class<?> getRegisteredClass(String clazz) {
         Class<?> aClass = null;
@@ -297,8 +322,8 @@ public final class Small {
         return aClass;
     }
 
-    /**
-     * 记录[AndroidManifest.xml]注册的类
+    /*
+     * Record the registered activity classes of host.
      */
     private static void saveActivityClasses(Context context) {
         try {
@@ -333,14 +358,6 @@ public final class Small {
         sWebActivityTheme = webActivityTheme;
     }
 
-    public static String getBaseSrc() {
-        return sBaseSrc;
-    }
-
-    public static void setBaseSrc(String baseSrc) {
-        sBaseSrc = baseSrc;
-    }
-
     private static class OpenUriReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -350,7 +367,7 @@ public final class Small {
     }
 
     /**
-     * 清除app缓存
+     * Clear cache for application
      */
     public static void clearAppCache(Context context) {
         File file = context.getCacheDir();

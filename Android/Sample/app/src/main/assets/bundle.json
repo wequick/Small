@@ -1,0 +1,41 @@
+{
+  "version": "1.0.0",
+  "bundles": [
+    {
+      "uri": "lib.utils",
+      "pkg": "net.wequick.example.small.lib.utils"
+    },
+    {
+      "uri": "lib.style",
+      "pkg": "com.example.mysmall.lib.style"
+    },
+    {
+      "uri": "main",
+      "pkg": "net.wequick.example.small.app.main"
+    },
+    {
+      "uri": "home",
+      "pkg": "net.wequick.example.small.app.home"
+    },
+    {
+      "uri": "message",
+      "pkg": "net.wequick.example.small.app.message"
+    },
+    {
+      "uri": "find",
+      "pkg": "net.wequick.example.small.app.find"
+    },
+    {
+      "uri": "mine",
+      "pkg": "net.wequick.example.small.app.mine"
+    },
+    {
+      "uri": "detail",
+      "pkg": "net.wequick.example.small.app.detail"
+    },
+    {
+      "uri": "about",
+      "pkg": "net.wequick.example.small.web.about"
+    }
+  ]
+}

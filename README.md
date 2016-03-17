@@ -2,9 +2,11 @@
 
 世界那么大，组件那么小。Small，做最轻巧的跨平台插件化框架。
 
+[![Join the chat at https://gitter.im/wequick/Small](https://badges.gitter.im/wequick/Small.svg)](https://gitter.im/wequick/Small?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![License Apache2.0](https://img.shields.io/hexpm/l/plug.svg)][license]
 
-支持平台：[Android](Android) API 15(4.0.3)+  `iOS 7.0+ 敬请期待`
+
+支持平台：[Android](Android) API 8(2.2)+  [iOS](iOS) 7.0+
 
 ![Small][icon]
 
@@ -19,7 +21,7 @@
 * **无缝链接**
   - 通过设定URI，宿主、本地化应用插件、本地化web插件、在线网页，以及任何自定义的插件之间能够相互调起与传递参数
 * **跨平台**
-  - 目前已支持[Android](Android)、iOS以及html5插件。并且三者之间可以通过同一套javascript接口进行通信。
+  - 目前已支持[Android](Android)、[iOS](iOS)以及html5插件。并且三者之间可以通过同一套Javascript接口进行通信。
 
 ## 文档
 开发细节、代码原理见 [Small Wiki][wiki]
@@ -30,6 +32,8 @@ Apache License 2.0
 ## 重要入口贴三遍
 
 [Android](Android) [Android](Android) [Android](Android)
+
+[iOS](iOS) [iOS](iOS) [iOS](iOS)
 
 # 以下装逼请忽略
 
@@ -51,6 +55,7 @@ A small framework to split app into small parts.
 ## Getting Started
 
 * [Android](Android)
+* [iOS](iOS)
 
 ## Documentation
 The development details and the code principles are on [Small Wiki][wiki].

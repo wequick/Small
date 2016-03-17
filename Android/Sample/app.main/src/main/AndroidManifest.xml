@@ -3,6 +3,7 @@
     package="net.wequick.example.small.app.main" >
 
     <application
+        android:name=".AppContext"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"

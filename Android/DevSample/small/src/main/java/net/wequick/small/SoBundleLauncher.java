@@ -17,14 +17,26 @@ package net.wequick.small;
 
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.os.Build;
 
+import net.wequick.small.util.ReflectAccelerator;
 import net.wequick.small.util.SignUtils;
 
 import java.io.File;
 
 /**
- * Class to launch .so bundle.
- * Created by galen on 16/1/13.
+ * This class resolve the bundle file with the extension of ".so".
+ *
+ * <p>All the bundle files are built in at application lib path ({@code bundle.getBuiltinFile()}).
+ *
+ * <p>All the bundles can be upgraded after you download the patch file to
+ * {@code bundle.getPatchFile()} and call {@code bundle.upgrade()}.
+ *
+ * There are two primary implements of this class:
+ * <ul>
+ *     <li>{@link ApkBundleLauncher} resolve the apk bundle</li>
+ *     <li>{@link WebBundleLauncher} resolve the native web bundle</li>
+ * </ul>
  */
 public abstract class SoBundleLauncher extends BundleLauncher {
 
@@ -49,16 +61,16 @@ public abstract class SoBundleLauncher extends BundleLauncher {
         }
         if (!supporting) return false;
 
-        // Check if has been built-in
-        String soName = "lib" + packageName.replaceAll("\\.", "_") + ".so";
-        File plugin = new File(Bundle.getUserBundlesPath(), soName);
-        if (!plugin.exists()) return false;
+        // Check if has a patch
+        File plugin = bundle.getPatchFile();
+        PackageInfo pluginInfo = getPluginInfo(plugin);
+        if (pluginInfo == null) {
+            if (bundle.isPatching()) return false;
 
-        // Get package info
-        PackageManager pm = Small.getContext().getPackageManager();
-        PackageInfo pluginInfo = pm.getPackageArchiveInfo(plugin.getPath(),
-                PackageManager.GET_SIGNATURES );
-        if (pluginInfo == null) return false;
+            plugin = bundle.getBuiltinFile();
+            pluginInfo = getPluginInfo(plugin);
+            if (pluginInfo == null) return false;
+        }
 
         // Verify signatures
         if (!SignUtils.verifyPlugin(pluginInfo)) {
@@ -66,12 +78,23 @@ public abstract class SoBundleLauncher extends BundleLauncher {
             return true; // Got it, but disabled
         }
 
-        bundle.setFileName(soName);
-        bundle.setFile(plugin);
         // Record version code for upgrade
         bundle.setVersionCode(pluginInfo.versionCode);
         Small.setBundleVersionCode(packageName, pluginInfo.versionCode);
 
         return true;
+    }
+
+    protected PackageInfo getPluginInfo(File plugin) {
+        if (plugin == null || !plugin.exists()) return null;
+
+        PackageManager pm = Small.getContext().getPackageManager();
+        PackageInfo pluginInfo = pm.getPackageArchiveInfo(plugin.getPath(),
+                PackageManager.GET_SIGNATURES);
+
+        if (Build.VERSION.SDK_INT < 14) {
+            pluginInfo.signatures = ReflectAccelerator.getSignaturesV13(plugin);
+        }
+        return pluginInfo;
     }
 }

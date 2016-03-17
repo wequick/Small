@@ -59,6 +59,8 @@ class LibraryPlugin extends AppPlugin {
     protected void configureReleaseVariant(variant) {
         super.configureReleaseVariant(variant)
 
+        small.jar = project.jarReleaseClasses
+
         // Generate jar file to root pre-jar directory
         variant.assemble.doLast {
             RootExtension rootExt = project.rootProject.small

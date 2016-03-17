@@ -26,13 +26,18 @@ import java.util.HashSet;
 import android.content.pm.Signature;
 
 /**
- * Created by galen on 15/12/22.
+ * This class consists exclusively of static methods that operate on apk signature.
  */
 public class SignUtils {
 
     private static boolean sHostSigned = true;
     private static Signature[] sHostSignatures = null;
 
+    /**
+     * This method compare the <tt>plugin</tt> signatures with the hots one.
+     * @param plugin the plugin file
+     * @return <tt>true</tt> if the <tt>plugin</tt> signatures same with the host's.
+     */
     public static boolean verifyPlugin(File plugin) {
         PackageManager pm = Small.getContext().getPackageManager();
         PackageInfo pluginInfo = pm.getPackageArchiveInfo(plugin.getPath(),

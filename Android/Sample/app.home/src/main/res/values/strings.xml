@@ -4,4 +4,5 @@
     <string name="go_detail">Open app.detail</string>
     <string name="go_about">Open web.about</string>
     <string name="call_lib">Call lib.utils</string>
+    <string name="check_upgrade">Check upgrade</string>
 </resources>

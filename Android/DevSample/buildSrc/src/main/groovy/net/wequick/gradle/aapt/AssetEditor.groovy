@@ -71,7 +71,6 @@ public class AssetEditor extends CppHexEditor {
         if (id >> 24 != 0x7f) return
         if (idMaps != null && idMaps.containsKey(id)) {
             id = idMaps.get(id) // use library resource id
-            assert (id != 0x7f0900ef)
         } else {
             id = ((pp << 24) | (id & 0x00ffffff)) // replace pp
         }

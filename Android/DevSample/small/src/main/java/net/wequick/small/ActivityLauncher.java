@@ -18,11 +18,22 @@ package net.wequick.small;
 
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 
 /**
- * Class to launch activity by it's class name
- * Created by galen on 15/3/29.
+ * This class launch the host activity by it's class name.
+ *
+ * <p>This class resolve the bundle who's <tt>pkg</tt> is unspecified
+ * or specified as <i>"main"</i> in <tt>bundle.json</tt>.
+ *
+ * <p>While launching, the class takes the bundle's <tt>uri</tt> as
+ * the starting activity's class name.
+ *
+ * <p>The conversions from <tt>uri</tt> to activity name are as following:
+ * <ul>
+ *     <li>If <tt>uri</tt> is empty, take as <tt>MainActivity</tt>.</li>
+ *     <li>Otherwise, use <tt>uri</tt>. If the class not exists,
+ *     add <i>"Activity"</i> suffix and do a second try.</li>
+ * </ul>
  */
 public class ActivityLauncher extends BundleLauncher {
 

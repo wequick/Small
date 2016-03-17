@@ -22,6 +22,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v4.app.TaskStackBuilder;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Gravity;
@@ -35,7 +36,18 @@ import net.wequick.small.Small;
 import java.util.HashMap;
 
 /**
- * Created by galen on 15/1/30.
+ * This class is the target activity launched by {@link net.wequick.small.WebBundleLauncher}.
+ *
+ * <p>The content view of this class is a WebView with an url passed by the launcher.
+ *
+ * <p>For speeding up the loading of web content, we use {@link WebViewPool} to manager
+ * all the web views.
+ *
+ * <p>For the ability of initialize native navigation bar by html content, we use the
+ * {@link android.support.v7.app.AppCompatActivity} to provide a common style action bar.
+ *
+ * @see WebView
+ * @see WebViewPool
  */
 public class WebActivity extends AppCompatActivity {
 
@@ -211,8 +223,9 @@ public class WebActivity extends AppCompatActivity {
             menuItem = mOptionsMenu.add(0, 0, 0, null).setIcon(iconRes);
         } while (false);
 
-        int showType = isMore ? MenuItem.SHOW_AS_ACTION_NEVER : MenuItem.SHOW_AS_ACTION_ALWAYS;
-        menuItem.setShowAsAction(showType);
+        int showType = isMore ? MenuItemCompat.SHOW_AS_ACTION_NEVER :
+                MenuItemCompat.SHOW_AS_ACTION_ALWAYS;
+        MenuItemCompat.setShowAsAction(menuItem, showType);
         final String onclick = content.get("onclick");
         if (onclick != null) {
             menuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {

@@ -82,13 +82,32 @@ abstract class BundlePlugin extends AndroidPlugin {
         def sp = project.gradle.startParameter
         def p = sp.projectDir
         def t = sp.taskNames[0]
-        if (p == null || p == project.rootProject.projectDir) {
+        def pn = null
+
+        if (t == null) { // Nothing to do
+            return false
+        }
+
+        if (p == null) {
+            if (t.startsWith(':')) {
+                // gradlew :app.main:assembleRelease
+                def tArr = t.split(':')
+                if (tArr.length == 3) { // ['', 'app.main', 'assembleRelease']
+                    pn = tArr[1]
+                    t = tArr[2]
+                }
+            }
+        } else if (p != project.rootProject.projectDir) {
+            // gradlew -p [project.name] assembleRelease
+            pn = p.name
+        }
+
+        if (pn == null) {
             // gradlew buildLibs | buildBundles
             return small.type == PluginType.Library ?
                     (t == 'buildLib') : (t == 'buildBundle')
         } else {
-            // gradlew -p [project.name] assembleRelease
-            return (p == project.projectDir && (t == 'assembleRelease' || t == 'aR'))
+            return (pn == project.name && (t == 'assembleRelease' || t == 'aR'))
         }
     }
 

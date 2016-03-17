@@ -1,4 +1,4 @@
-package net.wequick.example.small.
+package net.wequick.example.small;
 
 import org.junit.Test;
 

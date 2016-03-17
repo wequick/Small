@@ -5,7 +5,7 @@ android {
     buildToolsVersion "23.0.1"
 
     defaultConfig {
-        minSdkVersion 15
+        minSdkVersion 8
         targetSdkVersion 23
         applicationId "net.wequick.example.small.app.main"
         versionCode 1
@@ -26,5 +26,6 @@ dependencies {
     compile 'com.android.support:design:23.1.1'
     compile 'com.android.support:support-annotations:23.1.1'
     // User libraries
+    compile project(':lib.style')
     compile project(':lib.utils')
 }

@@ -44,6 +44,24 @@ class HostPlugin extends AndroidPlugin {
     protected void createTask() {
         super.createTask()
 
-        project.task('buildLib', dependsOn:'jarReleaseClasses')
+        project.task('buildLib')
+    }
+
+    @Override
+    protected void configureReleaseVariant(Object variant) {
+        super.configureReleaseVariant(variant)
+
+        if (small.jar != null) return // Handle once for multi flavors
+
+        def flavor = variant.flavorName
+        if (flavor != null) {
+            flavor = flavor.capitalize()
+            small.jar = project.tasks["jar${flavor}ReleaseClasses"]
+            small.aapt = project.tasks["process${flavor}ReleaseResources"]
+        } else {
+            small.jar = project.jarReleaseClasses
+            small.aapt = project.processReleaseResources
+        }
+        project.buildLib.dependsOn small.jar
     }
 }

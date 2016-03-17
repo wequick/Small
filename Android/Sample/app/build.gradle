@@ -5,11 +5,12 @@ android {
     buildToolsVersion "23.0.1"
 
     defaultConfig {
-        minSdkVersion 15
+        minSdkVersion 8
         targetSdkVersion 23
         applicationId "net.wequick.example.small"
         versionCode 1
         versionName "1.0"
+        manifestPlaceholders = [UMENG_CHANNEL_VALUE: "official"]
     }
     buildTypes {
         release {
@@ -36,6 +37,14 @@ android {
         release {
             signingConfig signingConfigs.release
         }
+    }
+
+    productFlavors {
+        baidu {}
+        qihu360 {}
+    }
+    productFlavors.all { flavor ->
+        flavor.manifestPlaceholders = [UMENG_CHANNEL_VALUE: name]
     }
 }
 

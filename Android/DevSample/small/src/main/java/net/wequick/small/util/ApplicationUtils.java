@@ -25,12 +25,18 @@ import android.net.Uri;
 import java.util.List;
 
 /**
- * Created by galen on 15/1/29.
+ * This class consists exclusively of static methods that operate on application.
  */
 public class ApplicationUtils {
 
     private ApplicationUtils() { /** cannot be instantiated */}
 
+    /**
+     * This method check if an <tt>uri</tt> can be opened by android system.
+     * @param uri the intent uri
+     * @param context current context
+     * @return <tt>true</tt> if <tt>uri</tt> can be opened by android system.
+     */
     public static boolean canOpenUri(Uri uri, Context context) {
         Intent intent = new Intent(Intent.ACTION_VIEW, uri);
         PackageManager packageManager = context.getPackageManager();

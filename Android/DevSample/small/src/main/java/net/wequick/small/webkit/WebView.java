@@ -28,7 +28,6 @@ import android.webkit.ConsoleMessage;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
-import android.webkit.WebViewClient;
 import android.widget.Toast;
 
 import net.wequick.small.Small;
@@ -39,9 +38,23 @@ import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Created by galen on 15/5/29.
+ * <p>A View that displays web pages. This class is the basis upon which you
+ * can display native web pages or some online content within WebActivity.
+ *
+ * <p>This class brings the javascript bridge to connect native and web, all
+ * the usages are on <a href="https://github.com/wequick/Small/wiki/Javascript-API">Javascript API</a>.
+ *
+ * <p>What's more, it brings the ability of access native action bar by web. You can simply do it
+ * in you html meta content as following:
+ *
+ * <pre>
+ *     <meta data-owner="small" name="[$pos]-bar-item" content="type=[$type],onclick=[$handler]()">
+ * </pre>
+ *
+ * For more details see <a href="https://github.com/wequick/Small/wiki/Web/Navigation-bar">Navigation bar</a>.
  */
 public class WebView extends android.webkit.WebView {
     private static final String SMALL_SCHEME = "small";
@@ -95,6 +108,8 @@ public class WebView extends android.webkit.WebView {
             "return JSON.stringify(_ms);";
     /** Js scripts to get window close result */
     private static final String SMALL_GET_CLOSERET_JS = "return window._onclose()";
+
+    private static ConcurrentHashMap<String, JsHandler> sJsHandlers;
 
     private OnResultListener mOnResultListener = null;
     private Boolean mConfirmed = false;
@@ -221,7 +236,7 @@ public class WebView extends android.webkit.WebView {
                 if (context == null) return false;
 
                 AlertDialog.Builder dlg = new AlertDialog.Builder(context);
-                dlg.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                dlg.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         mConfirmed = true;
@@ -248,14 +263,14 @@ public class WebView extends android.webkit.WebView {
                                        final android.webkit.JsResult result) {
                 Context context = WebViewPool.getContext(view);
                 AlertDialog.Builder dlg = new AlertDialog.Builder(context);
-                dlg.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                dlg.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         mConfirmed = true;
                         result.confirm();
                     }
                 });
-                dlg.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                dlg.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         mConfirmed = true;
@@ -317,7 +332,7 @@ public class WebView extends android.webkit.WebView {
             }
         });
 
-        this.setWebViewClient(new WebViewClient() {
+        this.setWebViewClient(new android.webkit.WebViewClient() {
 
             private final String ANCHOR_SCHEME = "anchor";
 
@@ -358,8 +373,8 @@ public class WebView extends android.webkit.WebView {
                     // reload by window.location.reload or something
                     mInjected = false;
                 }
-                if (sOnLoadListener != null && url.equals(mLoadingUrl)) {
-                    sOnLoadListener.onPageStarted(WebViewPool.getContext(view),
+                if (sWebViewClient != null && url.equals(mLoadingUrl)) {
+                    sWebViewClient.onPageStarted(WebViewPool.getContext(view),
                             (WebView) view, url, favicon);
                 }
             }
@@ -381,7 +396,7 @@ public class WebView extends android.webkit.WebView {
                                 "var y=document.body.scrollTop;" +
                                 "var e=document.getElementsByName('" + anchor + "')[0];" +
                                 "while(e){" +
-                                    "y+=e.offsetTop-e.scrollTop+e.clientTop;e=e.offsetParent;}" +
+                                "y+=e.offsetTop-e.scrollTop+e.clientTop;e=e.offsetParent;}" +
                                 "location='" + ANCHOR_SCHEME + "://'+y;");
                     }
                 }
@@ -393,8 +408,8 @@ public class WebView extends android.webkit.WebView {
                     mInjected = true;
                 }
 
-                if (sOnLoadListener != null && url.equals(mLoadingUrl)) {
-                    sOnLoadListener.onPageFinished(WebViewPool.getContext(view),
+                if (sWebViewClient != null && url.equals(mLoadingUrl)) {
+                    sWebViewClient.onPageFinished(WebViewPool.getContext(view),
                             (WebView) view, url);
                 }
             }
@@ -404,8 +419,8 @@ public class WebView extends android.webkit.WebView {
                                         String description, String failingUrl) {
                 super.onReceivedError(view, errorCode, description, failingUrl);
                 Log.e("Web", "error: " + description);
-                if (sOnLoadListener != null && failingUrl.equals(mLoadingUrl)) {
-                    sOnLoadListener.onReceivedError(WebViewPool.getContext(view),
+                if (sWebViewClient != null && failingUrl.equals(mLoadingUrl)) {
+                    sWebViewClient.onReceivedError(WebViewPool.getContext(view),
                             (WebView) view, errorCode, description, failingUrl);
                 }
             }
@@ -473,6 +488,16 @@ public class WebView extends android.webkit.WebView {
     }
 
     /**
+     * @hide Only for Small API
+     */
+    public static void registerJsHandler(String method, JsHandler handler) {
+        if (method == null || handler == null) return;
+
+        if (sJsHandlers == null) sJsHandlers = new ConcurrentHashMap<String, JsHandler>();
+        sJsHandlers.put(method, handler);
+    }
+
+    /**
      * Js Bridge
      */
     private class SmallJsBridge {
@@ -507,15 +532,17 @@ public class WebView extends android.webkit.WebView {
             if (internalInvoke(context, method, parameters, callbackFunctionId)) return;
 
             // User custom events
-            if (sOnLoadListener != null) {
-                JsResult jsResult = new JsResult(new OnFinishListener() {
-                    @Override
-                    public void finish(Object result) {
-                        callbackJS(callbackFunctionId, result);
-                    }
-                });
-                sOnLoadListener.onJsInvoked(context, WebView.this, method, parameters, jsResult);
-            }
+            if (sJsHandlers == null) return;
+            JsHandler handler = sJsHandlers.get(method);
+            if (handler == null) return;
+
+            JsResult jsResult = new JsResult(new JsResult.OnFinishListener() {
+                @Override
+                public void finish(Object result) {
+                    callbackJS(callbackFunctionId, result);
+                }
+            });
+            handler.handle(context, parameters, jsResult);
         }
 
         /**
@@ -645,38 +672,12 @@ public class WebView extends android.webkit.WebView {
         }
     }
 
-    /** WebView Client */
-    public interface OnLoadListener {
-        void onPageStarted(Context context, WebView view, String url, Bitmap favicon);
+    private static WebViewClient sWebViewClient;
 
-        void onPageFinished(Context context, WebView view, String url);
-
-        void onReceivedError(Context context, WebView view, int errorCode,
-                             String description, String failingUrl);
-
-        void onJsInvoked(Context context, WebView view, String method,
-                         HashMap<String, Object> parameters, JsResult result);
-    }
-
-    public class JsResult {
-        private OnFinishListener mFinishListener;
-
-        public JsResult(OnFinishListener listener) {
-            mFinishListener = listener;
-        }
-
-        public void finish(Object result) {
-            mFinishListener.finish(result);
-        }
-    }
-
-    public interface OnFinishListener {
-        void finish(Object result);
-    }
-
-    private static OnLoadListener sOnLoadListener;
-
-    public static void setOnLoadListener(OnLoadListener listener) {
-        sOnLoadListener = listener;
+    /**
+     * @hide Only for Small API
+     */
+    public static void setWebViewClient(WebViewClient listener) {
+        sWebViewClient = listener;
     }
 }

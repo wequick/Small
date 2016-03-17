@@ -5,7 +5,7 @@ android {
     buildToolsVersion "23.0.1"
 
     defaultConfig {
-        minSdkVersion 15
+        minSdkVersion 8
         targetSdkVersion 23
         applicationId "net.wequick.example.small.app.mine"
         versionCode 1
@@ -22,5 +22,8 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
+
+    compile project(':lib.style')
+    compile project(':lib.utils')
 }
 

@@ -22,6 +22,8 @@ import org.gradle.api.Project
 class AppPlugin extends BundlePlugin {
 
     private static def sPackageIds = [:] as LinkedHashMap<String, Integer>
+    private static final int UNSET_TYPEID = 99
+    private static final int UNSET_ENTRYID = -1
 
     protected def compileLibs
 
@@ -69,9 +71,8 @@ class AppPlugin extends BundlePlugin {
 
         if (!isBuildingRelease()) return
 
-        initPackageId()
-
         project.afterEvaluate {
+            initPackageId()
             resolveReleaseDependencies()
 
             project.android.dexOptions {
@@ -166,90 +167,207 @@ class AppPlugin extends BundlePlugin {
 
         RootExtension rootExt = (RootExtension) project.rootProject.small
 
-        def staticLibEntries = [:]
-        def dynamicLibEntries = [:]
+        def libEntries = [:]
         rootExt.preIdsDir.listFiles().each {
             if (it.name.endsWith('R.txt') && !it.name.startsWith(project.name)) {
-                def entries = SymbolParser.getResourceEntries(it)
-                if (it.name.startsWith('lib.')) {
-                    dynamicLibEntries += entries
-                } else {
-                    staticLibEntries += entries
-                }
+                libEntries += SymbolParser.getResourceEntries(it)
             }
         }
+        def publicEntries = SymbolParser.getResourceEntries(small.publicSymbolFile)
         def bundleEntries = SymbolParser.getResourceEntries(idsFile)
         def staticIdMaps = [:]
         def staticIdStrMaps = [:]
-        def dynamicIds = []
         def retainedEntries = []
+        def retainedPublicEntries = []
+        def retainedStyleables = []
         def reservedKeys = getReservedResourceKeys()
+
         bundleEntries.each { k, be ->
+            be._typeId = UNSET_TYPEID // for sort
+            be._entryId = UNSET_ENTRYID
+
+            def le = publicEntries.get(k)
+            if (le != null) {
+                // Use last built id
+                be._typeId = le.typeId
+                be._entryId = le.entryId
+                retainedPublicEntries.add(be)
+                publicEntries.remove(k)
+                return
+            }
+
             if (reservedKeys.contains(k)) {
-                retainedEntries.add(be)
-            } else {
-                def le = staticLibEntries.get(k)
-                if (le != null) {
-                    // Static Lib: the lib compiles into host apk like `appcompat', `design',
-                    // add static id maps to host resources and map it later at compiletime
-                    // with the aapt-generated `resources.arsc' and `R.java' file
-                    if (be.id != le.id) {
-                        staticIdMaps.put(be.id, le.id)
-                        staticIdStrMaps.put(be.idStr, le.idStr)
-                    }
-                } else {
-                    le = dynamicLibEntries.get(k)
-                    if (le != null) {
-                        // TODO: Dynamic Lib: the lib compiles alone as `[package]_lib_*.so',
-                        // TODO: add dynamic id and map it later at runtime
-//                            dynamicIds.add(be.idStr)
-                        retainedEntries.add(be)
-                    } else {
-                        retainedEntries.add(be)
-                    }
-                }
+                be.isStyleable ? retainedStyleables.add(be) : retainedEntries.add(be)
+                return
+            }
+
+            le = libEntries.get(k)
+            if (le != null) {
+                // Add static id maps to host or library resources and map it later at
+                // compile-time with the aapt-generated `resources.arsc' and `R.java' file
+                staticIdMaps.put(be.id, le.id)
+                staticIdStrMaps.put(be.idStr, le.idStr)
+                return
+            }
+
+            if (be.type != 'id') {
+                throw new Exception(
+                        "Missing library resource entry: \"$k\", try to cleanLib and buildLib.")
+            }
+            be.isStyleable ? retainedStyleables.add(be) : retainedEntries.add(be)
+        }
+
+        // TODO: retain deleted public entries
+        if (publicEntries.size() > 0) {
+            publicEntries.each { k, e ->
+                e._typeId = e.typeId
+                e._entryId = e.entryId
+                e.entryId = Aapt.ID_DELETED
+
+                def re = retainedPublicEntries.find{it.type == e.type}
+                e.typeId = (re != null) ? re.typeId : Aapt.ID_DELETED
+            }
+            publicEntries.each { k, e ->
+                retainedPublicEntries.add(e)
             }
         }
-        if (retainedEntries.size() == 0) {
+        if (retainedEntries.size() == 0 && retainedPublicEntries.size() == 0) {
             small.retainedTypes = [] // Doesn't have any resources
             return
         }
 
-        // Resort retained resources
-        def retainedTypes = []
+        // Prepare public types
+        def publicTypes = [:]
+        def maxPublicTypeId = 0
+        def unusedTypeIds = [] as Queue
+        if (retainedPublicEntries.size() > 0) {
+            retainedPublicEntries.each { e ->
+                def typeId = e._typeId
+                def entryId = e._entryId
+                def type = publicTypes[e.type]
+                if (type == null) {
+                    publicTypes[e.type] = [id: typeId, maxEntryId: entryId,
+                                           entryIds:[entryId], unusedEntryIds:[] as Queue]
+                    maxPublicTypeId = Math.max(typeId, maxPublicTypeId)
+                } else {
+                    type.maxEntryId = Math.max(entryId, type.maxEntryId)
+                    type.entryIds.add(entryId)
+                }
+            }
+            if (maxPublicTypeId != publicTypes.size()) {
+                for (int i = 1; i < maxPublicTypeId; i++) {
+                    if (publicTypes.find{ k, t -> t.id == i } == null) unusedTypeIds.add(i)
+                }
+            }
+            publicTypes.each { k, t ->
+                if (t.maxEntryId != t.entryIds.size()) {
+                    for (int i = 0; i < t.maxEntryId; i++) {
+                        if (!t.entryIds.contains(i)) t.unusedEntryIds.add(i)
+                    }
+                }
+            }
+        }
+
+        // First sort with origin(full) resources order
         retainedEntries.sort { a, b ->
             a.typeId <=> b.typeId ?: a.entryId <=> b.entryId
         }
-        def pid = (small.packageId << 24)
-        def tid = 0
-        def eid
-        def currType = null
-        // Ensure first type is `attr'
-        def attrEntry = retainedEntries[0]
-        if (attrEntry.type != 'attr') tid = 1 // skip `attr'
-        retainedEntries.each { e ->
-            if (currType == null || currType.id != e.typeId) {
-                // New type
-                currType = [type: e.vtype, name: e.type, id: e.typeId, _id: tid++, entries: []]
-                retainedTypes.add(currType)
-                eid = 0
-            } else {
-                // Previous type
-                eid++
+
+        // Reassign resource type id (_typeId) and entry id (_entryId)
+        def lastEntryIds = [:]
+        if (retainedEntries.size() > 0) {
+            if (retainedEntries[0].type != 'attr') {
+                // reserved for `attr'
+                if (maxPublicTypeId == 0) maxPublicTypeId = 1
+                if (unusedTypeIds.size() > 0) unusedTypeIds.poll()
             }
-            def newResId = pid | (tid << 16) | eid
-            def newResIdStr = "0x${Integer.toHexString(newResId)}"
-            if (e.id != newResId) {
-                staticIdMaps.put(e.id, newResId)
-                staticIdStrMaps.put(e.idStr, newResIdStr)
+            def selfTypes = [:]
+            retainedEntries.each { e ->
+                // Check if the type has been declared in public.txt
+                def type = publicTypes[e.type]
+                if (type != null) {
+                    e._typeId = type.id
+                    if (type.unusedEntryIds.size() > 0) {
+                        e._entryId = type.unusedEntryIds.poll()
+                    } else {
+                        e._entryId = ++type.maxEntryId
+                    }
+                    return
+                }
+                // Assign new type with unused type id
+                type = selfTypes[e.type]
+                if (type != null) {
+                    e._typeId = type.id
+                } else {
+                    if (unusedTypeIds.size() > 0) {
+                        e._typeId = unusedTypeIds.poll()
+                    } else {
+                        e._typeId = ++maxPublicTypeId
+                    }
+                    selfTypes[e.type] = [id: e._typeId]
+                }
+                // Simply increase the entry id
+                def entryId = lastEntryIds[e.type]
+                if (entryId == null) {
+                    entryId = 0
+                } else {
+                    entryId++
+                }
+                e._entryId = lastEntryIds[e.type] = entryId
             }
-            currType.entries.add([name: e.key, id: e.entryId, _id: eid, v: e.id, _v:newResId,
-                                  vs: e.idStr, _vs: newResIdStr])
+
+            retainedEntries += retainedPublicEntries
+        } else {
+            retainedEntries = retainedPublicEntries
         }
+
+        // Resort with reassigned resources order
+        retainedEntries.sort { a, b ->
+            a._typeId <=> b._typeId ?: a._entryId <=> b._entryId
+        }
+
+        // Resort retained resources
+        def retainedTypes = []
+        def pid = (small.packageId << 24)
+        def currType = null
+        retainedEntries.each { e ->
+            // Prepare entry id maps for resolving resources.arsc and binary xml files
+            if (currType == null || currType.name != e.type) {
+                // New type
+                currType = [type: e.vtype, name: e.type, id: e.typeId, _id: e._typeId, entries: []]
+                retainedTypes.add(currType)
+            }
+            def newResId = pid | (e._typeId << 16) | e._entryId
+            def newResIdStr = "0x${Integer.toHexString(newResId)}"
+            staticIdMaps.put(e.id, newResId)
+            staticIdStrMaps.put(e.idStr, newResIdStr)
+
+            // Prepare styleable id maps for resolving R.java
+            if (retainedStyleables.size() > 0 && e.typeId == 1) {
+                retainedStyleables.findAll { it.idStrs != null }.each {
+                    def index = it.idStrs.indexOf(e.idStr)
+                    if (index >= 0) {
+                        it.idStrs[index] = newResIdStr
+                        it.mapped = true
+                    }
+                }
+            }
+
+            def entry = [name: e.key, id: e.entryId, _id: e._entryId, v: e.id, _v:newResId,
+                         vs: e.idStr, _vs: newResIdStr]
+            currType.entries.add(entry)
+        }
+
+        // Update the id array for styleables
+        retainedStyleables.findAll { it.mapped != null }.each {
+            it.idStr = "{ ${it.idStrs.join(', ')} }"
+            it.idStrs = null
+        }
+
         small.idMaps = staticIdMaps
         small.idStrMaps = staticIdStrMaps
         small.retainedTypes = retainedTypes
-        small.dynamicIds = dynamicIds
+        small.retainedStyleables = retainedStyleables
     }
 
     protected void hookVariantTask() {
@@ -273,7 +391,8 @@ class AppPlugin extends BundlePlugin {
                 aapt.filterResources(small.retainedTypes)
                 Log.success "[${project.name}] split library res files..."
 
-                aapt.filterPackage(small.retainedTypes, small.packageId, small.idMaps)
+                aapt.filterPackage(small.retainedTypes, small.packageId, small.idMaps,
+                        small.retainedStyleables)
                 Log.success "[${project.name}] slice asset package and reset package id..."
             } else {
                 aapt.resetPackage(small.packageId, small.packageIdStr, small.idMaps)
@@ -309,6 +428,11 @@ class AppPlugin extends BundlePlugin {
         small.dex.doLast {
             small.bkAarDir.renameTo(small.aarDir)
         }
+
+        // Hook clean task to unset package id
+        project.clean.doLast {
+            sPackageIds.remove(project.name)
+        }
     }
 
     @Override
@@ -339,9 +463,35 @@ class AppPlugin extends BundlePlugin {
                         if (!resourceKeys.contains(key)) resourceKeys.add(key)
                         return
                     }
-                    it.children().each { // <color name="colorAccent">#FF4081</color>
-                        def key = "${it.name()}/${it.@name}" // color/colorAccent
-                        if (key == 'string/app_name') return // DON'T NEED IN BUNDLE
+
+                    it.children().each {
+                        type = it.name()
+                        def name = it.@name
+                        if (type == 'string') {
+                            if (name == 'app_name') return // DON'T NEED IN BUNDLE
+                        } else if (type == 'style') {
+                            name = name.replaceAll("\\.", "_")
+                        } else if (type == 'declare-styleable') {
+                            // <declare-styleable name="MyTextView">
+                            type = 'styleable'
+                            it.children().each { // <attr format="string" name="label"/>
+                                def attr = it.@name
+                                def key
+                                if (attr.startsWith('android:')) {
+                                    attr = attr.replaceAll(':', '_')
+                                } else {
+                                    key = "attr/$attr"
+                                    if (!resourceKeys.contains(key)) resourceKeys.add(key)
+                                }
+                                key = "styleable/${name}_${attr}"
+                                if (!resourceKeys.contains(key)) resourceKeys.add(key)
+                            }
+                        } else if (type.endsWith('-array')) {
+                            // string-array or integer-array
+                            type = 'array'
+                        }
+
+                        def key = "$type/$name"
                         if (!resourceKeys.contains(key)) resourceKeys.add(key)
                     }
                 }
@@ -355,40 +505,64 @@ class AppPlugin extends BundlePlugin {
      * 'gradle.properties', generate a random one
      */
     protected void initPackageId() {
-        Integer pp = sPackageIds.get(project.name)
-        if (pp != null) {
-            small.packageId = pp
-            small.packageIdStr = String.format('%02x', pp)
-            return
+        Integer pp
+        String ppStr = null
+        Integer usingPP = sPackageIds.get(project.name)
+        boolean addsNewPP = true
+        // Get user defined package id
+        if (project.hasProperty('packageId')) {
+            def userPP = project.packageId
+            if (userPP instanceof Integer) {
+                // Set in build.gradle with 'ext.packageId=0x7e' as an Integer
+                pp = userPP
+            } else {
+                // Set in gradle.properties with 'packageId=7e' as a String
+                ppStr = userPP
+                pp = Integer.parseInt(ppStr, 16)
+            }
+
+            if (usingPP != null && pp != usingPP) {
+                // TODO: clean last build
+                throw new Exception("Package id for ${project.name} has changed! " +
+                        "You should call clean first.")
+            }
+        } else {
+            if (usingPP != null) {
+                pp = usingPP
+                addsNewPP = false
+            } else {
+                pp = genRandomPackageId(project.name)
+            }
         }
 
-        if (project.hasProperty('packageId')) {
-            pp = project.packageId
-        } else {
-            pp = genRandomPackageId(project.name)
-        }
+        small.packageId = pp
+        small.packageIdStr = ppStr != null ? ppStr : String.format('%02x', pp)
+        if (!addsNewPP) return
+
+        // Check if the new package id has been used
         sPackageIds.each { name, id ->
             if (id == pp) {
                 throw new Exception("Duplicate package id 0x${String.format('%02x', pp)} " +
                         "with $name and ${project.name}!\nPlease redefine one of them " +
-                        "in bundle's build.gradle or gradle.properties.")
+                        "in build.gradle (e.g. 'ext.packageId=0x7e') " +
+                        "or gradle.properties (e.g. 'packageId=7e').")
             }
         }
-        small.packageId = pp
-        small.packageIdStr = String.format('%02x', pp)
         sPackageIds.put(project.name, pp)
     }
 
     /**
      * Generate a random package id in range [0x03, 0x7e] by bundle's name.
      * [0x00, 0x02] reserved for android system resources.
+     * [0x03, 0x0f] reserved for the fucking crazy manufacturers.
      */
     private static int genRandomPackageId(String bundleName) {
-        int minPP = 0x03
+        int minPP = 0x10
         int maxPP = 0x7e
+        int maxHash = 0xffff
         int d = maxPP - minPP
-        int hash = bundleName.hashCode() & 0x000000ff
-        int pp = (hash * d / 0xff) + minPP
+        int hash = bundleName.hashCode() & maxHash
+        int pp = (hash * d / maxHash) + minPP
         return pp
     }
 }
