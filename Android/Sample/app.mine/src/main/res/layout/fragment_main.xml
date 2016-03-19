@@ -12,9 +12,18 @@
         android:layout_height="wrap_content" />
 
     <net.wequick.example.small.lib.utils.MyTextView
+        android:id="@+id/my_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/section_label"
         app:label="Hello!" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/inter_start_button"
+        android:text="@string/inter_start"
+        android:layout_below="@id/my_label"
+        android:textAllCaps="false" />
 
 </RelativeLayout>

@@ -12,6 +12,8 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".PickerActivity"/>
+
     </application>
 
 </manifest>

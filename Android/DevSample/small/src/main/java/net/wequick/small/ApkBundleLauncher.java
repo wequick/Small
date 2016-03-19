@@ -95,7 +95,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         public ActivityResult execStartActivity(
                 Context who, IBinder contextThread, IBinder token, Activity target,
                 Intent intent, int requestCode, android.os.Bundle options) {
-            wrapIntent(intent);
+            wrapIntent(intent, requestCode, options);
             return ReflectAccelerator.execStartActivityV21(sHostInstrumentation,
                     who, contextThread, token, target, intent, requestCode, options);
         }
@@ -105,7 +105,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         public ActivityResult execStartActivity(
                 Context who, IBinder contextThread, IBinder token, Activity target,
                 Intent intent, int requestCode) {
-            wrapIntent(intent);
+            wrapIntent(intent, requestCode, null);
             return ReflectAccelerator.execStartActivityV20(sHostInstrumentation,
                     who, contextThread, token, target, intent, requestCode);
         }
@@ -141,6 +141,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 android.os.Bundle extras = activity.getIntent().getExtras();
                 if (extras != null) {
                     icicle = extras.getBundle(Small.KEY_SAVED_INSTANCE_STATE);
+                    extras.remove(Small.KEY_SAVED_INSTANCE_STATE);
                     needsRestoreInstanceState = (icicle != null);
                 }
             } while (false);
@@ -148,17 +149,6 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             super.callActivityOnCreate(activity, icicle);
             if (needsRestoreInstanceState) {
                 super.callActivityOnRestoreInstanceState(activity, icicle);
-            }
-        }
-
-        @Override
-        public void callActivityOnSaveInstanceState(Activity activity, android.os.Bundle outState) {
-            super.callActivityOnSaveInstanceState(activity, outState);
-            // If killed in background, save the REAL activity for `net.wequick.small.A' to jump.
-            outState.putString(Small.KEY_ACTIVITY, activity.getClass().getName());
-            android.os.Bundle extras = activity.getIntent().getExtras();
-            if (extras != null) {
-                outState.putString(Small.KEY_QUERY, extras.getString(Small.KEY_QUERY));
             }
         }
 
@@ -174,13 +164,20 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             super.callActivityOnDestroy(activity);
         }
 
-        private void wrapIntent(Intent intent) {
+        private void wrapIntent(Intent intent, int requestCode, android.os.Bundle options) {
+            // Carry the `requestCode' and `options' for `startActivityForResult' in activity `A'.
+            intent.putExtra(Small.KEY_START_REQUEST_CODE, requestCode);
+            if (options != null) {
+                intent.putExtra(Small.KEY_START_OPTIONS, options);
+            }
+
             String realClazz = intent.getComponent().getClassName();
             if (sLoadedActivities == null) return;
 
             ActivityInfo ai = sLoadedActivities.get(realClazz);
             if (ai == null) return;
 
+            // Carry the real(plugin) class for incoming `newActivity' method.
             intent.addCategory(REDIRECT_FLAG + realClazz);
             String stubClazz = dequeueStubActivity(ai, realClazz);
             intent.setComponent(new ComponentName(Small.getContext(), stubClazz));

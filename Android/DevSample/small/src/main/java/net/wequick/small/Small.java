@@ -57,8 +57,9 @@ import java.util.Map;
 public final class Small {
     public static final String EVENT_OPENURI = "small-open";
     public static final String KEY_QUERY = "small-query";
-    public static final String KEY_ACTIVITY = "small-act";
     public static final String KEY_SAVED_INSTANCE_STATE = "small-sis";
+    public static final String KEY_START_REQUEST_CODE = "small-rc";
+    public static final String KEY_START_OPTIONS = "small-opt";
     public static final String EXTRAS_KEY_RET = "small-ret";
     public static final String SHARED_PREFERENCES_SMALL = "small";
     public static final String SHARED_PREFERENCES_KEY_UPGRADE = "upgrade";
