@@ -171,6 +171,9 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 intent.putExtra(Small.KEY_START_OPTIONS, options);
             }
 
+            ComponentName component = intent.getComponent();
+            if (component == null) return; // ignore system intent
+
             String realClazz = intent.getComponent().getClassName();
             if (sLoadedActivities == null) return;
 
