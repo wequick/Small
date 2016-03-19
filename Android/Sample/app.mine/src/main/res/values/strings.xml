@@ -3,4 +3,5 @@
     <string name="hello">Hello World from app.mine!</string>
     <string name="inter_start">startActivityForResult</string>
     <string name="pick">Pick</string>
+    <string name="call_system">Call system intent</string>
 </resources>

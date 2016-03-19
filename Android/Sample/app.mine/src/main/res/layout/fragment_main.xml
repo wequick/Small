@@ -26,4 +26,12 @@
         android:layout_below="@id/my_label"
         android:textAllCaps="false" />
 
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/call_system_button"
+        android:text="@string/call_system"
+        android:layout_below="@id/inter_start_button"
+        android:textAllCaps="false" />
+
 </RelativeLayout>
