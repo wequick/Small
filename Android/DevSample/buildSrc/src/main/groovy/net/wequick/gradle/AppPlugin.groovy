@@ -110,6 +110,12 @@ class AppPlugin extends BundlePlugin {
         project.configurations {
             all*.exclude group: 'com.android.support', module: 'support-annotations'
         }
+        // Provided the annotation jar, fix issue #58
+        def btv = project.android.buildToolsRevision
+        File sdkDir = project.android.sdkDirectory
+        File annotationJar = new File(sdkDir, "extras/android/m2repository/com/android/support/" +
+                "support-annotations/${btv}/support-annotations-${btv}.jar")
+        project.dependencies.add('provided', project.files(annotationJar))
 
         // Check if dependents by appcompat library which contains theme resource and
         // cannot be pre-split
