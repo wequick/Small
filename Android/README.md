@@ -5,7 +5,7 @@
 为方便列表，简写如下：
 ```
   DyLA  : Dynamic-load-apk          @singwhatiwanna, 百度
-  DiLA  : Direct-Load-apk           @melbcat
+  DiLA  : Direct-Load-apk           @FinalLody
   APF   : Android-Plugin-Framework  @limpoxe
   ACDD  : ACDD                      @bunnyblue
   DyAPK : DynamicAPK                @TediWang, 携程
@@ -16,21 +16,21 @@
 
   \\                             | DyLA   | DiLA   | ACDD   | DyAPK  | DPG    | APF    | Small
   -------------------------------|--------|--------|--------|--------|--------|--------|--------
-  加载非独立插件<sup>[1]</sup>   | ×      | x      | √      | √      | ×      | √      | √
-  加载.so插件                    | ×      | ×      | ! <sup>[2]</sup>     | ×      | ×      | ×      | √
-  Activity生命周期               | √      | √      | √      | √      | ×      | √      | √
-  Service动态注册                | ×      | ×      | √      | ×      | ×      | √      | x <sup>[3]</sup>
-  资源分包共享<sup>[4]</sup>     | ×      | ×      | ! <sup>[5]</sup> | ! <sup>[5]</sup> | ×      | ! <sup>[6]</sup>      | √
-  公共插件打包共享<sup>[7]</sup> | ×      | ×      | ×      | ×      | ×      | ×      | √
+  加载非独立插件<sup>[1]</sup>     | ×      | x      | √      | √      | ×      | √      | √
+  加载.so后缀插件                  | ×      | ×      | ! <sup>[2]</sup>     | ×      | ×      | ×      | √
+  Activity生命周期                | √      | √      | √      | √      | √      | √      | √
+  Service动态注册                 | ×      | ×      | √      | ×      | √      | √      | x <sup>[3]</sup>
+  资源分包共享<sup>[4]</sup>      | ×      | ×      | ! <sup>[5]</sup> | ! <sup>[5]</sup> | ×      | ! <sup>[6]</sup>      | √
+  公共插件打包共享<sup>[7]</sup>   | ×      | ×      | ×      | ×      | ×      | ×      | √
   支持AppCompat<sup>[8]</sup>    | ×      | ×      | ×      | ×      | ×      | ×      | √
-  支持本地网页组件               | ×      | ×      | ×      | ×      | ×      | ×      | √
-  支持联调插件<sup>[9]</sup>     | ×      | x      | ×      | ×      | ×      | ×      | √
+  支持本地网页组件                 | ×      | ×      | ×      | ×      | ×      | ×      | √
+  支持联调插件<sup>[9]</sup>      | ×      | x      | ×      | ×      | ×      | ×      | √
   
   > [1] 独立插件：一个完整的apk包，可以独立运行。比如从你的程序跑起淘宝、QQ，但这加载起来是要闹哪样？<br/>
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;非独立插件：依赖于宿主，宿主是个壳，插件可使用其资源代码并分离之以最小化，这才是业务需要嘛。<br/>
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-- _“所有不能加载非独立插件的插件化框架都是耍流氓”_。
   
-  > [2] ACDD加载.so用了Native方法(libdexopt.so)，不是Java层，源码似乎未共享。
+  > [2] ACDD加载.so用了Native方法(libdexopt.so)，不是Java层，源码见[dexopt.cpp](https://github.com/bunnyblue/ACDD/blob/master/ACDDCore/jni/dexopt.cpp)。
   
   > [3] Service更新频度低，可预先注册在宿主的manifest中，如果没有很好的理由说服我，现不支持。
   
