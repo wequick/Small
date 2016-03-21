@@ -5,7 +5,7 @@
       @see http://developer.android.com/intl/zh-cn/guide/topics/resources/more-resources.html -->
     <bool name="my_test_bool">true</bool>
     <color name="my_test_color1">#FFF</color>
-    <color name="my_test_color2">#CCC</color>
+    <color name="my_test_color2">#FF00FF</color>
     <dimen name="my_test_dimen">25dp</dimen>
     <item type="id" name="my_test_id" />
     <integer name="my_test_integer">1</integer>
