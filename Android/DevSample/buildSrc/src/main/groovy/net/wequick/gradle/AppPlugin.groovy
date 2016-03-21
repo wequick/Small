@@ -15,6 +15,7 @@
  */
 package net.wequick.gradle
 
+import groovy.io.FileType
 import net.wequick.gradle.aapt.Aapt
 import net.wequick.gradle.aapt.SymbolParser
 import org.gradle.api.Project
@@ -385,7 +386,8 @@ class AppPlugin extends BundlePlugin {
             prepareSplit()
             File symbolFile = (small.type == PluginType.Library) ?
                     new File(it.textSymbolOutputDir, 'R.txt') : null
-            File rJavaFile = new File(it.sourceOutputDir, "${small.packagePath}/R.java")
+            File sourceOutputDir = it.sourceOutputDir
+            File rJavaFile = new File(sourceOutputDir, "${small.packagePath}/R.java")
             Aapt aapt = new Aapt(unzipApDir, rJavaFile, symbolFile)
             if (small.retainedTypes != null) {
                 aapt.filterResources(small.retainedTypes)
@@ -397,6 +399,13 @@ class AppPlugin extends BundlePlugin {
             } else {
                 aapt.resetPackage(small.packageId, small.packageIdStr, small.idMaps)
                 Log.success "[${project.name}] reset resource package id..."
+            }
+
+            // Remove unused R.java to fix the reference of shared library resource, issue #63
+            sourceOutputDir.eachFileRecurse(FileType.FILES) { file ->
+                if (file != rJavaFile) {
+                    file.delete()
+                }
             }
 
             // Repack resources.ap_
