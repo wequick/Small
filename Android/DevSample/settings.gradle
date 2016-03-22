@@ -1,10 +1,15 @@
-include ':small', ':app', ':app.main', ':app.home', ':app.detail', ':app.mine', ':lib.utils', ':web.about', ':lib.style'
+include ':small',
+        ':app',
+        ':app.main', ':app.home', ':app.detail', ':app.mine',
+        ':web.about',
+        ':lib.utils', ':lib.style', ':lib.afterutils'
 
 project(':app').projectDir = new File('../Sample/app')
 project(':app.main').projectDir = new File('../Sample/app.main')
 project(':app.home').projectDir = new File('../Sample/app.home')
 project(':app.detail').projectDir = new File('../Sample/app.detail')
 project(':app.mine').projectDir = new File('../Sample/app.mine')
-project(':lib.utils').projectDir = new File('../Sample/lib.utils')
 project(':lib.style').projectDir = new File('../Sample/lib.style')
+project(':lib.utils').projectDir = new File('../Sample/lib.utils')
+project(':lib.afterutils').projectDir = new File('../Sample/lib.afterutils')
 project(':web.about').projectDir = new File('../Sample/web.about')
