@@ -100,7 +100,10 @@ class AppPlugin extends BundlePlugin {
             libJarNames += getJarName(it.dependencyProject)
         }
         if (libJarNames.size() > 0) {
-            def libJars = project.fileTree(dir: rootExt.preLibsJarDir, include: libJarNames)
+            // Collect the jars with absolute file path, fix issue #65
+            def libJars = project.files(libJarNames.collect{
+                new File(rootExt.preLibsJarDir, it).path
+            })
             project.dependencies.add('provided', libJars)
         }
 

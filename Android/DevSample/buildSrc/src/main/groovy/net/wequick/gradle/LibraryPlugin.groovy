@@ -48,8 +48,15 @@ class LibraryPlugin extends AppPlugin {
     @Override
     protected void createTask() {
         super.createTask()
+
         project.task('cleanLib', dependsOn: 'clean')
         project.task('buildLib', dependsOn: 'assembleRelease')
+        // Add library dependencies for `buildLib', fix issue #65
+        project.afterEvaluate {
+            compileLibs.each {
+                project.preBuild.dependsOn "${it.dependencyProject.path}:buildLib"
+            }
+        }
 
         project.tasks.remove(project.cleanBundle)
         project.tasks.remove(project.buildBundle)
