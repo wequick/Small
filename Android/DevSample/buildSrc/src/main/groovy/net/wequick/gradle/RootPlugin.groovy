@@ -8,6 +8,8 @@ import java.text.DecimalFormat
 
 class RootPlugin extends BasePlugin {
 
+    private int buildingLibIndex = 0
+
     void apply(Project project) {
         super.apply(project)
     }
@@ -86,7 +88,9 @@ class RootPlugin extends BasePlugin {
         project.task('cleanLib', group: 'small', description: 'Clean all libraries', type: Delete) {
             delete small.preBuildDir
         }
-        project.task('buildLib', group: 'small', description: 'Build all libraries')
+        project.task('buildLib', group: 'small', description: 'Build all libraries').doFirst {
+            buildingLibIndex = 1
+        }
         project.task('cleanBundle', group: 'small', description: 'Clean all bundles')
         project.task('buildBundle', group: 'small', description: 'Build all bundles')
     }
@@ -188,8 +192,12 @@ class RootPlugin extends BasePlugin {
                 LibraryPlugin lp = project.plugins.findPlugin(LibraryPlugin.class)
                 if (!lp.isBuildingRelease()) return
             case PluginType.Host:
-                Log.header "building library ${ext.buildIndex} of ${small.libCount} - " +
-                        "${project.name} (0x${ext.packageIdStr})"
+                if (buildingLibIndex > 0 && buildingLibIndex <= small.libCount) {
+                    Log.header "building library ${buildingLibIndex++} of ${small.libCount} - " +
+                            "${project.name} (0x${ext.packageIdStr})"
+                } else {
+                    Log.header "building library ${project.name} (0x${ext.packageIdStr})"
+                }
                 break
             case PluginType.App:
             case PluginType.Asset:
