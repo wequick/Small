@@ -236,11 +236,12 @@ public final class Small {
 
     public static void openUri(Uri uri, Context context) {
         // System url schemes
-        if (!uri.getScheme().equals("http")
-                && !uri.getScheme().equals("https")
-                && !uri.getScheme().equals("file")
+        String scheme = uri.getScheme();
+        if (scheme != null
+                && !scheme.equals("http")
+                && !scheme.equals("https")
+                && !scheme.equals("file")
                 && ApplicationUtils.canOpenUri(uri, context)) {
-//                  Log.e("ApplicationUtils","ApplicationUtils");
             ApplicationUtils.openUri(uri, context);
             return;
         }
@@ -248,8 +249,6 @@ public final class Small {
         // Small url schemes
         Bundle bundle = Bundle.getLaunchableBundle(uri);
         if (bundle != null) {
-
-//                  Log.e("Bundle","Bundle");
             bundle.launchFrom(context);
         }
     }
