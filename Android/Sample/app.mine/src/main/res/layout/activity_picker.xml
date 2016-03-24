@@ -22,7 +22,7 @@
                 android:layout_marginLeft="@dimen/fab_margin"
                 android:text="Red"
                 android:id="@+id/radioButton1"
-                android:checked="false" />
+                android:checked="true" />
             <RadioButton
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
