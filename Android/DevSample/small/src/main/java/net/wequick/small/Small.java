@@ -25,22 +25,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 
 import net.wequick.small.util.ApplicationUtils;
 import net.wequick.small.webkit.JsHandler;
-import net.wequick.small.webkit.JsResult;
 import net.wequick.small.webkit.WebView;
 import net.wequick.small.webkit.WebViewClient;
 
 import java.io.File;
-import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -71,7 +66,6 @@ public final class Small {
     public static final int REQUEST_CODE_DEFAULT = 10000;
 
     private static Context sContext = null;
-    private static HashMap<String, Class<?>> sActivityClasses;
     private static String sBaseUri = ""; // base url of uri
     private static boolean sIsNewHostApp; // first launched or upgraded
     private static int sWebActivityTheme;
@@ -107,7 +101,7 @@ public final class Small {
         PackageManager pm = context.getPackageManager();
         String packageName = context.getPackageName();
 
-        saveActivityClasses(context);
+        // Register the local broadcast (Incubating)
         LocalBroadcastManager.getInstance(context).registerReceiver(new OpenUriReceiver(),
                 new IntentFilter(EVENT_OPENURI));
 
@@ -317,50 +311,6 @@ public final class Small {
 
     public static void registerLauncher(BundleLauncher launcher) {
         Bundle.registerLauncher(launcher);
-    }
-
-    /**
-     * Get the activity class registered in the host's <tt>AndroidManifest.xml</tt>
-     *
-     * @param clazz the activity class name
-     */
-    protected static Class<?> getRegisteredClass(String clazz) {
-        Class<?> aClass = null;
-        if (sActivityClasses != null) {
-            aClass = sActivityClasses.get(clazz);
-            if (aClass == null && !clazz.endsWith("Activity")) {
-                aClass = sActivityClasses.get(clazz + "Activity");
-            }
-        }
-        return aClass;
-    }
-
-    /*
-     * Record the registered activity classes of host.
-     */
-    private static void saveActivityClasses(Context context) {
-        try {
-            PackageInfo pi = context.getPackageManager().getPackageInfo(
-                    context.getPackageName(), PackageManager.GET_ACTIVITIES);
-            ActivityInfo[] as = pi.activities;
-            if (as != null) {
-                sActivityClasses = new HashMap<String, Class<?>>();
-                for (int i = 0; i < as.length; i++) {
-                    ActivityInfo ai = as[i];
-                    int dot = ai.name.lastIndexOf(".");
-                    if (dot > 0) {
-                        try {
-                            Class<?> clazz = Class.forName(ai.name);
-                            sActivityClasses.put(ai.name, clazz);
-                        } catch (ClassNotFoundException e) {
-                            // Ignored
-                        }
-                    }
-                }
-            }
-        } catch (PackageManager.NameNotFoundException e) {
-
-        }
     }
 
     public static int getWebActivityTheme() {
