@@ -16,6 +16,8 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="0dp" android:layout_weight="1"
+        android:id="@+id/prepare_text"
+        android:visibility="invisible"
         android:text="@string/initializing" android:gravity="center" android:textColor="#33b5e5" android:textSize="14sp"/>
     <LinearLayout
         android:layout_width="match_parent"
