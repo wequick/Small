@@ -2,8 +2,8 @@
 
 Features:
 
-  - 相互依赖的`lib.\*`支持根据依赖顺序进行编译 (#65)
-  - `app.\*`模块允许在代码中引用`lib.\*`资源 (#63)
+  - 相互依赖的`lib.*`支持根据依赖顺序进行编译 (#65)
+  - `app.*`模块允许在代码中引用`lib.*`资源 (#63)
 
 Bugfixes:
 
@@ -14,7 +14,7 @@ Bugfixes:
 
 Features:
 
-  - `lib.\*`支持固定公共资源id (增加资源时保持原有资源id不变)
+  - `lib.*`支持固定公共资源id (增加资源时保持原有资源id不变)
 
 Bugfixes:
 
@@ -30,7 +30,7 @@ Features:
 
 Bugfixes:
 
-  - 修正`app.\*`资源id分配错误
+  - 修正`app.*`资源id分配错误
 
 ## 0.3.1 (2016-02-29)
 
@@ -59,7 +59,7 @@ Performance:
 
 Features:
 
-  - 支持在`lib.\*`模块中定义主题
+  - 支持在`lib.*`模块中定义主题
   - 支持在插件中定义`styleable`属性
 
 
@@ -86,5 +86,5 @@ Bugfixes:
 Bugfixes:
 
   - 修正插件resources.arsc过大导致的崩溃 (#21, @wu4321)
-  - 修正DevSample执行`gradlew :app.\*:aR`失败 (#18, @wu4321)
+  - 修正DevSample执行`gradlew :app.*:aR`失败 (#18, @wu4321)
   - 修正编译的web组件包无法在API16以下运行 (#13, @wu4321)
