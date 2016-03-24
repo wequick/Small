@@ -258,7 +258,7 @@ public class Bundle {
          *      - target => AbcController
          */
         String uriString = uri.toString();
-        if (!uriString.startsWith(this.uriString)) return false;
+        if (this.uriString == null || !uriString.startsWith(this.uriString)) return false;
 
         String srcPath = uriString.substring(this.uriString.length());
         String srcQuery = uri.getQuery();
