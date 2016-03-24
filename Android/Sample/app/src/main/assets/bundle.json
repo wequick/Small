@@ -2,9 +2,11 @@
   "version": "1.0.0",
   "bundles": [
     {
+      "uri": "lib.utils",
       "pkg": "net.wequick.example.small.lib.utils"
     },
     {
+      "uri": "lib.style",
       "pkg": "com.example.mysmall.lib.style"
     },
     {
