@@ -17,7 +17,10 @@
 package net.wequick.small;
 
 import android.app.Activity;
+import android.app.ActivityManager;
+import android.app.Application;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -57,9 +60,6 @@ import java.util.Map;
 public final class Small {
     public static final String EVENT_OPENURI = "small-open";
     public static final String KEY_QUERY = "small-query";
-    public static final String KEY_SAVED_INSTANCE_STATE = "small-sis";
-    public static final String KEY_START_REQUEST_CODE = "small-rc";
-    public static final String KEY_START_OPTIONS = "small-opt";
     public static final String EXTRAS_KEY_RET = "small-ret";
     public static final String SHARED_PREFERENCES_SMALL = "small";
     public static final String SHARED_PREFERENCES_KEY_UPGRADE = "upgrade";
@@ -81,14 +81,6 @@ public final class Small {
     }
 
     public static Context getContext() {
-        if (sContext == null) {
-            try {
-                final Class<?> activityThreadClass =
-                        Class.forName("android.app.ActivityThread");
-                final Method method = activityThreadClass.getMethod("currentApplication");
-                sContext = (Context) method.invoke(null, (Object[]) null);
-            } catch (Exception ignored) { }
-        }
         return sContext;
     }
 
@@ -104,35 +96,56 @@ public final class Small {
         return sIsNewHostApp;
     }
 
-    public static void setUp(Context context, OnCompleteListener listener) {
-        Context appContext = context.getApplicationContext();
-        sContext = appContext;
-        saveActivityClasses(appContext);
-        LocalBroadcastManager.getInstance(appContext).registerReceiver(new OpenUriReceiver(),
-                new IntentFilter(EVENT_OPENURI));
+    public static void preSetUp(Application context) {
+        sContext = context;
 
-        int backupHostVersion = getHostVersionCode();
-        int currHostVersion = 0;
-        try {
-            PackageInfo pi = appContext.getPackageManager().getPackageInfo(
-                    appContext.getPackageName(), 0);
-            currHostVersion = pi.versionCode;
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
-        if (backupHostVersion != currHostVersion) {
-            sIsNewHostApp = true;
-            setHostVersionCode(currHostVersion);
-            clearAppCache(appContext);
-        } else {
-            sIsNewHostApp = false;
-        }
         // Register default bundle launchers
         registerLauncher(new ActivityLauncher());
         registerLauncher(new ApkBundleLauncher());
         registerLauncher(new WebBundleLauncher());
+
+        PackageManager pm = context.getPackageManager();
+        String packageName = context.getPackageName();
+
+        saveActivityClasses(context);
+        LocalBroadcastManager.getInstance(context).registerReceiver(new OpenUriReceiver(),
+                new IntentFilter(EVENT_OPENURI));
+
+        // Check if host app is first-installed or upgraded
+        int backupHostVersion = getHostVersionCode();
+        int currHostVersion = 0;
+        try {
+            PackageInfo pi = pm.getPackageInfo(packageName, 0);
+            currHostVersion = pi.versionCode;
+        } catch (PackageManager.NameNotFoundException ignored) {
+            // Never reach
+        }
+        if (backupHostVersion != currHostVersion) {
+            sIsNewHostApp = true;
+            setHostVersionCode(currHostVersion);
+            clearAppCache(context);
+        } else {
+            sIsNewHostApp = false;
+        }
+
+        // Check if application is started after unexpected exit (killed in background etc.)
+        ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        ComponentName launchingComponent = am.getRunningTasks(1).get(0).topActivity;
+        ComponentName launcherComponent = pm.getLaunchIntentForPackage(packageName).getComponent();
+        if (!launchingComponent.equals(launcherComponent)) {
+            // In this case, system launching the last restored activity instead of our launcher
+            // activity. Call `setUp' synchronously to ensure `Small' available.
+            setUp(context, null);
+        }
+    }
+
+    public static void setUp(Context context, OnCompleteListener listener) {
+        if (sContext == null) {
+            // Tips for CODE-BREAKING
+            throw new UnsupportedOperationException(
+                    "Please call `Small.preSetUp' in your application first");
+        }
         Bundle.setupLaunchers(context);
-        // Load bundles
         Bundle.loadLaunchableBundles(listener);
     }
 

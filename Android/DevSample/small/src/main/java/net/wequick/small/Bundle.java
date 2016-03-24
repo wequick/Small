@@ -190,6 +190,12 @@ public class Bundle {
     }
 
     private static void loadBundles(JSONArray bundles, Small.OnCompleteListener listener) {
+        if (listener == null) {
+            loadBundles(bundles);
+            return;
+        }
+
+        // Asynchronous
         if (sThread == null) {
             sThread = new LoadBundleThread(bundles);
             sHandler = new LoadBundleHandler(listener);
@@ -480,24 +486,27 @@ public class Bundle {
         @Override
         public void run() {
             // Instantiate bundle
-            List<Bundle> bundles = new ArrayList<Bundle>(bundleDescs.length());
-            for (int i = 0; i < bundleDescs.length(); i++) {
-                try {
-                    JSONObject object = bundleDescs.getJSONObject(i);
-                    Bundle bundle = new Bundle(object);
-                    bundles.add(bundle);
-                } catch (JSONException e) {
-                    // Ignored
-                }
-            }
-            sPreloadBundles = bundles;
-
-            // Prepare bundle
-            for (Bundle bundle : bundles) {
-                bundle.prepareForLaunch();
-            }
-
+            loadBundles(bundleDescs);
             sHandler.obtainMessage(MSG_COMPLETE).sendToTarget();
+        }
+    }
+
+    private static void loadBundles(JSONArray bundleDescs) {
+        List<Bundle> bundles = new ArrayList<Bundle>(bundleDescs.length());
+        for (int i = 0; i < bundleDescs.length(); i++) {
+            try {
+                JSONObject object = bundleDescs.getJSONObject(i);
+                Bundle bundle = new Bundle(object);
+                bundles.add(bundle);
+            } catch (JSONException e) {
+                // Ignored
+            }
+        }
+        sPreloadBundles = bundles;
+
+        // Prepare bundle
+        for (Bundle bundle : bundles) {
+            bundle.prepareForLaunch();
         }
     }
 

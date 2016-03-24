@@ -95,7 +95,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         public ActivityResult execStartActivity(
                 Context who, IBinder contextThread, IBinder token, Activity target,
                 Intent intent, int requestCode, android.os.Bundle options) {
-            wrapIntent(intent, requestCode, options);
+            wrapIntent(intent);
             return ReflectAccelerator.execStartActivityV21(sHostInstrumentation,
                     who, contextThread, token, target, intent, requestCode, options);
         }
@@ -105,7 +105,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         public ActivityResult execStartActivity(
                 Context who, IBinder contextThread, IBinder token, Activity target,
                 Intent intent, int requestCode) {
-            wrapIntent(intent, requestCode, null);
+            wrapIntent(intent);
             return ReflectAccelerator.execStartActivityV20(sHostInstrumentation,
                     who, contextThread, token, target, intent, requestCode);
         }
@@ -126,7 +126,6 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         @Override
         /** Prepare resources for REAL */
         public void callActivityOnCreate(Activity activity, android.os.Bundle icicle) {
-            boolean needsRestoreInstanceState = false;
             do {
                 if (sLoadedActivities == null) break;
                 ActivityInfo ai = sLoadedActivities.get(activity.getClass().getName());
@@ -134,22 +133,8 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
                 ensureAddAssetPath(activity);
                 applyActivityInfo(activity, ai);
-
-                if (icicle != null) break;
-
-                // If killed in background, we are now redirecting by `net.wequick.small.A'.
-                android.os.Bundle extras = activity.getIntent().getExtras();
-                if (extras != null) {
-                    icicle = extras.getBundle(Small.KEY_SAVED_INSTANCE_STATE);
-                    extras.remove(Small.KEY_SAVED_INSTANCE_STATE);
-                    needsRestoreInstanceState = (icicle != null);
-                }
             } while (false);
-
             super.callActivityOnCreate(activity, icicle);
-            if (needsRestoreInstanceState) {
-                super.callActivityOnRestoreInstanceState(activity, icicle);
-            }
         }
 
         @Override
@@ -164,13 +149,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             super.callActivityOnDestroy(activity);
         }
 
-        private void wrapIntent(Intent intent, int requestCode, android.os.Bundle options) {
-            // Carry the `requestCode' and `options' for `startActivityForResult' in activity `A'.
-            intent.putExtra(Small.KEY_START_REQUEST_CODE, requestCode);
-            if (options != null) {
-                intent.putExtra(Small.KEY_START_OPTIONS, options);
-            }
-
+        private void wrapIntent(Intent intent) {
             ComponentName component = intent.getComponent();
             if (component == null) return; // ignore system intent
 
@@ -225,7 +204,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             for (int i = 0; i < countForMode; i++) {
                 String usedActivityClazz = mStubQueue[i + offset];
                 if (usedActivityClazz == null) {
-                    availableId = i;
+                    if (availableId == -1) availableId = i;
                 } else if (usedActivityClazz.equals(realActivityClazz)) {
                     stubId = i;
                 }
@@ -233,7 +212,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             if (stubId != -1) {
                 availableId = stubId;
             } else if (availableId != -1) {
-                mStubQueue[availableId] = realActivityClazz;
+                mStubQueue[availableId + offset] = realActivityClazz;
             } else {
                 // TODO:
                 Log.e(TAG, "Launch mode " + ai.launchMode + " is full");
