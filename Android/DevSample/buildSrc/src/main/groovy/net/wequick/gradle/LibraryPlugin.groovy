@@ -51,15 +51,18 @@ class LibraryPlugin extends AppPlugin {
 
         project.task('cleanLib', dependsOn: 'clean')
         project.task('buildLib', dependsOn: 'assembleRelease')
+
+        project.tasks.remove(project.cleanBundle)
+        project.tasks.remove(project.buildBundle)
+
+        if (!isBuildingRelease()) return
+
         // Add library dependencies for `buildLib', fix issue #65
         project.afterEvaluate {
             compileLibs.each {
                 project.preBuild.dependsOn "${it.dependencyProject.path}:buildLib"
             }
         }
-
-        project.tasks.remove(project.cleanBundle)
-        project.tasks.remove(project.buildBundle)
     }
 
     @Override
