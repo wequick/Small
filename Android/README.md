@@ -109,7 +109,7 @@ apply plugin: 'net.wequick.small'
 
 ```groovy
 small {
-    aarVersion = '0.4.2'
+    aarVersion = '0.5.0'
 }
 ```
 
