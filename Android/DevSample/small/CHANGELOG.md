@@ -1,3 +1,13 @@
+## 0.6.0 (2016-03-25)
+
+Features:
+
+  - 支持`AppCompat 23.2+`
+
+Bugfixes:
+
+  - 修正`bundle.json`未定义`uri`属性时闪退问题
+
 ## 0.5.0 (2016-03-24)
 
 Bugfixes:
