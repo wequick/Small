@@ -27,11 +27,11 @@ import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.os.Build;
 import android.os.IBinder;
+import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.view.ContextThemeWrapper;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -70,7 +70,9 @@ public class ReflectAccelerator {
     private static Field sDexClassLoader_mPaths_field;
     private static Field sDexClassLoader_mZips_field;
     private static Field sDexClassLoader_mDexs_field;
-
+    // AppCompatActivity - 23.2+
+    private static Field sAppCompatActivity_mResources_field;
+    private static boolean sAppCompatActivityHasNoResourcesField;
 
     private ReflectAccelerator() { /** cannot be instantiated */ }
 
@@ -260,6 +262,22 @@ public class ReflectAccelerator {
             if (sContextThemeWrapper_mResources_field == null) return;
         }
         setValue(sContextThemeWrapper_mResources_field, target, resources);
+        // Compat for AppCompat 23.2+
+        if (activity instanceof AppCompatActivity) {
+            if (sAppCompatActivityHasNoResourcesField) return; // below 23.2
+
+            if (sAppCompatActivity_mResources_field == null) {
+                sAppCompatActivity_mResources_field = getDeclaredField(
+                        AppCompatActivity.class, "mResources");
+                if (sAppCompatActivity_mResources_field == null) {
+                    sAppCompatActivityHasNoResourcesField = true;
+                    return;
+                }
+            }
+            // Set the `mResources' to null, and the AppCompatActivity.getResources() will
+            // re-lazy-initialized it with the `TintResources` class.
+            setValue(sAppCompatActivity_mResources_field, target, null);
+        }
     }
 
     public static void setResources(Application app, Resources resources) {
