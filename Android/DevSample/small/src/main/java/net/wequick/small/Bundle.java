@@ -322,12 +322,15 @@ public class Bundle {
             mPackageName = pkg;
         }
 
-        String uri = map.getString("uri");
-        if (!uri.startsWith("http") && Small.getBaseUri() != null) {
-            uri = Small.getBaseUri() + uri;
+        if (map.has("uri")) {
+            String uri = map.getString("uri");
+            if (!uri.startsWith("http") && Small.getBaseUri() != null) {
+                uri = Small.getBaseUri() + uri;
+            }
+            this.uriString = uri;
+            this.uri = Uri.parse(uriString);
         }
-        this.uriString = uri;
-        this.uri = Uri.parse(uriString);
+
         this.rules = new HashMap<String, String>();
         // Default rules to visit entrance page of bundle
         this.rules.put("", "");
