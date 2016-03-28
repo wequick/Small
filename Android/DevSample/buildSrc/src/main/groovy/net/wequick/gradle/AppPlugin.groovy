@@ -397,7 +397,8 @@ class AppPlugin extends BundlePlugin {
                     new File(it.textSymbolOutputDir, 'R.txt') : null
             File sourceOutputDir = it.sourceOutputDir
             File rJavaFile = new File(sourceOutputDir, "${small.packagePath}/R.java")
-            Aapt aapt = new Aapt(unzipApDir, rJavaFile, symbolFile)
+            def rev = project.android.buildToolsRevision
+            Aapt aapt = new Aapt(unzipApDir, rJavaFile, symbolFile, rev)
             if (small.retainedTypes != null) {
                 aapt.filterResources(small.retainedTypes)
                 Log.success "[${project.name}] split library res files..."

@@ -46,8 +46,13 @@ public class ArscEditor extends AssetEditor {
     private static def LIBRARY_CHUNK_SIZE = 272 // ResTable_lib_header & ResTable_lib_entry
     private static def TABLE_SIZE_POS = 4
 
-    ArscEditor(File file) {
-        super(file)
+    private int mTableConfigSize = 52 // sizeof(ResTable_config)
+
+    ArscEditor(File file, def v) {
+        super(file, v)
+        if (version != null && version.major >= 24) {
+            mTableConfigSize = 56
+        }
     }
 
     /**
@@ -113,6 +118,11 @@ public class ArscEditor extends AssetEditor {
                     def entry = it.entries[e.id]
                     if (entry == null) {
                         throw new Exception("Missing entry at ${e} on ${it}!")
+                    }
+                    def ename = new String(t.keyStringPool.strings[entry.key])
+                    if (e.name != ename) {
+                        throw new Exception("Required entry '${e.name}' but got '$ename', This " +
+                                "is seems to no support the buildToolsRevision: ${version}.")
                     }
 
                     entries.add(entry)
@@ -600,7 +610,7 @@ public class ArscEditor extends AssetEditor {
 //        c.screenConfig2.screenLayout2 = readByte()
 //        c.screenConfig2.screenConfigPad1 = readByte()
 //        c.screenConfig2.screenConfigPad2 = readShort()
-        c.ignored = readBytes(52)
+        c.ignored = readBytes(mTableConfigSize)
         return c
     }
     /** Write struct ResTable_config */
@@ -621,7 +631,7 @@ public class ArscEditor extends AssetEditor {
             skip(4) // id(1), res0(1), res1(2)
             type.entryCount= readInt()
             type.entriesStart = readInt()
-            skip(52) // ResTable_type.config: struct ResTable_config
+            skip(mTableConfigSize) // ResTable_type.config: struct ResTable_config
         }
         return type
     }
@@ -646,13 +656,18 @@ public class ArscEditor extends AssetEditor {
 
     /** Convert utf-16 to utf-8 */
     private static def getUtf16String(name) {
-        def buffer = new byte[128]
-        for (int j = 0; j < 128; j+=2) {
-            byte c = (byte)name[j]
-            if (c == 0) break
-            buffer[j] = c
+        int len = name.length / 2
+        def buffer = new char[len]
+        int i = 0;
+        for (int j = 0; j < len; j+=2) {
+            char c = (char)name[j]
+            if (c == 0) {
+                buffer[i] = '\0'
+                break
+            }
+            buffer[i++] = c
         }
-        return new String(buffer)
+        return String.copyValueOf(buffer, 0, i)
     }
 
     private static def getConfigName(c) {
@@ -712,24 +727,22 @@ public class ArscEditor extends AssetEditor {
             if (entryCount == 0) return
             def type = new String(t.typeStringPool.strings[ts.id - 1])
             println "    type ${ts.id - 1} configCount=$configCount entryCount=$entryCount"
-            def kid = keyId
             for (int ei = 0; ei < entryCount; ei++) {
                 def id = Integer.toHexString(pid | (ts.id << 16) | ei)
-                def key = new String(t.keyStringPool.strings[keyId])
+                def keyBuff = t.keyStringPool.strings[keyId]
+                def key = keyBuff == null ? 'null' : new String(keyBuff)
                 print "      spec resource 0x$id $pname:$type/$key: flags=0x"
                 println String.format('%08x', ts.flags[ei])
                 keyId++
             }
             ts.configs.each {
                 println "      config ${getConfigName(it.config)}:"
-                def kid2 = kid
                 it.entries.eachWithIndex { e, ei ->
-                    if (e.key == null) {
-                        kid2++
-                        return
-                    }
+                    if (e.key == null) return
+
                     def id = Integer.toHexString(pid | (ts.id << 16) | ei)
-                    def key = new String(t.keyStringPool.strings[kid2])
+                    def keyBuff = t.keyStringPool.strings[e.key]
+                    def key = keyBuff == null ? 'null' : new String(keyBuff)
                     print "        resource 0x$id $pname:$type/$key: "
                     if (e.value != null) {
                         print String.format('t=0x%02x d=0x%08x (s=0x%04x r=0x%02x)',
@@ -739,8 +752,6 @@ public class ArscEditor extends AssetEditor {
                     }
                     if (e.flags & ResTableEntry.FLAG_PUBLIC) print ' (PUBLIC)'
                     println ''
-
-                    kid2++
                 }
             }
         }

@@ -24,8 +24,15 @@ public class AssetEditor extends CppHexEditor {
 
     public static final CHUNK_HEADER_SIZE = 8
 
+    protected def version // com.android.sdklib.repository.FullRevision "major.minor.micro preview"
+
     public AssetEditor(File file) {
+        this(file, null)
+    }
+
+    public AssetEditor(File file, def v) {
         super(file)
+        this.version = v
     }
 
     /** Read struct ResChunk_header */
