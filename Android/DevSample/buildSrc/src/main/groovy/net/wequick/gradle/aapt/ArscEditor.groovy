@@ -119,17 +119,18 @@ public class ArscEditor extends AssetEditor {
                     if (entry == null) {
                         throw new Exception("Missing entry at ${e} on ${it}!")
                     }
-                    def ename = new String(t.keyStringPool.strings[entry.key])
-                    if (e.name != ename) {
-                        throw new Exception("Required entry '${e.name}' but got '$ename', This " +
-                                "is seems to no support the buildToolsRevision: ${version}.")
-                    }
 
                     entries.add(entry)
                     if (entry.isEmpty()) {
                         offsets.add(-1)
                         emptyCount++
                         return
+                    }
+
+                    def ename = new String(t.keyStringPool.strings[entry.key]).replaceAll('\\.', '_')
+                    if (e.name != ename) {
+                        throw new Exception("Required entry '${e.name}' but got '$ename', This " +
+                                "is seems to unsupport the buildToolsRevision: ${version}.")
                     }
 
                     offsets.add(offset)
