@@ -19,6 +19,7 @@ package net.wequick.small;
 import android.app.Activity;
 import android.app.Application;
 import android.app.Instrumentation;
+import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.ContextWrapper;
 import android.content.pm.ActivityInfo;
@@ -394,6 +395,13 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             activityName = bundle.getEntrance();
         } else if (activityName.startsWith(".")) {
             activityName = bundle.getPackageName() + activityName;
+        }
+        if (!sLoadedActivities.containsKey(activityName)) {
+            String tempActivityName = activityName + "Activity";
+            if (sLoadedActivities.containsKey(tempActivityName))
+                activityName = tempActivityName;
+            else
+                throw new ActivityNotFoundException("Unable to find explicit activity class { " + activityName +" }");
         }
         intent.setComponent(new ComponentName(Small.getContext(), activityName));
         // Intent extras - params
