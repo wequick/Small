@@ -250,18 +250,18 @@ public class ReflectAccelerator {
     }
 
     public static void setResources(Activity activity, Resources resources) {
-        Object target = activity;
-        Class targetClass = ContextThemeWrapper.class;
-        if (Build.VERSION.SDK_INT <= 16) {
-            // wu4321: Fix resource not found bug for API16-
-            target = activity.getBaseContext();
-            targetClass = target.getClass();
+        // Modify the base context resources, fix #80
+        setResources(activity.getBaseContext(), resources);
+
+        // Compat for API 16+
+        if (Build.VERSION.SDK_INT > 16) {
+            if (sContextThemeWrapper_mResources_field == null) {
+                sContextThemeWrapper_mResources_field = getDeclaredField(
+                        ContextThemeWrapper.class, "mResources");
+            }
+            setValue(sContextThemeWrapper_mResources_field, activity, resources);
         }
-        if (sContextThemeWrapper_mResources_field == null) {
-            sContextThemeWrapper_mResources_field = getDeclaredField(targetClass, "mResources");
-            if (sContextThemeWrapper_mResources_field == null) return;
-        }
-        setValue(sContextThemeWrapper_mResources_field, target, resources);
+
         // Compat for AppCompat 23.2+
         if (activity instanceof AppCompatActivity) {
             if (sAppCompatActivityHasNoResourcesField) return; // below 23.2
@@ -276,7 +276,7 @@ public class ReflectAccelerator {
             }
             // Set the `mResources' to null, and the AppCompatActivity.getResources() will
             // re-lazy-initialized it with the `TintResources` class.
-            setValue(sAppCompatActivity_mResources_field, target, null);
+            setValue(sAppCompatActivity_mResources_field, activity, null);
         }
     }
 
