@@ -397,11 +397,18 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             activityName = bundle.getPackageName() + activityName;
         }
         if (!sLoadedActivities.containsKey(activityName)) {
+            if (!activityName.endsWith("Activity")) {
+                throw new ActivityNotFoundException("Unable to find explicit activity class { " +
+                        activityName + "}");
+            }
+
             String tempActivityName = activityName + "Activity";
-            if (sLoadedActivities.containsKey(tempActivityName))
-                activityName = tempActivityName;
-            else
-                throw new ActivityNotFoundException("Unable to find explicit activity class { " + activityName +" }");
+            if (!sLoadedActivities.containsKey(tempActivityName)) {
+                throw new ActivityNotFoundException("Unable to find explicit activity class { " +
+                        activityName + "or" + tempActivityName + "}");
+            }
+
+            activityName = tempActivityName;
         }
         intent.setComponent(new ComponentName(Small.getContext(), activityName));
         // Intent extras - params
