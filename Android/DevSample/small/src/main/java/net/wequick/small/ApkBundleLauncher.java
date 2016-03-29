@@ -399,13 +399,13 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         if (!sLoadedActivities.containsKey(activityName)) {
             if (!activityName.endsWith("Activity")) {
                 throw new ActivityNotFoundException("Unable to find explicit activity class { " +
-                        activityName + "}");
+                        activityName + " }");
             }
 
             String tempActivityName = activityName + "Activity";
             if (!sLoadedActivities.containsKey(tempActivityName)) {
                 throw new ActivityNotFoundException("Unable to find explicit activity class { " +
-                        activityName + "or" + tempActivityName + "}");
+                        activityName + " or " + tempActivityName + " }");
             }
 
             activityName = tempActivityName;
