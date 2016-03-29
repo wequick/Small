@@ -19,6 +19,8 @@ import groovy.io.FileType
 import net.wequick.gradle.aapt.Aapt
 import net.wequick.gradle.aapt.SymbolParser
 import org.gradle.api.Project
+import org.gradle.api.artifacts.DependencyResolutionListener
+import org.gradle.api.artifacts.ResolvableDependencies
 
 class AppPlugin extends BundlePlugin {
 
@@ -110,23 +112,17 @@ class AppPlugin extends BundlePlugin {
         // Pre-split the `support-annotations' library which would be combined into `classes.dex'
         // by Dex task: `variant.dex' on gradle 1.3.0 or
         // `project.transformClassesWithDexForRelease' on gradle 1.5.0+
-        project.configurations {
-            all*.exclude group: 'com.android.support', module: 'support-annotations'
-        }
+        def compile = project.configurations.compile
+        compile.exclude group: 'com.android.support', module: 'support-annotations'
         // Provided the annotation jar, fix issue #58
         def btv = project.android.buildToolsRevision
-        File sdkDir = project.android.sdkDirectory
-        File annotationJar = new File(sdkDir, "extras/android/m2repository/com/android/support/" +
-                "support-annotations/${btv}/support-annotations-${btv}.jar")
-        project.dependencies.add('provided', project.files(annotationJar))
 
         // Check if dependents by appcompat library which contains theme resource and
         // cannot be pre-split
-        def canPreSplit = project.configurations.compile.dependencies.find {
+        def appcompat = compile.dependencies.find {
             it.group.equals('com.android.support') && it.name.startsWith('appcompat')
-        } == null
-
-        if (canPreSplit) {
+        }
+        if (appcompat == null) {
             // Pre-split classes and resources.
             project.rootProject.small.preApDir.listFiles().each {
                 project.android.aaptOptions.additionalParameters '-I', it.path
@@ -137,7 +133,32 @@ class AppPlugin extends BundlePlugin {
                 project.android.aaptOptions.additionalParameters '--output-text-symbols',
                         symbolsPath
             }
+        } else {
+            btv = appcompat.version
         }
+
+        // FIXME: Any better way to get the annotation jar in the `compile' transitive dependencies?
+        File sdkDir = project.android.sdkDirectory
+        File annotationDir = new File(sdkDir,
+                "extras/android/m2repository/com/android/support/support-annotations")
+        if (!annotationDir.exists()) {
+            throw new FileNotFoundException("Failed to find support-annotations directory.")
+        }
+        File annotationJar = new File(annotationDir, "${btv}/support-annotations-${btv}.jar")
+        if (!annotationJar.exists()) {
+            def dirs = annotationDir.listFiles(new FileFilter() {
+                @Override
+                boolean accept(File pathname) {
+                    return pathname.isDirectory()
+                }
+            })
+            if (dirs == null) {
+                throw new FileNotFoundException("Failed to find support-annotations directory.")
+            }
+            btv = dirs.last().name
+            annotationJar = new File(annotationDir, "${btv}/support-annotations-${btv}.jar")
+        }
+        project.dependencies.add('provided', project.files(annotationJar))
     }
 
     @Override
