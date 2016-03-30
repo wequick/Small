@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.example.mylib.Greet;
 import net.wequick.example.small.lib.utils.UIUtils;
 
 import java.io.BufferedReader;
@@ -64,6 +65,9 @@ public class MainFragment extends Fragment {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        TextView tvLib = (TextView) rootView.findViewById(R.id.lib_label);
+        tvLib.setText(Greet.hello());
 
         return rootView;
     }
