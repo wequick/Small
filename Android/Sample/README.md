@@ -44,7 +44,7 @@ This is for Small user.
 > 或者<br/>
 > ![Sub tasks][ic-sub-tasks]
 
-### 4. Run Small
+### Step 4. Run Small
 
 在工具栏![Run small][ic-run]，选择**app**模块，运行。
 
