@@ -461,6 +461,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         activity.setTheme(ai.getThemeResource());
         // Apply plugin softInputMode
         activity.getWindow().setSoftInputMode(ai.softInputMode);
+        activity.setRequestedOrientation(ai.screenOrientation);
     }
 
     /**
