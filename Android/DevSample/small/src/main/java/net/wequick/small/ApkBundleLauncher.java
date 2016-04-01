@@ -30,10 +30,10 @@ import android.os.IBinder;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
+import net.wequick.small.util.BundleParser;
 import net.wequick.small.util.ReflectAccelerator;
 
 import java.io.File;
@@ -152,11 +152,19 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
         private void wrapIntent(Intent intent) {
             ComponentName component = intent.getComponent();
-            if (component == null) return; // ignore system intent
+            if (component == null) {
+                // Implicit way to start an activity
+                ComponentName resolvedComponent = intent.resolveActivity(
+                        Small.getContext().getPackageManager());
+                if (resolvedComponent != null) return; // ignore system or host action
 
-            String realClazz = intent.getComponent().getClassName();
+                // TODO: Check if matches a plugin action
+                return;
+            }
+
             if (sLoadedActivities == null) return;
 
+            String realClazz = component.getClassName();
             ActivityInfo ai = sLoadedActivities.get(realClazz);
             if (ai == null) return;
 
@@ -270,6 +278,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         return new String[] {"app", "lib"};
     }
 
+    /** Incubating */
     private void unloadBundle(String packageName) {
         if (sLoadedApks == null) return;
         LoadedApk apk = sLoadedApks.get(packageName);
@@ -299,33 +308,14 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
     @Override
     public void loadBundle(Bundle bundle) {
-        boolean patching = bundle.isPatching();
         String packageName = bundle.getPackageName();
-        File plugin = bundle.getBuiltinFile();
-        PackageManager pm = Small.getContext().getPackageManager();
-        PackageInfo pluginInfo = pm.getPackageArchiveInfo(plugin.getPath(),
-                PackageManager.GET_ACTIVITIES);
 
-        File patch = bundle.getPatchFile();
-        if (patch.exists()) {
-            PackageInfo patchInfo = pm.getPackageArchiveInfo(patch.getPath(),
-                    PackageManager.GET_ACTIVITIES);
-            if (patchInfo.versionCode < pluginInfo.versionCode) {
-                Log.d(TAG, "Patch file should be later than built-in!");
-                patch.delete();
-            } else {
-                plugin = patch;
-                pluginInfo = patchInfo;
-            }
-        }
-
-        if (patching) {
-            // Unload bundle of the package name
-            unloadBundle(packageName);
-        }
+        BundleParser parser = bundle.getParser();
+        parser.collectActivities();
+        PackageInfo pluginInfo = parser.getPackageInfo();
 
         // Load the bundle
-        String apkPath = plugin.getPath();
+        String apkPath = parser.getSourcePath();
         if (sLoadedApks == null) sLoadedApks = new ConcurrentHashMap<String, LoadedApk>();
         LoadedApk apk = sLoadedApks.get(packageName);
         if (apk == null) {
