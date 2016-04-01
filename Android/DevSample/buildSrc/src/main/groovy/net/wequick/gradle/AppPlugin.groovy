@@ -19,8 +19,6 @@ import groovy.io.FileType
 import net.wequick.gradle.aapt.Aapt
 import net.wequick.gradle.aapt.SymbolParser
 import org.gradle.api.Project
-import org.gradle.api.artifacts.DependencyResolutionListener
-import org.gradle.api.artifacts.ResolvableDependencies
 
 class AppPlugin extends BundlePlugin {
 
@@ -171,6 +169,7 @@ class AppPlugin extends BundlePlugin {
         small.with {
             javac = variant.javaCompile
             dex = dexTask
+            processManifest = project.processReleaseManifest
 
             packagePath = variant.applicationId.replaceAll('\\.', '/')
             classesDir = javac.destinationDir
@@ -402,6 +401,28 @@ class AppPlugin extends BundlePlugin {
     }
 
     protected void hookVariantTask() {
+        // Hook process-manifest task to remove then `android:icon' and `android:label' attribute
+        // in `AndroidManifest.xml' application node (for #
+        small.processManifest.doLast {
+            File manifestFile = it.manifestOutputFile
+            def sb = new StringBuilder()
+            def needsFilter = true
+            manifestFile.eachLine { line ->
+                if (needsFilter) {
+                    if (line.indexOf('android:icon') > 0 || line.indexOf('android:label') > 0) {
+                        // After `processManifest' task, the xml file will be re-formatted and
+                        // the `android:icon' and `android:label' are placed in a single line.
+                        // So if we meet them, just ignored the whole line.
+                        return
+                    }
+                    if (line.indexOf('<activity') > 0) needsFilter = false
+                }
+
+                sb.append(line).append(System.lineSeparator())
+            }
+            manifestFile.write(sb.toString())
+        }
+
         // Hook aapt task to slice asset package and resolve library resource ids
         small.aapt.doLast {
             // Unpack resources.ap_
