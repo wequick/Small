@@ -77,7 +77,7 @@ public class ActivityLauncher extends BundleLauncher {
 
     @Override
     public boolean preloadBundle(Bundle bundle) {
-        if (bundle.getBuiltinFile().exists()) return false;
+        if (bundle.getBuiltinFile() != null && bundle.getBuiltinFile().exists()) return false;
 
         String packageName = bundle.getPackageName();
         Context context = Small.getContext();
