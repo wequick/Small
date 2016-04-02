@@ -22,6 +22,7 @@ import android.app.Instrumentation;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.ContextWrapper;
+import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.res.AssetManager;
 import android.content.res.Configuration;
@@ -40,6 +41,8 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -78,6 +81,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
     private static ConcurrentHashMap<String, LoadedApk> sLoadedApks;
     private static ConcurrentHashMap<String, ActivityInfo> sLoadedActivities;
+    private static ConcurrentHashMap<String, List<IntentFilter>> sLoadedIntentFilters;
 
     protected static Instrumentation sHostInstrumentation;
 
@@ -152,19 +156,20 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
         private void wrapIntent(Intent intent) {
             ComponentName component = intent.getComponent();
+            String realClazz;
             if (component == null) {
                 // Implicit way to start an activity
-                ComponentName resolvedComponent = intent.resolveActivity(
-                        Small.getContext().getPackageManager());
-                if (resolvedComponent != null) return; // ignore system or host action
+                component = intent.resolveActivity(Small.getContext().getPackageManager());
+                if (component != null) return; // ignore system or host action
 
-                // TODO: Check if matches a plugin action
-                return;
+                realClazz = resolveActivity(intent);
+                if (realClazz == null) return;
+            } else {
+                realClazz = component.getClassName();
             }
 
             if (sLoadedActivities == null) return;
 
-            String realClazz = component.getClassName();
             ActivityInfo ai = sLoadedActivities.get(realClazz);
             if (ai == null) return;
 
@@ -190,6 +195,30 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             }
             if (realClazz == null) return className;
             return realClazz;
+        }
+
+        private String resolveActivity(Intent intent) {
+            if (sLoadedIntentFilters == null) return null;
+
+            Iterator<Map.Entry<String, List<IntentFilter>>> it =
+                    sLoadedIntentFilters.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry<String, List<IntentFilter>> entry = it.next();
+                List<IntentFilter> filters = entry.getValue();
+                for (IntentFilter filter : filters) {
+                    if (filter.hasAction(Intent.ACTION_VIEW)) {
+                        // TODO: match uri
+                    }
+                    if (filter.hasCategory(Intent.CATEGORY_DEFAULT)) {
+                        // custom action
+                        if (filter.hasAction(intent.getAction())) {
+                            // hit
+                            return entry.getKey();
+                        }
+                    }
+                }
+            }
+            return null;
         }
 
         private String[] mStubQueue;
@@ -371,6 +400,15 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         if (sLoadedActivities == null) sLoadedActivities = new ConcurrentHashMap<String, ActivityInfo>();
         for (ActivityInfo ai : pluginInfo.activities) {
             sLoadedActivities.put(ai.name, ai);
+        }
+
+        // Record intent-filters for implicit action
+        ConcurrentHashMap<String, List<IntentFilter>> filters = parser.getIntentFilters();
+        if (filters != null) {
+            if (sLoadedIntentFilters == null) {
+                sLoadedIntentFilters = new ConcurrentHashMap<String, List<IntentFilter>>();
+            }
+            sLoadedIntentFilters.putAll(filters);
         }
     }
 
