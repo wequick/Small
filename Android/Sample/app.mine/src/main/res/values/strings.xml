@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">app.mine</string>
-    <string name="hello">Hello World from app.mine!</string>
+    <string name="hello">Hello World from app.mine!\nThis is a string longer then 128 bytes and used to test the issue #92. If you see this, it means we successfully fix the issue! :)</string>
     <string name="inter_start">startActivityForResult</string>
     <string name="pick">Pick</string>
     <string name="call_system">Call system intent</string>
