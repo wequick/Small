@@ -81,14 +81,14 @@ public class Aapt {
      */
     void resetPackage(int pp, String ppStr, Map idMaps) {
         File arscFile = new File(mAssetDir, 'resources.arsc')
-        def arscEditor = new ArscEditor(arscFile)
+        def arscEditor = new ArscEditor(arscFile, null)
 
         // Modify R.java
         resetRjava(mJavaFile, ppStr)
         // Modify resources.arsc
         arscEditor.reset(pp, idMaps)
 
-        resetAllXmlPackageId(pp, idMaps)
+        resetAllXmlPackageId(mAssetDir, pp, idMaps)
     }
 
     /**
