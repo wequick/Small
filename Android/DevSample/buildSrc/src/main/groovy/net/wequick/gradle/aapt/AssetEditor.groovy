@@ -113,6 +113,7 @@ public class AssetEditor extends CppHexEditor {
         s.stringsSize = 0
         s.stringLens = []
         s.styleLens = []
+        s.isUtf8 = (s.flags & ResStringFlag.UTF8_FLAG) != 0
         for (int i = 0; i < s.stringCount; i++) {
             s.stringOffsets.add(readInt())
         }
@@ -122,25 +123,24 @@ public class AssetEditor extends CppHexEditor {
         def start = s.stringsStart + pos
         for (int i = 0; i < s.stringCount; i++) {
             seek(start + s.stringOffsets[i])
-            def length = readBytes(2)
-            def len = decodeLength(length)
-            s.stringLens[i] = length
-            s.strings[i] = readBytes(len)
-            s.stringsSize += len + 3
+            def len = decodeLength(s.isUtf8)
+            s.stringLens[i] = len.data
+            s.strings[i] = readBytes(len.value)
+            s.stringsSize += len.value + len.data.length + 1 // 1 for 0x0
             skip(1) // 0x0
         }
         start = s.stylesStart + pos
         for (int i = 0; i < s.styleCount; i++) {
             seek(start + s.styleOffsets[i])
-            def length = readBytes(2)
-            def len = decodeLength(length)
-            s.styleLens[i] = length
-            s.styles[i] = readBytes(len)
+            def len = decodeLength(s.isUtf8)
+            s.styleLens[i] = len.data
+            s.styles[i] = readBytes(len.value)
             skip(1) // 0x0
         }
         def endPos = pos + s.header.size
         s.paddingSize = endPos - tellp()
         if (s.paddingSize != 0) seek(endPos)
+
         return s
     }
     /** Write struct ResStringPool_header and following string data */
@@ -182,14 +182,38 @@ public class AssetEditor extends CppHexEditor {
 //        s.header = [type: ResType.RES_STRING_POOL_TYPE, headerSize: 0x1C, size: size]
 //
 //    }
-    private short decodeLength(byte[] length) {
-        byte lb = length[0] // low order byte
-        byte hb = length[1] // high order byte
-        short len = hb
-        if (hb == 0) len = lb * 2
-        else if ((hb & 0x80) != 0) len = ((hb & 0x7f) << 8) | lb
-//            println "-- ${String.format('0x%02X%02X', hb, lb)} (${hb & 0x80} - ${hb & 0x7f}) = $len"
-        return len
+    /**
+     * see https://github.com/android/platform_frameworks_base/blob/d59921149bb5948ffbcb9a9e832e9ac1538e05a0/libs/androidfw/ResourceTypes.cpp
+     * @param isUtf8
+     * @return
+     */
+    private Map decodeLength(isUtf8) {
+        if (!isUtf8) {
+            throw new UnsupportedEncodingException("UTF-16 is unsupported now.")
+        }
+        // *u16len = decodeLength(&u8str); ResourceTypes.cpp#722, seems to unused here
+        def bytes = []
+        short hb = readByte()
+        bytes.add(hb)
+        if (hb & 0x80) {
+            bytes.add(readByte())
+        }
+
+        // size_t u8len = decodeLength(&u8str); ResourceTypes.cpp#723, the exact length
+        hb = readByte()
+        bytes.add(hb)
+        if (hb & 0x80) {
+            short lb = readByte()
+            bytes.add(lb)
+            hb = ((hb & 0x7F) << 8) | (lb & 0xff)
+        }
+
+        def N = bytes.size()
+        def data = new byte[N]
+        for (int i = 0; i < N; i++) {
+            data[i] = (byte)bytes[i]
+        }
+        return [data: data, value: hb]
     }
     /** Filter ResStringPool with specific string indexes */
     protected static def filterStringPool(sp, ids) {
@@ -202,9 +226,10 @@ public class AssetEditor extends CppHexEditor {
             def s = sp.strings[it]
             strings.add(s)
             offsets.add(offset)
-            lens.add(sp.stringLens[it])
+            def lenData = sp.stringLens[it]
+            lens.add(lenData)
             def l = s.length
-            offset += l + 3
+            offset += l + lenData.length + 1 // 1 for 0x0
         }
         def newStringCount = strings.size()
         def d = (sp.stringCount - newStringCount) * 4
