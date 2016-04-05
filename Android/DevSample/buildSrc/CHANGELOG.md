@@ -1,3 +1,22 @@
+## 0.4.0 (2016-04-05)
+
+Features:
+
+  - 支持buildToolsRevision`24.0.0 rc2`
+  - 支持对深度依赖(transitive)的第三方库进行分离 (#81)
+  - `Small DSL`增加`strictSplictResources`属性，允许对插件强制加入第三方资源 (#81)
+
+Performance:
+
+  - 分离插件manifest的`android:icon`与`android:label` (#11)
+
+Bugfixes:
+
+  - 修正插件定义的字符串大于128字节时打包错误的问题 (#92)
+  - 修正`dumpTable`输出错误
+  - 修正`resetPackage`的参数错误
+
+
 ## 0.3.5 (2016-03-24)
 
 Features:

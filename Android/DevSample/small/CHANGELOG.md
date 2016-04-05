@@ -1,3 +1,21 @@
+## 0.7.0 (2016-04-05)
+
+Features:
+
+  - 支持插件`Activity`通过隐式`action`进行调用 (#89)
+
+Performance:
+
+  - 插件签名解析加速 (#90)
+  - 插件manifest解析加速 (#91)
+
+Bugfixes:
+
+  - `bundle.json`定义的`rules`允许缺省`Activity`后缀 (#77)
+  - 修正`Activity`直接使用`getAssets()`方法时无法正确取得assets资源 (#80)
+  - 支持插件`Activity`的`screenOrientation`属性 (#86)
+  - 修正打开远程网页的崩溃问题
+
 ## 0.6.0 (2016-03-25)
 
 Features:
