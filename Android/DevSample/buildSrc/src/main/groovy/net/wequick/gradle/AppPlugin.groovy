@@ -190,7 +190,7 @@ class AppPlugin extends BundlePlugin {
                 name = it.moduleName,
                 version = it.moduleVersion
 
-            if (it.moduleArtifacts[0].id.componentIdentifier.hasProperty('projectPath')) {
+            if (name.startsWith('lib.')) {
                 // Ignore the dependency refer to sub project like `compile project(':lib.xx')`
                 return
             }

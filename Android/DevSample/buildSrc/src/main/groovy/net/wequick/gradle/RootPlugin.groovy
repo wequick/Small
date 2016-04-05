@@ -225,7 +225,7 @@ class RootPlugin extends BasePlugin {
                         project.copy {
                             from src
                             into preJarDir
-                            rename { "${art.id.componentIdentifier.group}-${src.name}" }
+                            rename { "${d.moduleGroup}-${src.name}" }
                         }
                     }
                 }

@@ -28,14 +28,14 @@ public final class DependenciesUtils {
         Configuration configuration
         try {
             configuration = project.configurations[config]
-        } catch (UnknownConfigurationException e) {
+        } catch (UnknownConfigurationException ignored) {
             return null
         }
 
         ResolvedConfiguration resolvedConfiguration = configuration.resolvedConfiguration
         def firstLevelDependencies = resolvedConfiguration.firstLevelModuleDependencies
         def allDependencies = []
-        firstLevelDependencies.findAll { it.parents.head().configuration == 'compile' }.each {
+        firstLevelDependencies.findAll { it.parents[0].configuration == config }.each {
             collectDependencies(it, allDependencies)
         }
         return allDependencies
