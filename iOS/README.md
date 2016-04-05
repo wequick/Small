@@ -2,9 +2,14 @@
 
 ## Examples
 
-* 使用者模式Sample(暂不可用)
+* 使用者模式[Sample](Sample)
+
+  > 需要先编译Pods
+
 * 开发者模式[DevSample](DevSample)
 
+  > 需要去除并行编译模式：Edit Scheme...->Build->Build Options-> [ ] Parallelize Build
+  
 > 各个组件需要签名后才支持代码级别更新。示例中更新例子为xib内容更新。<br/>
 > 在没有设置签名之前，请在模拟器上跑示例。
 
