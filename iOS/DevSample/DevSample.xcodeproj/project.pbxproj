@@ -148,16 +148,16 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		F8B345101C5A08FB003AA7C3 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = ../Sample/Sample/AppDelegate.h; sourceTree = "<group>"; };
-		F8B345111C5A08FB003AA7C3 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppDelegate.m; path = ../Sample/Sample/AppDelegate.m; sourceTree = "<group>"; };
-		F8B345121C5A08FB003AA7C3 /* bundle.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = bundle.json; path = ../Sample/Sample/bundle.json; sourceTree = "<group>"; };
-		F8B345131C5A08FB003AA7C3 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = ../Sample/Sample/Info.plist; sourceTree = "<group>"; };
-		F8B345141C5A08FB003AA7C3 /* ViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ViewController.h; path = ../Sample/Sample/ViewController.h; sourceTree = "<group>"; };
-		F8B345151C5A08FB003AA7C3 /* ViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ViewController.m; path = ../Sample/Sample/ViewController.m; sourceTree = "<group>"; };
-		F8B3451A1C5A0923003AA7C3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = ../Sample/Sample/Assets.xcassets; sourceTree = "<group>"; };
-		F8B3451C1C5A0944003AA7C3 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = ../Sample/Sample/main.m; sourceTree = "<group>"; };
-		F8B345261C5A09A8003AA7C3 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = ../Sample/Sample/Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		F8B345281C5A09A8003AA7C3 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = ../Sample/Sample/Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		F8B345101C5A08FB003AA7C3 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = ../../Sample/Sample/AppDelegate.h; sourceTree = "<group>"; };
+		F8B345111C5A08FB003AA7C3 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppDelegate.m; path = ../../Sample/Sample/AppDelegate.m; sourceTree = "<group>"; };
+		F8B345121C5A08FB003AA7C3 /* bundle.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = bundle.json; path = ../../Sample/Sample/bundle.json; sourceTree = "<group>"; };
+		F8B345131C5A08FB003AA7C3 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = ../../Sample/Sample/Info.plist; sourceTree = "<group>"; };
+		F8B345141C5A08FB003AA7C3 /* ViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ViewController.h; path = ../../Sample/Sample/ViewController.h; sourceTree = "<group>"; };
+		F8B345151C5A08FB003AA7C3 /* ViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ViewController.m; path = ../../Sample/Sample/ViewController.m; sourceTree = "<group>"; };
+		F8B3451A1C5A0923003AA7C3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = ../../Sample/Sample/Assets.xcassets; sourceTree = "<group>"; };
+		F8B3451C1C5A0944003AA7C3 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = ../../Sample/Sample/main.m; sourceTree = "<group>"; };
+		F8B345261C5A09A8003AA7C3 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = ../../Sample/Sample/Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		F8B345281C5A09A8003AA7C3 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = ../../Sample/Sample/Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		F8F0225C1C51FC5B002B0A00 /* DevSample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DevSample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F8F022771C521E1F002B0A00 /* Small.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Small.xcodeproj; path = ../Small.xcodeproj; sourceTree = "<group>"; };
 		F8F022E31C560A10002B0A00 /* app.main.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = app.main.xcodeproj; path = ../Sample/bundles/app.main/app.main.xcodeproj; sourceTree = "<group>"; };
