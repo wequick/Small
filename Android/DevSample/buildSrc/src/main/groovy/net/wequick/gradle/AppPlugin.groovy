@@ -18,6 +18,7 @@ package net.wequick.gradle
 import groovy.io.FileType
 import net.wequick.gradle.aapt.Aapt
 import net.wequick.gradle.aapt.SymbolParser
+import net.wequick.gradle.util.DependenciesUtils
 import org.gradle.api.Project
 
 class AppPlugin extends BundlePlugin {
@@ -89,9 +90,10 @@ class AppPlugin extends BundlePlugin {
     }
 
     protected void resolveReleaseDependencies() {
+        RootExtension rootExt = project.rootProject.small
+
         // Pre-split shared libraries at release mode
         //  - host, appcompat and etc.
-        RootExtension rootExt = project.rootProject.small
         def baseJars = project.fileTree(dir: rootExt.preBaseJarDir, include: ['*.jar'])
         project.dependencies.add('provided', baseJars)
         //  - lib.*
@@ -107,13 +109,15 @@ class AppPlugin extends BundlePlugin {
             project.dependencies.add('provided', libJars)
         }
 
-        // Pre-split the `support-annotations' library which would be combined into `classes.dex'
-        // by Dex task: `variant.dex' on gradle 1.3.0 or
-        // `project.transformClassesWithDexForRelease' on gradle 1.5.0+
+        // Pre-split all the jar dependencies (deep level)
         def compile = project.configurations.compile
-        compile.exclude group: 'com.android.support', module: 'support-annotations'
-        // Provided the annotation jar, fix issue #58
-        def btv = project.android.buildToolsRevision
+        rootExt.preLinkJarDir.listFiles().each { file ->
+            if (!file.name.endsWith('D.txt')) return
+            file.eachLine { line ->
+                def module = line.split(':')
+                compile.exclude group: module[0], module: module[1]
+            }
+        }
 
         // Check if dependents by appcompat library which contains theme resource and
         // cannot be pre-split
@@ -131,32 +135,7 @@ class AppPlugin extends BundlePlugin {
                 project.android.aaptOptions.additionalParameters '--output-text-symbols',
                         symbolsPath
             }
-        } else {
-            btv = appcompat.version
         }
-
-        // FIXME: Any better way to get the annotation jar in the `compile' transitive dependencies?
-        File sdkDir = project.android.sdkDirectory
-        File annotationDir = new File(sdkDir,
-                "extras/android/m2repository/com/android/support/support-annotations")
-        if (!annotationDir.exists()) {
-            throw new FileNotFoundException("Failed to find support-annotations directory.")
-        }
-        File annotationJar = new File(annotationDir, "${btv}/support-annotations-${btv}.jar")
-        if (!annotationJar.exists()) {
-            def dirs = annotationDir.listFiles(new FileFilter() {
-                @Override
-                boolean accept(File pathname) {
-                    return pathname.isDirectory()
-                }
-            })
-            if (dirs == null) {
-                throw new FileNotFoundException("Failed to find support-annotations directory.")
-            }
-            btv = dirs.last().name
-            annotationJar = new File(annotationDir, "${btv}/support-annotations-${btv}.jar")
-        }
-        project.dependencies.add('provided', project.files(annotationJar))
     }
 
     @Override
@@ -191,12 +170,60 @@ class AppPlugin extends BundlePlugin {
      * Prepare retained resource types and resource id maps for package slicing
      */
     protected void prepareSplit() {
-        // Prepare id maps (bundle resource id -> library resource id)
         def idsFile = small.symbolFile
         if (!idsFile.exists()) return
 
         RootExtension rootExt = (RootExtension) project.rootProject.small
 
+        // Check if have any vendor aar dependencies who contain resources.
+        def libAars = [] // the aars compiled in host or lib.*
+        rootExt.preLinkAarDir.listFiles().each { file ->
+            if (!file.name.endsWith('D.txt')) return
+            file.eachLine { line ->
+                def module = line.split(':')
+                libAars.add(group: module[0], name: module[1], version: module[2])
+            }
+        }
+        def bundleAars = [] // the aars compiling in current bundle
+        project.configurations.compile.resolvedConfiguration.firstLevelModuleDependencies.each {
+            def group = it.moduleGroup,
+                name = it.moduleName,
+                version = it.moduleVersion
+
+            if (it.moduleArtifacts[0].id.componentIdentifier.hasProperty('projectPath')) {
+                // Ignore the dependency refer to sub project like `compile project(':lib.xx')`
+                return
+            }
+            if (libAars.find { aar -> group == aar.group && name == aar.name } != null) {
+                // Ignore the dependency which has declared in host or lib.*
+                return
+            }
+            def resDir = new File(small.aarDir, "$group/$name/$version/res")
+            if (resDir.listFiles().size() == 0) {
+                // Ignored the dependency which does not have any resources
+                return
+            }
+
+            bundleAars.add("$group:$name:$version");
+        }
+        if (bundleAars.size() > 0) {
+            if (rootExt.strictSplitResources) {
+                def err = new StringBuilder('In strict mode, we do not allow vendor aars, ')
+                err.append('please declare them in host build.gradle:\n')
+                bundleAars.each {
+                    err.append("    - compile('${it}')\n")
+                }
+                err.append('or turn off the strict mode in root build.gradle:\n')
+                err.append('    small {\n')
+                err.append('        strictSplitResources = false\n')
+                err.append('    }')
+                throw new UnsupportedOperationException(err.toString())
+            } else {
+                Log.warn("Using vendor aars: ${bundleAars.join('; ')}")
+            }
+        }
+
+        // Prepare id maps (bundle resource id -> library resource id)
         def libEntries = [:]
         rootExt.preIdsDir.listFiles().each {
             if (it.name.endsWith('R.txt') && !it.name.startsWith(project.name)) {
@@ -240,10 +267,11 @@ class AppPlugin extends BundlePlugin {
                 return
             }
 
-            if (be.type != 'id') {
-                throw new Exception(
-                        "Missing library resource entry: \"$k\", try to cleanLib and buildLib.")
-            }
+            // TODO: handle the resources addition by aar version conflict or something
+//            if (be.type != 'id') {
+//                throw new Exception(
+//                        "Missing library resource entry: \"$k\", try to cleanLib and buildLib.")
+//            }
             be.isStyleable ? retainedStyleables.add(be) : retainedEntries.add(be)
         }
 

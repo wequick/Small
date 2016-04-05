@@ -1,6 +1,7 @@
 package net.wequick.gradle
 
 import net.wequick.gradle.aapt.SymbolParser
+import net.wequick.gradle.util.DependenciesUtils
 import org.gradle.api.Project
 import org.gradle.api.tasks.Delete
 
@@ -182,6 +183,66 @@ class RootPlugin extends BasePlugin {
             }
             publicIdsPw.flush()
             publicIdsPw.close()
+        }
+
+        // Backup dependencies
+        if (!small.preLinkAarDir.exists()) small.preLinkAarDir.mkdirs()
+        if (!small.preLinkJarDir.exists()) small.preLinkJarDir.mkdirs()
+        def linkFileName = "$libName-D.txt"
+        File aarLinkFile = new File(small.preLinkAarDir, linkFileName)
+        File jarLinkFile = new File(small.preLinkJarDir, linkFileName)
+
+        def allDependencies = DependenciesUtils.getAllDependencies(lib, 'compile')
+        if (allDependencies.size() > 0) {
+            def aarKeys = []
+            if (!aarLinkFile.exists()) {
+                aarLinkFile.createNewFile()
+            } else {
+                aarLinkFile.eachLine {
+                    aarKeys.add(it)
+                }
+            }
+
+            def jarKeys = []
+            if (!jarLinkFile.exists()) {
+                jarLinkFile.createNewFile()
+            } else {
+                jarLinkFile.eachLine {
+                    jarKeys.add(it)
+                }
+            }
+
+            def aarPw = new PrintWriter(aarLinkFile.newWriter(true))
+            def jarPw = new PrintWriter(jarLinkFile.newWriter(true))
+
+            allDependencies.each { d ->
+                def isAar = true
+                d.moduleArtifacts.each { art ->
+                    // Copy deep level jar dependencies
+                    File src = art.file
+                    if (art.type == 'jar') {
+                        isAar = false
+                        project.copy {
+                            from src
+                            into preJarDir
+                            rename { "${art.id.componentIdentifier.group}-${src.name}" }
+                        }
+                    }
+                }
+                if (isAar) {
+                    if (!aarKeys.contains(d.name)) {
+                        aarPw.println d.name
+                    }
+                } else {
+                    if (!jarKeys.contains(d.name)) {
+                        jarPw.println d.name
+                    }
+                }
+            }
+            jarPw.flush()
+            jarPw.close()
+            aarPw.flush()
+            aarPw.close()
         }
     }
 
