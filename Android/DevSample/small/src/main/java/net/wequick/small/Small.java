@@ -17,27 +17,25 @@
 package net.wequick.small;
 
 import android.app.Activity;
+import android.app.ActivityManager;
+import android.app.Application;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 
 import net.wequick.small.util.ApplicationUtils;
 import net.wequick.small.webkit.JsHandler;
-import net.wequick.small.webkit.JsResult;
 import net.wequick.small.webkit.WebView;
 import net.wequick.small.webkit.WebViewClient;
 
 import java.io.File;
-import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -57,8 +55,6 @@ import java.util.Map;
 public final class Small {
     public static final String EVENT_OPENURI = "small-open";
     public static final String KEY_QUERY = "small-query";
-    public static final String KEY_ACTIVITY = "small-act";
-    public static final String KEY_SAVED_INSTANCE_STATE = "small-sis";
     public static final String EXTRAS_KEY_RET = "small-ret";
     public static final String SHARED_PREFERENCES_SMALL = "small";
     public static final String SHARED_PREFERENCES_KEY_UPGRADE = "upgrade";
@@ -70,7 +66,6 @@ public final class Small {
     public static final int REQUEST_CODE_DEFAULT = 10000;
 
     private static Context sContext = null;
-    private static HashMap<String, Class<?>> sActivityClasses;
     private static String sBaseUri = ""; // base url of uri
     private static boolean sIsNewHostApp; // first launched or upgraded
     private static int sWebActivityTheme;
@@ -80,14 +75,6 @@ public final class Small {
     }
 
     public static Context getContext() {
-        if (sContext == null) {
-            try {
-                final Class<?> activityThreadClass =
-                        Class.forName("android.app.ActivityThread");
-                final Method method = activityThreadClass.getMethod("currentApplication");
-                sContext = (Context) method.invoke(null, (Object[]) null);
-            } catch (Exception ignored) { }
-        }
         return sContext;
     }
 
@@ -103,35 +90,56 @@ public final class Small {
         return sIsNewHostApp;
     }
 
-    public static void setUp(Context context, OnCompleteListener listener) {
-        Context appContext = context.getApplicationContext();
-        sContext = appContext;
-        saveActivityClasses(appContext);
-        LocalBroadcastManager.getInstance(appContext).registerReceiver(new OpenUriReceiver(),
-                new IntentFilter(EVENT_OPENURI));
+    public static void preSetUp(Application context) {
+        sContext = context;
 
-        int backupHostVersion = getHostVersionCode();
-        int currHostVersion = 0;
-        try {
-            PackageInfo pi = appContext.getPackageManager().getPackageInfo(
-                    appContext.getPackageName(), 0);
-            currHostVersion = pi.versionCode;
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
-        if (backupHostVersion != currHostVersion) {
-            sIsNewHostApp = true;
-            setHostVersionCode(currHostVersion);
-            clearAppCache(appContext);
-        } else {
-            sIsNewHostApp = false;
-        }
         // Register default bundle launchers
         registerLauncher(new ActivityLauncher());
         registerLauncher(new ApkBundleLauncher());
         registerLauncher(new WebBundleLauncher());
+
+        PackageManager pm = context.getPackageManager();
+        String packageName = context.getPackageName();
+
+        // Register the local broadcast (Incubating)
+        LocalBroadcastManager.getInstance(context).registerReceiver(new OpenUriReceiver(),
+                new IntentFilter(EVENT_OPENURI));
+
+        // Check if host app is first-installed or upgraded
+        int backupHostVersion = getHostVersionCode();
+        int currHostVersion = 0;
+        try {
+            PackageInfo pi = pm.getPackageInfo(packageName, 0);
+            currHostVersion = pi.versionCode;
+        } catch (PackageManager.NameNotFoundException ignored) {
+            // Never reach
+        }
+        if (backupHostVersion != currHostVersion) {
+            sIsNewHostApp = true;
+            setHostVersionCode(currHostVersion);
+            clearAppCache(context);
+        } else {
+            sIsNewHostApp = false;
+        }
+
+        // Check if application is started after unexpected exit (killed in background etc.)
+        ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        ComponentName launchingComponent = am.getRunningTasks(1).get(0).topActivity;
+        ComponentName launcherComponent = pm.getLaunchIntentForPackage(packageName).getComponent();
+        if (!launchingComponent.equals(launcherComponent)) {
+            // In this case, system launching the last restored activity instead of our launcher
+            // activity. Call `setUp' synchronously to ensure `Small' available.
+            setUp(context, null);
+        }
+    }
+
+    public static void setUp(Context context, OnCompleteListener listener) {
+        if (sContext == null) {
+            // Tips for CODE-BREAKING
+            throw new UnsupportedOperationException(
+                    "Please call `Small.preSetUp' in your application first");
+        }
         Bundle.setupLaunchers(context);
-        // Load bundles
         Bundle.loadLaunchableBundles(listener);
     }
 
@@ -235,11 +243,12 @@ public final class Small {
 
     public static void openUri(Uri uri, Context context) {
         // System url schemes
-        if (!uri.getScheme().equals("http")
-                && !uri.getScheme().equals("https")
-                && !uri.getScheme().equals("file")
+        String scheme = uri.getScheme();
+        if (scheme != null
+                && !scheme.equals("http")
+                && !scheme.equals("https")
+                && !scheme.equals("file")
                 && ApplicationUtils.canOpenUri(uri, context)) {
-//                  Log.e("ApplicationUtils","ApplicationUtils");
             ApplicationUtils.openUri(uri, context);
             return;
         }
@@ -247,8 +256,6 @@ public final class Small {
         // Small url schemes
         Bundle bundle = Bundle.getLaunchableBundle(uri);
         if (bundle != null) {
-
-//                  Log.e("Bundle","Bundle");
             bundle.launchFrom(context);
         }
     }
@@ -304,50 +311,6 @@ public final class Small {
 
     public static void registerLauncher(BundleLauncher launcher) {
         Bundle.registerLauncher(launcher);
-    }
-
-    /**
-     * Get the activity class registered in the host's <tt>AndroidManifest.xml</tt>
-     *
-     * @param clazz the activity class name
-     */
-    protected static Class<?> getRegisteredClass(String clazz) {
-        Class<?> aClass = null;
-        if (sActivityClasses != null) {
-            aClass = sActivityClasses.get(clazz);
-            if (aClass == null && !clazz.endsWith("Activity")) {
-                aClass = sActivityClasses.get(clazz + "Activity");
-            }
-        }
-        return aClass;
-    }
-
-    /*
-     * Record the registered activity classes of host.
-     */
-    private static void saveActivityClasses(Context context) {
-        try {
-            PackageInfo pi = context.getPackageManager().getPackageInfo(
-                    context.getPackageName(), PackageManager.GET_ACTIVITIES);
-            ActivityInfo[] as = pi.activities;
-            if (as != null) {
-                sActivityClasses = new HashMap<String, Class<?>>();
-                for (int i = 0; i < as.length; i++) {
-                    ActivityInfo ai = as[i];
-                    int dot = ai.name.lastIndexOf(".");
-                    if (dot > 0) {
-                        try {
-                            Class<?> clazz = Class.forName(ai.name);
-                            sActivityClasses.put(ai.name, clazz);
-                        } catch (ClassNotFoundException e) {
-                            // Ignored
-                        }
-                    }
-                }
-            }
-        } catch (PackageManager.NameNotFoundException e) {
-
-        }
     }
 
     public static int getWebActivityTheme() {

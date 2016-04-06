@@ -18,14 +18,6 @@
       "pkg": "net.wequick.example.small.app.home"
     },
     {
-      "uri": "message",
-      "pkg": "net.wequick.example.small.app.message"
-    },
-    {
-      "uri": "find",
-      "pkg": "net.wequick.example.small.app.find"
-    },
-    {
       "uri": "mine",
       "pkg": "net.wequick.example.small.app.mine"
     },

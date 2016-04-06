@@ -16,10 +16,9 @@
 package net.wequick.small;
 
 import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.os.Build;
+import android.util.Log;
 
-import net.wequick.small.util.ReflectAccelerator;
+import net.wequick.small.util.BundleParser;
 import net.wequick.small.util.SignUtils;
 
 import java.io.File;
@@ -39,6 +38,8 @@ import java.io.File;
  * </ul>
  */
 public abstract class SoBundleLauncher extends BundleLauncher {
+
+    private static final String TAG = "SoBundle";
 
     /** Types that support */
     protected abstract String[] getSupportingTypes();
@@ -61,18 +62,26 @@ public abstract class SoBundleLauncher extends BundleLauncher {
         }
         if (!supporting) return false;
 
-        // Check if has a patch
-        File plugin = bundle.getPatchFile();
-        PackageInfo pluginInfo = getPluginInfo(plugin);
-        if (pluginInfo == null) {
-            if (bundle.isPatching()) return false;
+        // Check if has builtin
+        File plugin = bundle.getBuiltinFile();
+        BundleParser parser = BundleParser.parsePackage(plugin, packageName);
+        if (parser == null) return false; // required builtin
 
-            plugin = bundle.getBuiltinFile();
-            pluginInfo = getPluginInfo(plugin);
-            if (pluginInfo == null) return false;
+        // Check if has a patch
+        File patch = bundle.getPatchFile();
+        BundleParser patchParser = BundleParser.parsePackage(patch, packageName);
+        if (patchParser != null) { // has
+            if (patchParser.getPackageInfo().versionCode < parser.getPackageInfo().versionCode) {
+                Log.d(TAG, "Patch file should be later than built-in!");
+                patch.delete();
+            } else {
+                parser = patchParser; // use patch
+            }
         }
+        bundle.setParser(parser);
 
         // Verify signatures
+        PackageInfo pluginInfo = parser.getPackageInfo();
         if (!SignUtils.verifyPlugin(pluginInfo)) {
             bundle.setEnabled(false);
             return true; // Got it, but disabled
@@ -80,21 +89,7 @@ public abstract class SoBundleLauncher extends BundleLauncher {
 
         // Record version code for upgrade
         bundle.setVersionCode(pluginInfo.versionCode);
-        Small.setBundleVersionCode(packageName, pluginInfo.versionCode);
 
         return true;
-    }
-
-    protected PackageInfo getPluginInfo(File plugin) {
-        if (plugin == null || !plugin.exists()) return null;
-
-        PackageManager pm = Small.getContext().getPackageManager();
-        PackageInfo pluginInfo = pm.getPackageArchiveInfo(plugin.getPath(),
-                PackageManager.GET_SIGNATURES);
-
-        if (Build.VERSION.SDK_INT < 14) {
-            pluginInfo.signatures = ReflectAccelerator.getSignaturesV13(plugin);
-        }
-        return pluginInfo;
     }
 }

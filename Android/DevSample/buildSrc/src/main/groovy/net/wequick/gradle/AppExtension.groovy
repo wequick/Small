@@ -26,6 +26,9 @@ public class AppExtension extends BundleExtension {
     /** Task of dex */
     Task dex
 
+    /** Task of merge manifest */
+    Task processManifest
+
     /** Package path for java classes */
     String packagePath
 

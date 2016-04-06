@@ -127,6 +127,10 @@ public abstract class BasePlugin implements Plugin<Project> {
             out.println()
         }
 
+        public static void warn(String text) {
+            out.style(Style.UserInput).format('\t%s', text).println()
+        }
+
         public static void footer(String text) {
             out.style(Style.UserInput).format('\t%s', text).println()
         }

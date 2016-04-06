@@ -70,7 +70,7 @@ class AssetPlugin extends BundlePlugin {
             into destDir
         } << {
             // Generate AndroidManifest.xml
-            Aapt aapt = new Aapt(destDir, null, null)
+            Aapt aapt = new Aapt(destDir, null, null, project.android.buildToolsRevision)
             def aaptTask = project.processReleaseResources
             def aaptExe
             aaptTask.buildTools.mPaths.each { k, v ->

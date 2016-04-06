@@ -19,8 +19,10 @@ package net.wequick.small;
 import android.app.Activity;
 import android.app.Application;
 import android.app.Instrumentation;
+import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.ContextWrapper;
+import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.res.AssetManager;
 import android.content.res.Configuration;
@@ -29,16 +31,18 @@ import android.os.IBinder;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
+import net.wequick.small.util.BundleParser;
 import net.wequick.small.util.ReflectAccelerator;
 
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -77,6 +81,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
     private static ConcurrentHashMap<String, LoadedApk> sLoadedApks;
     private static ConcurrentHashMap<String, ActivityInfo> sLoadedActivities;
+    private static ConcurrentHashMap<String, List<IntentFilter>> sLoadedIntentFilters;
 
     protected static Instrumentation sHostInstrumentation;
 
@@ -126,7 +131,6 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         @Override
         /** Prepare resources for REAL */
         public void callActivityOnCreate(Activity activity, android.os.Bundle icicle) {
-            boolean needsRestoreInstanceState = false;
             do {
                 if (sLoadedActivities == null) break;
                 ActivityInfo ai = sLoadedActivities.get(activity.getClass().getName());
@@ -134,32 +138,8 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
                 ensureAddAssetPath(activity);
                 applyActivityInfo(activity, ai);
-
-                if (icicle != null) break;
-
-                // If killed in background, we are now redirecting by `net.wequick.small.A'.
-                android.os.Bundle extras = activity.getIntent().getExtras();
-                if (extras != null) {
-                    icicle = extras.getBundle(Small.KEY_SAVED_INSTANCE_STATE);
-                    needsRestoreInstanceState = (icicle != null);
-                }
             } while (false);
-
             super.callActivityOnCreate(activity, icicle);
-            if (needsRestoreInstanceState) {
-                super.callActivityOnRestoreInstanceState(activity, icicle);
-            }
-        }
-
-        @Override
-        public void callActivityOnSaveInstanceState(Activity activity, android.os.Bundle outState) {
-            super.callActivityOnSaveInstanceState(activity, outState);
-            // If killed in background, save the REAL activity for `net.wequick.small.A' to jump.
-            outState.putString(Small.KEY_ACTIVITY, activity.getClass().getName());
-            android.os.Bundle extras = activity.getIntent().getExtras();
-            if (extras != null) {
-                outState.putString(Small.KEY_QUERY, extras.getString(Small.KEY_QUERY));
-            }
         }
 
         @Override
@@ -175,12 +155,25 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         }
 
         private void wrapIntent(Intent intent) {
-            String realClazz = intent.getComponent().getClassName();
+            ComponentName component = intent.getComponent();
+            String realClazz;
+            if (component == null) {
+                // Implicit way to start an activity
+                component = intent.resolveActivity(Small.getContext().getPackageManager());
+                if (component != null) return; // ignore system or host action
+
+                realClazz = resolveActivity(intent);
+                if (realClazz == null) return;
+            } else {
+                realClazz = component.getClassName();
+            }
+
             if (sLoadedActivities == null) return;
 
             ActivityInfo ai = sLoadedActivities.get(realClazz);
             if (ai == null) return;
 
+            // Carry the real(plugin) class for incoming `newActivity' method.
             intent.addCategory(REDIRECT_FLAG + realClazz);
             String stubClazz = dequeueStubActivity(ai, realClazz);
             intent.setComponent(new ComponentName(Small.getContext(), stubClazz));
@@ -204,6 +197,30 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             return realClazz;
         }
 
+        private String resolveActivity(Intent intent) {
+            if (sLoadedIntentFilters == null) return null;
+
+            Iterator<Map.Entry<String, List<IntentFilter>>> it =
+                    sLoadedIntentFilters.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry<String, List<IntentFilter>> entry = it.next();
+                List<IntentFilter> filters = entry.getValue();
+                for (IntentFilter filter : filters) {
+                    if (filter.hasAction(Intent.ACTION_VIEW)) {
+                        // TODO: match uri
+                    }
+                    if (filter.hasCategory(Intent.CATEGORY_DEFAULT)) {
+                        // custom action
+                        if (filter.hasAction(intent.getAction())) {
+                            // hit
+                            return entry.getKey();
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
         private String[] mStubQueue;
 
         /** Get an usable stub activity clazz from real activity */
@@ -225,7 +242,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             for (int i = 0; i < countForMode; i++) {
                 String usedActivityClazz = mStubQueue[i + offset];
                 if (usedActivityClazz == null) {
-                    availableId = i;
+                    if (availableId == -1) availableId = i;
                 } else if (usedActivityClazz.equals(realActivityClazz)) {
                     stubId = i;
                 }
@@ -233,7 +250,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             if (stubId != -1) {
                 availableId = stubId;
             } else if (availableId != -1) {
-                mStubQueue[availableId] = realActivityClazz;
+                mStubQueue[availableId + offset] = realActivityClazz;
             } else {
                 // TODO:
                 Log.e(TAG, "Launch mode " + ai.launchMode + " is full");
@@ -290,6 +307,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         return new String[] {"app", "lib"};
     }
 
+    /** Incubating */
     private void unloadBundle(String packageName) {
         if (sLoadedApks == null) return;
         LoadedApk apk = sLoadedApks.get(packageName);
@@ -319,33 +337,14 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
     @Override
     public void loadBundle(Bundle bundle) {
-        boolean patching = bundle.isPatching();
         String packageName = bundle.getPackageName();
-        File plugin = bundle.getBuiltinFile();
-        PackageManager pm = Small.getContext().getPackageManager();
-        PackageInfo pluginInfo = pm.getPackageArchiveInfo(plugin.getPath(),
-                PackageManager.GET_ACTIVITIES);
 
-        File patch = bundle.getPatchFile();
-        if (patch.exists()) {
-            PackageInfo patchInfo = pm.getPackageArchiveInfo(patch.getPath(),
-                    PackageManager.GET_ACTIVITIES);
-            if (patchInfo.versionCode < pluginInfo.versionCode) {
-                Log.d(TAG, "Patch file should be later than built-in!");
-                patch.delete();
-            } else {
-                plugin = patch;
-                pluginInfo = patchInfo;
-            }
-        }
-
-        if (patching) {
-            // Unload bundle of the package name
-            unloadBundle(packageName);
-        }
+        BundleParser parser = bundle.getParser();
+        parser.collectActivities();
+        PackageInfo pluginInfo = parser.getPackageInfo();
 
         // Load the bundle
-        String apkPath = plugin.getPath();
+        String apkPath = parser.getSourcePath();
         if (sLoadedApks == null) sLoadedApks = new ConcurrentHashMap<String, LoadedApk>();
         LoadedApk apk = sLoadedApks.get(packageName);
         if (apk == null) {
@@ -402,6 +401,15 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         for (ActivityInfo ai : pluginInfo.activities) {
             sLoadedActivities.put(ai.name, ai);
         }
+
+        // Record intent-filters for implicit action
+        ConcurrentHashMap<String, List<IntentFilter>> filters = parser.getIntentFilters();
+        if (filters != null) {
+            if (sLoadedIntentFilters == null) {
+                sLoadedIntentFilters = new ConcurrentHashMap<String, List<IntentFilter>>();
+            }
+            sLoadedIntentFilters.putAll(filters);
+        }
     }
 
     @Override
@@ -415,6 +423,20 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             activityName = bundle.getEntrance();
         } else if (activityName.startsWith(".")) {
             activityName = bundle.getPackageName() + activityName;
+        }
+        if (!sLoadedActivities.containsKey(activityName)) {
+            if (!activityName.endsWith("Activity")) {
+                throw new ActivityNotFoundException("Unable to find explicit activity class { " +
+                        activityName + " }");
+            }
+
+            String tempActivityName = activityName + "Activity";
+            if (!sLoadedActivities.containsKey(tempActivityName)) {
+                throw new ActivityNotFoundException("Unable to find explicit activity class { " +
+                        activityName + " or " + tempActivityName + " }");
+            }
+
+            activityName = tempActivityName;
         }
         intent.setComponent(new ComponentName(Small.getContext(), activityName));
         // Intent extras - params
@@ -467,6 +489,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         activity.setTheme(ai.getThemeResource());
         // Apply plugin softInputMode
         activity.getWindow().setSoftInputMode(ai.softInputMode);
+        activity.setRequestedOrientation(ai.screenOrientation);
     }
 
     /**

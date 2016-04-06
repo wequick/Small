@@ -22,6 +22,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
 
+import net.wequick.small.util.BundleParser;
 import net.wequick.small.util.FileUtils;
 import net.wequick.small.webkit.WebViewPool;
 
@@ -96,6 +97,8 @@ public class Bundle {
     private boolean patching = false;
 
     private String entrance = null; // Main activity for `apk bundle', index page for `web bundle'
+
+    private BundleParser parser;
 
     //______________________________________________________________________________
     // Class methods
@@ -190,6 +193,12 @@ public class Bundle {
     }
 
     private static void loadBundles(JSONArray bundles, Small.OnCompleteListener listener) {
+        if (listener == null) {
+            loadBundles(bundles);
+            return;
+        }
+
+        // Asynchronous
         if (sThread == null) {
             sThread = new LoadBundleThread(bundles);
             sHandler = new LoadBundleHandler(listener);
@@ -252,7 +261,7 @@ public class Bundle {
          *      - target => AbcController
          */
         String uriString = uri.toString();
-        if (!uriString.startsWith(this.uriString)) return false;
+        if (this.uriString == null || !uriString.startsWith(this.uriString)) return false;
 
         String srcPath = uriString.substring(this.uriString.length());
         String srcQuery = uri.getQuery();
@@ -316,12 +325,15 @@ public class Bundle {
             mPackageName = pkg;
         }
 
-        String uri = map.getString("uri");
-        if (!uri.startsWith("http") && Small.getBaseUri() != null) {
-            uri = Small.getBaseUri() + uri;
+        if (map.has("uri")) {
+            String uri = map.getString("uri");
+            if (!uri.startsWith("http") && Small.getBaseUri() != null) {
+                uri = Small.getBaseUri() + uri;
+            }
+            this.uriString = uri;
+            this.uri = Uri.parse(uriString);
         }
-        this.uriString = uri;
-        this.uri = Uri.parse(uriString);
+
         this.rules = new HashMap<String, String>();
         // Default rules to visit entrance page of bundle
         this.rules.put("", "");
@@ -426,6 +438,7 @@ public class Bundle {
 
     public void setVersionCode(int versionCode) {
         this.versionCode = versionCode;
+        Small.setBundleVersionCode(this.mPackageName, versionCode);
     }
 
     public boolean isLaunchable() {
@@ -468,6 +481,14 @@ public class Bundle {
         this.patching = patching;
     }
 
+    public BundleParser getParser() {
+        return parser;
+    }
+
+    public void setParser(BundleParser parser) {
+        this.parser = parser;
+    }
+
     //______________________________________________________________________________
     // Internal class
 
@@ -480,24 +501,27 @@ public class Bundle {
         @Override
         public void run() {
             // Instantiate bundle
-            List<Bundle> bundles = new ArrayList<Bundle>(bundleDescs.length());
-            for (int i = 0; i < bundleDescs.length(); i++) {
-                try {
-                    JSONObject object = bundleDescs.getJSONObject(i);
-                    Bundle bundle = new Bundle(object);
-                    bundles.add(bundle);
-                } catch (JSONException e) {
-                    // Ignored
-                }
-            }
-            sPreloadBundles = bundles;
-
-            // Prepare bundle
-            for (Bundle bundle : bundles) {
-                bundle.prepareForLaunch();
-            }
-
+            loadBundles(bundleDescs);
             sHandler.obtainMessage(MSG_COMPLETE).sendToTarget();
+        }
+    }
+
+    private static void loadBundles(JSONArray bundleDescs) {
+        List<Bundle> bundles = new ArrayList<Bundle>(bundleDescs.length());
+        for (int i = 0; i < bundleDescs.length(); i++) {
+            try {
+                JSONObject object = bundleDescs.getJSONObject(i);
+                Bundle bundle = new Bundle(object);
+                bundles.add(bundle);
+            } catch (JSONException e) {
+                // Ignored
+            }
+        }
+        sPreloadBundles = bundles;
+
+        // Prepare bundle
+        for (Bundle bundle : bundles) {
+            bundle.prepareForLaunch();
         }
     }
 

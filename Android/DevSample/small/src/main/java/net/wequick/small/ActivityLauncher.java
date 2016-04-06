@@ -18,6 +18,11 @@ package net.wequick.small;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+
+import java.util.HashMap;
 
 /**
  * This class launch the host activity by it's class name.
@@ -37,22 +42,65 @@ import android.content.Intent;
  */
 public class ActivityLauncher extends BundleLauncher {
 
+    private static HashMap<String, Class<?>> sActivityClasses;
+
+    @Override
+    public void setUp(Context context) {
+        super.setUp(context);
+
+        // Read the registered classes in host's manifest file
+        PackageInfo pi;
+        try {
+            pi = context.getPackageManager().getPackageInfo(
+                    context.getPackageName(), PackageManager.GET_ACTIVITIES);
+        } catch (PackageManager.NameNotFoundException ignored) {
+            // Never reach
+            return;
+        }
+        ActivityInfo[] as = pi.activities;
+        if (as != null) {
+            sActivityClasses = new HashMap<String, Class<?>>();
+            for (int i = 0; i < as.length; i++) {
+                ActivityInfo ai = as[i];
+                int dot = ai.name.lastIndexOf(".");
+                if (dot > 0) {
+                    try {
+                        Class<?> clazz = Class.forName(ai.name);
+                        sActivityClasses.put(ai.name, clazz);
+                    } catch (ClassNotFoundException e) {
+                        // Ignored
+                    }
+                }
+            }
+        }
+    }
+
     @Override
     public boolean preloadBundle(Bundle bundle) {
+        if (bundle.getBuiltinFile() != null && bundle.getBuiltinFile().exists()) return false;
+
         String packageName = bundle.getPackageName();
         Context context = Small.getContext();
-        if (packageName == null || packageName.equals("main")) {
+        if (packageName == null) {
             packageName = context.getPackageName();
         }
         String activityName = bundle.getPath();
         if (activityName == null || activityName.equals("")) {
             activityName = "MainActivity";
         }
-        Class activityClass = Small.getRegisteredClass(packageName + "." + activityName);
+        Class activityClass = getRegisteredClass(packageName + "." + activityName);
         if (activityClass == null) return false;
 
         Intent intent = new Intent(context, activityClass);
         bundle.setIntent(intent);
         return true;
+    }
+
+    private static Class<?> getRegisteredClass(String clazz) {
+        Class<?> aClass = sActivityClasses.get(clazz);
+        if (aClass == null && !clazz.endsWith("Activity")) {
+            aClass = sActivityClasses.get(clazz + "Activity");
+        }
+        return aClass;
     }
 }

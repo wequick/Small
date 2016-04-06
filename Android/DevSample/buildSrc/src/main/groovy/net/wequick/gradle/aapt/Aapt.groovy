@@ -28,11 +28,13 @@ public class Aapt {
     private File mAssetDir
     private File mJavaFile
     private File mSymbolFile
+    private def mToolsRevision
 
-    Aapt(File assetDir, File javaFile, File symbolFile) {
+    Aapt(File assetDir, File javaFile, File symbolFile, def toolsRevision) {
         this.mAssetDir = assetDir
         this.mJavaFile = javaFile
         this.mSymbolFile = symbolFile
+        this.mToolsRevision = toolsRevision
     }
 
     /**
@@ -51,7 +53,7 @@ public class Aapt {
             return
         }
 
-        def arscEditor = new ArscEditor(arscFile)
+        def arscEditor = new ArscEditor(arscFile, mToolsRevision)
 
         // Filter R.java
         filterRjava(mJavaFile, retainedTypes, retainedStyleables, null)
@@ -79,14 +81,14 @@ public class Aapt {
      */
     void resetPackage(int pp, String ppStr, Map idMaps) {
         File arscFile = new File(mAssetDir, 'resources.arsc')
-        def arscEditor = new ArscEditor(arscFile)
+        def arscEditor = new ArscEditor(arscFile, null)
 
         // Modify R.java
         resetRjava(mJavaFile, ppStr)
         // Modify resources.arsc
         arscEditor.reset(pp, idMaps)
 
-        resetAllXmlPackageId(pp, idMaps)
+        resetAllXmlPackageId(mAssetDir, pp, idMaps)
     }
 
     /**

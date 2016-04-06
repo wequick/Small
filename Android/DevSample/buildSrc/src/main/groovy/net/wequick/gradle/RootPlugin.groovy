@@ -1,12 +1,15 @@
 package net.wequick.gradle
 
 import net.wequick.gradle.aapt.SymbolParser
+import net.wequick.gradle.util.DependenciesUtils
 import org.gradle.api.Project
 import org.gradle.api.tasks.Delete
 
 import java.text.DecimalFormat
 
 class RootPlugin extends BasePlugin {
+
+    private int buildingLibIndex = 0
 
     void apply(Project project) {
         super.apply(project)
@@ -86,7 +89,9 @@ class RootPlugin extends BasePlugin {
         project.task('cleanLib', group: 'small', description: 'Clean all libraries', type: Delete) {
             delete small.preBuildDir
         }
-        project.task('buildLib', group: 'small', description: 'Build all libraries')
+        project.task('buildLib', group: 'small', description: 'Build all libraries').doFirst {
+            buildingLibIndex = 1
+        }
         project.task('cleanBundle', group: 'small', description: 'Clean all bundles')
         project.task('buildBundle', group: 'small', description: 'Build all bundles')
     }
@@ -179,6 +184,66 @@ class RootPlugin extends BasePlugin {
             publicIdsPw.flush()
             publicIdsPw.close()
         }
+
+        // Backup dependencies
+        if (!small.preLinkAarDir.exists()) small.preLinkAarDir.mkdirs()
+        if (!small.preLinkJarDir.exists()) small.preLinkJarDir.mkdirs()
+        def linkFileName = "$libName-D.txt"
+        File aarLinkFile = new File(small.preLinkAarDir, linkFileName)
+        File jarLinkFile = new File(small.preLinkJarDir, linkFileName)
+
+        def allDependencies = DependenciesUtils.getAllDependencies(lib, 'compile')
+        if (allDependencies.size() > 0) {
+            def aarKeys = []
+            if (!aarLinkFile.exists()) {
+                aarLinkFile.createNewFile()
+            } else {
+                aarLinkFile.eachLine {
+                    aarKeys.add(it)
+                }
+            }
+
+            def jarKeys = []
+            if (!jarLinkFile.exists()) {
+                jarLinkFile.createNewFile()
+            } else {
+                jarLinkFile.eachLine {
+                    jarKeys.add(it)
+                }
+            }
+
+            def aarPw = new PrintWriter(aarLinkFile.newWriter(true))
+            def jarPw = new PrintWriter(jarLinkFile.newWriter(true))
+
+            allDependencies.each { d ->
+                def isAar = true
+                d.moduleArtifacts.each { art ->
+                    // Copy deep level jar dependencies
+                    File src = art.file
+                    if (art.type == 'jar') {
+                        isAar = false
+                        project.copy {
+                            from src
+                            into preJarDir
+                            rename { "${d.moduleGroup}-${src.name}" }
+                        }
+                    }
+                }
+                if (isAar) {
+                    if (!aarKeys.contains(d.name)) {
+                        aarPw.println d.name
+                    }
+                } else {
+                    if (!jarKeys.contains(d.name)) {
+                        jarPw.println d.name
+                    }
+                }
+            }
+            jarPw.flush()
+            jarPw.close()
+            aarPw.flush()
+            aarPw.close()
+        }
     }
 
     private void logStartBuild(Project project) {
@@ -188,8 +253,12 @@ class RootPlugin extends BasePlugin {
                 LibraryPlugin lp = project.plugins.findPlugin(LibraryPlugin.class)
                 if (!lp.isBuildingRelease()) return
             case PluginType.Host:
-                Log.header "building library ${ext.buildIndex} of ${small.libCount} - " +
-                        "${project.name} (0x${ext.packageIdStr})"
+                if (buildingLibIndex > 0 && buildingLibIndex <= small.libCount) {
+                    Log.header "building library ${buildingLibIndex++} of ${small.libCount} - " +
+                            "${project.name} (0x${ext.packageIdStr})"
+                } else {
+                    Log.header "building library ${project.name} (0x${ext.packageIdStr})"
+                }
                 break
             case PluginType.App:
             case PluginType.Asset:

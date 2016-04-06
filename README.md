@@ -37,20 +37,20 @@ Apache License 2.0
 
 # 以下装逼请忽略
 
-A small framework to split app into small parts.
+A small framework to split an app into small parts.
 
 ## Features
-* **Perfect built-in**
-  - All plugins are support to build in host application.
+* **Perfection built-in**
+  - All plugins are supported to build in host application.
 * **Highly transparent**
-  - The plugin codings (code, layout, etc.) are as same as a single application.
-  - Support plugin debuging just like a completion application.
+  - The plugin codings (code, layout, etc.) are the same as a single application.
+  - Support plugin debugging just like a completion application.
 * **Ultimate slicing**
-  - Splits out any shared codes and resources from plugins.
+  - Splits out any shared code and resources from plugins.
 * **Seamless connection**
-  - The host, native app bundle, native web bundle, online web page and any custom bundle can launch and pass parameters to each other with a simple uri.
+  - The host, native app bundle, native web bundle, online web page and any custom bundle can launch and pass parameters to each other with a simple URI.
 * **Cross platforms**
-  - Until now, we support android, iOS and html5 plugins. In addition, they can communicate with each other by an uniform javascript interface.
+  - Until now, we support Android, iOS and HTML5 plugins. In addition, they can communicate with each other through a uniform JavaScript interface.
 
 ## Getting Started
 

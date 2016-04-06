@@ -15,8 +15,10 @@
  */
 package net.wequick.gradle
 
+import groovy.io.FileType
 import net.wequick.gradle.aapt.Aapt
 import net.wequick.gradle.aapt.SymbolParser
+import net.wequick.gradle.util.DependenciesUtils
 import org.gradle.api.Project
 
 class AppPlugin extends BundlePlugin {
@@ -88,9 +90,10 @@ class AppPlugin extends BundlePlugin {
     }
 
     protected void resolveReleaseDependencies() {
+        RootExtension rootExt = project.rootProject.small
+
         // Pre-split shared libraries at release mode
         //  - host, appcompat and etc.
-        RootExtension rootExt = project.rootProject.small
         def baseJars = project.fileTree(dir: rootExt.preBaseJarDir, include: ['*.jar'])
         project.dependencies.add('provided', baseJars)
         //  - lib.*
@@ -99,24 +102,29 @@ class AppPlugin extends BundlePlugin {
             libJarNames += getJarName(it.dependencyProject)
         }
         if (libJarNames.size() > 0) {
-            def libJars = project.fileTree(dir: rootExt.preLibsJarDir, include: libJarNames)
+            // Collect the jars with absolute file path, fix issue #65
+            def libJars = project.files(libJarNames.collect{
+                new File(rootExt.preLibsJarDir, it).path
+            })
             project.dependencies.add('provided', libJars)
         }
 
-        // Pre-split the `support-annotations' library which would be combined into `classes.dex'
-        // by Dex task: `variant.dex' on gradle 1.3.0 or
-        // `project.transformClassesWithDexForRelease' on gradle 1.5.0+
-        project.configurations {
-            all*.exclude group: 'com.android.support', module: 'support-annotations'
+        // Pre-split all the jar dependencies (deep level)
+        def compile = project.configurations.compile
+        rootExt.preLinkJarDir.listFiles().each { file ->
+            if (!file.name.endsWith('D.txt')) return
+            file.eachLine { line ->
+                def module = line.split(':')
+                compile.exclude group: module[0], module: module[1]
+            }
         }
 
         // Check if dependents by appcompat library which contains theme resource and
         // cannot be pre-split
-        def canPreSplit = project.configurations.compile.dependencies.find {
+        def appcompat = compile.dependencies.find {
             it.group.equals('com.android.support') && it.name.startsWith('appcompat')
-        } == null
-
-        if (canPreSplit) {
+        }
+        if (appcompat == null) {
             // Pre-split classes and resources.
             project.rootProject.small.preApDir.listFiles().each {
                 project.android.aaptOptions.additionalParameters '-I', it.path
@@ -140,6 +148,7 @@ class AppPlugin extends BundlePlugin {
         small.with {
             javac = variant.javaCompile
             dex = dexTask
+            processManifest = project.processReleaseManifest
 
             packagePath = variant.applicationId.replaceAll('\\.', '/')
             classesDir = javac.destinationDir
@@ -161,12 +170,60 @@ class AppPlugin extends BundlePlugin {
      * Prepare retained resource types and resource id maps for package slicing
      */
     protected void prepareSplit() {
-        // Prepare id maps (bundle resource id -> library resource id)
         def idsFile = small.symbolFile
         if (!idsFile.exists()) return
 
         RootExtension rootExt = (RootExtension) project.rootProject.small
 
+        // Check if have any vendor aar dependencies who contain resources.
+        def libAars = [] // the aars compiled in host or lib.*
+        rootExt.preLinkAarDir.listFiles().each { file ->
+            if (!file.name.endsWith('D.txt')) return
+            file.eachLine { line ->
+                def module = line.split(':')
+                libAars.add(group: module[0], name: module[1], version: module[2])
+            }
+        }
+        def bundleAars = [] // the aars compiling in current bundle
+        project.configurations.compile.resolvedConfiguration.firstLevelModuleDependencies.each {
+            def group = it.moduleGroup,
+                name = it.moduleName,
+                version = it.moduleVersion
+
+            if (name.startsWith('lib.')) {
+                // Ignore the dependency refer to sub project like `compile project(':lib.xx')`
+                return
+            }
+            if (libAars.find { aar -> group == aar.group && name == aar.name } != null) {
+                // Ignore the dependency which has declared in host or lib.*
+                return
+            }
+            def resDir = new File(small.aarDir, "$group/$name/$version/res")
+            if (resDir.listFiles().size() == 0) {
+                // Ignored the dependency which does not have any resources
+                return
+            }
+
+            bundleAars.add("$group:$name:$version")
+        }
+        if (bundleAars.size() > 0) {
+            if (rootExt.strictSplitResources) {
+                def err = new StringBuilder('In strict mode, we do not allow vendor aars, ')
+                err.append('please declare them in host build.gradle:\n')
+                bundleAars.each {
+                    err.append("    - compile('${it}')\n")
+                }
+                err.append('or turn off the strict mode in root build.gradle:\n')
+                err.append('    small {\n')
+                err.append('        strictSplitResources = false\n')
+                err.append('    }')
+                throw new UnsupportedOperationException(err.toString())
+            } else {
+                Log.warn("Using vendor aar(s): ${bundleAars.join('; ')}")
+            }
+        }
+
+        // Prepare id maps (bundle resource id -> library resource id)
         def libEntries = [:]
         rootExt.preIdsDir.listFiles().each {
             if (it.name.endsWith('R.txt') && !it.name.startsWith(project.name)) {
@@ -210,10 +267,11 @@ class AppPlugin extends BundlePlugin {
                 return
             }
 
-            if (be.type != 'id') {
-                throw new Exception(
-                        "Missing library resource entry: \"$k\", try to cleanLib and buildLib.")
-            }
+            // TODO: handle the resources addition by aar version conflict or something
+//            if (be.type != 'id') {
+//                throw new Exception(
+//                        "Missing library resource entry: \"$k\", try to cleanLib and buildLib.")
+//            }
             be.isStyleable ? retainedStyleables.add(be) : retainedEntries.add(be)
         }
 
@@ -371,6 +429,28 @@ class AppPlugin extends BundlePlugin {
     }
 
     protected void hookVariantTask() {
+        // Hook process-manifest task to remove the `android:icon' and `android:label' attribute
+        // which declared in the plugin `AndroidManifest.xml' application node  (for #11)
+        small.processManifest.doLast {
+            File manifestFile = it.manifestOutputFile
+            def sb = new StringBuilder()
+            def needsFilter = true
+            manifestFile.eachLine { line ->
+                if (needsFilter) {
+                    if (line.indexOf('android:icon') > 0 || line.indexOf('android:label') > 0) {
+                        // After `processManifest' task, the xml file will be re-formatted and
+                        // the `android:icon' and `android:label' are placed in a single line.
+                        // So if we meet them, just ignored the whole line.
+                        return
+                    }
+                    if (line.indexOf('<activity') > 0) needsFilter = false
+                }
+
+                sb.append(line).append(System.lineSeparator())
+            }
+            manifestFile.write(sb.toString(), 'utf-8')
+        }
+
         // Hook aapt task to slice asset package and resolve library resource ids
         small.aapt.doLast {
             // Unpack resources.ap_
@@ -385,8 +465,10 @@ class AppPlugin extends BundlePlugin {
             prepareSplit()
             File symbolFile = (small.type == PluginType.Library) ?
                     new File(it.textSymbolOutputDir, 'R.txt') : null
-            File rJavaFile = new File(it.sourceOutputDir, "${small.packagePath}/R.java")
-            Aapt aapt = new Aapt(unzipApDir, rJavaFile, symbolFile)
+            File sourceOutputDir = it.sourceOutputDir
+            File rJavaFile = new File(sourceOutputDir, "${small.packagePath}/R.java")
+            def rev = project.android.buildToolsRevision
+            Aapt aapt = new Aapt(unzipApDir, rJavaFile, symbolFile, rev)
             if (small.retainedTypes != null) {
                 aapt.filterResources(small.retainedTypes)
                 Log.success "[${project.name}] split library res files..."
@@ -397,6 +479,13 @@ class AppPlugin extends BundlePlugin {
             } else {
                 aapt.resetPackage(small.packageId, small.packageIdStr, small.idMaps)
                 Log.success "[${project.name}] reset resource package id..."
+            }
+
+            // Remove unused R.java to fix the reference of shared library resource, issue #63
+            sourceOutputDir.eachFileRecurse(FileType.FILES) { file ->
+                if (file != rJavaFile) {
+                    file.delete()
+                }
             }
 
             // Repack resources.ap_

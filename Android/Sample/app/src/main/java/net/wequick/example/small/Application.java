@@ -9,6 +9,11 @@ public class Application extends android.app.Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        // Options
         Small.setBaseUri("http://m.wequick.net/demo/");
+
+        // Required
+        Small.preSetUp(this);
     }
 }

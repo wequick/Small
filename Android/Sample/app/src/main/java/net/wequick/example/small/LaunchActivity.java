@@ -5,6 +5,7 @@ import android.support.v7.app.ActionBar;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.TextView;
 
 import net.wequick.small.Small;
 
@@ -35,6 +36,11 @@ public class LaunchActivity extends AppCompatActivity {
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+
+        if (Small.getIsNewHostApp()) {
+            TextView tvPrepare = (TextView) findViewById(R.id.prepare_text);
+            tvPrepare.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
@@ -43,13 +49,8 @@ public class LaunchActivity extends AppCompatActivity {
         Small.setUp(this, new net.wequick.small.Small.OnCompleteListener() {
             @Override
             public void onComplete() {
-                mContentView.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        Small.openUri("main", LaunchActivity.this);
-                        finish();
-                    }
-                }, 2000);
+                Small.openUri("main", LaunchActivity.this);
+                finish();
             }
         });
     }

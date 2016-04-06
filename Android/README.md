@@ -5,7 +5,7 @@
 为方便列表，简写如下：
 ```
   DyLA  : Dynamic-load-apk          @singwhatiwanna, 百度
-  DiLA  : Direct-Load-apk           @melbcat
+  DiLA  : Direct-Load-apk           @FinalLody
   APF   : Android-Plugin-Framework  @limpoxe
   ACDD  : ACDD                      @bunnyblue
   DyAPK : DynamicAPK                @TediWang, 携程
@@ -16,21 +16,21 @@
 
   \\                             | DyLA   | DiLA   | ACDD   | DyAPK  | DPG    | APF    | Small
   -------------------------------|--------|--------|--------|--------|--------|--------|--------
-  加载非独立插件<sup>[1]</sup>   | ×      | x      | √      | √      | ×      | √      | √
-  加载.so插件                    | ×      | ×      | ! <sup>[2]</sup>     | ×      | ×      | ×      | √
-  Activity生命周期               | √      | √      | √      | √      | ×      | √      | √
-  Service动态注册                | ×      | ×      | √      | ×      | ×      | √      | x <sup>[3]</sup>
-  资源分包共享<sup>[4]</sup>     | ×      | ×      | ! <sup>[5]</sup> | ! <sup>[5]</sup> | ×      | ! <sup>[6]</sup>      | √
-  公共插件打包共享<sup>[7]</sup> | ×      | ×      | ×      | ×      | ×      | ×      | √
+  加载非独立插件<sup>[1]</sup>     | ×      | x      | √      | √      | ×      | √      | √
+  加载.so后缀插件                  | ×      | ×      | ! <sup>[2]</sup>     | ×      | ×      | ×      | √
+  Activity生命周期                | √      | √      | √      | √      | √      | √      | √
+  Service动态注册                 | ×      | ×      | √      | ×      | √      | √      | x <sup>[3]</sup>
+  资源分包共享<sup>[4]</sup>      | ×      | ×      | ! <sup>[5]</sup> | ! <sup>[5]</sup> | ×      | ! <sup>[6]</sup>      | √
+  公共插件打包共享<sup>[7]</sup>   | ×      | ×      | ×      | ×      | ×      | ×      | √
   支持AppCompat<sup>[8]</sup>    | ×      | ×      | ×      | ×      | ×      | ×      | √
-  支持本地网页组件               | ×      | ×      | ×      | ×      | ×      | ×      | √
-  支持联调插件<sup>[9]</sup>     | ×      | x      | ×      | ×      | ×      | ×      | √
+  支持本地网页组件                 | ×      | ×      | ×      | ×      | ×      | ×      | √
+  支持联调插件<sup>[9]</sup>      | ×      | x      | ×      | ×      | ×      | ×      | √
   
   > [1] 独立插件：一个完整的apk包，可以独立运行。比如从你的程序跑起淘宝、QQ，但这加载起来是要闹哪样？<br/>
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;非独立插件：依赖于宿主，宿主是个壳，插件可使用其资源代码并分离之以最小化，这才是业务需要嘛。<br/>
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-- _“所有不能加载非独立插件的插件化框架都是耍流氓”_。
   
-  > [2] ACDD加载.so用了Native方法(libdexopt.so)，不是Java层，源码似乎未共享。
+  > [2] ACDD加载.so用了Native方法(libdexopt.so)，不是Java层，源码见[dexopt.cpp](https://github.com/bunnyblue/ACDD/blob/master/ACDDCore/jni/dexopt.cpp)。
   
   > [3] Service更新频度低，可预先注册在宿主的manifest中，如果没有很好的理由说服我，现不支持。
   
@@ -68,7 +68,7 @@ File->New->New Project...
 假设宿主包名为`com.example.mysmall`
 
 1. 设置**Application name**为`MySmall`
-2. 修改**Company Domain**为`com.example.mysmall`
+2. 修改**Company Domain**为`mysmall.example.com`
 
   > 这步是个技巧，在Step3新建Module时将会自动带上该前缀
   
@@ -94,7 +94,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:1.3.0'
-        classpath 'net.wequick.tools.build:gradle-small:0.3.4'
+        classpath 'net.wequick.tools.build:gradle-small:0.4.1'
     }
 }
 
@@ -109,7 +109,7 @@ apply plugin: 'net.wequick.small'
 
 ```groovy
 small {
-    aarVersion = '0.4.2'
+    aarVersion = '0.7.0'
 }
 ```
 
@@ -245,8 +245,9 @@ protected void onStart() {
 
   - [x] 下载插件
   - [ ] 热更新（现在需要重启生效）
-  - [ ] [终极分离与去除警告](https://github.com/wequick/Small/issues/11)
+  - [x] [终极分离与去除警告](https://github.com/wequick/Small/issues/11)
   - [ ] [加速生成AndroidManifest.xml](https://github.com/wequick/Small/issues/12)
+  - [ ] [支持混淆](https://github.com/wequick/Small/issues/85)
 
 ## 文档
 [Wiki](https://github.com/wequick/small/wiki/Android)
