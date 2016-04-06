@@ -204,7 +204,7 @@ class AppPlugin extends BundlePlugin {
                 return
             }
 
-            bundleAars.add("$group:$name:$version");
+            bundleAars.add("$group:$name:$version")
         }
         if (bundleAars.size() > 0) {
             if (rootExt.strictSplitResources) {
@@ -219,7 +219,7 @@ class AppPlugin extends BundlePlugin {
                 err.append('    }')
                 throw new UnsupportedOperationException(err.toString())
             } else {
-                Log.warn("Using vendor aars: ${bundleAars.join('; ')}")
+                Log.warn("Using vendor aar(s): ${bundleAars.join('; ')}")
             }
         }
 
@@ -429,8 +429,8 @@ class AppPlugin extends BundlePlugin {
     }
 
     protected void hookVariantTask() {
-        // Hook process-manifest task to remove then `android:icon' and `android:label' attribute
-        // in `AndroidManifest.xml' application node (for #
+        // Hook process-manifest task to remove the `android:icon' and `android:label' attribute
+        // which declared in the plugin `AndroidManifest.xml' application node  (for #11)
         small.processManifest.doLast {
             File manifestFile = it.manifestOutputFile
             def sb = new StringBuilder()
