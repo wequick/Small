@@ -448,7 +448,7 @@ class AppPlugin extends BundlePlugin {
 
                 sb.append(line).append(System.lineSeparator())
             }
-            manifestFile.write(sb.toString())
+            manifestFile.write(sb.toString(), 'utf-8')
         }
 
         // Hook aapt task to slice asset package and resolve library resource ids
