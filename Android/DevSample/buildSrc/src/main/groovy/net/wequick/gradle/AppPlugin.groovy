@@ -19,6 +19,7 @@ import groovy.io.FileType
 import net.wequick.gradle.aapt.Aapt
 import net.wequick.gradle.aapt.SymbolParser
 import net.wequick.gradle.util.DependenciesUtils
+import net.wequick.gradle.util.JNIUtils
 import org.gradle.api.Project
 
 class AppPlugin extends BundlePlugin {
@@ -428,12 +429,35 @@ class AppPlugin extends BundlePlugin {
         small.retainedStyleables = retainedStyleables
     }
 
+    protected int getABIFlag() {
+        def abis = []
+
+        def jniDirs = project.android.sourceSets.main.jniLibs.srcDirs
+        if (jniDirs == null) jniDirs = []
+        // Collect ABIs from AARs
+        small.explodeAarDirs.each { dir ->
+            File jniDir = new File(dir, 'jni')
+            if (!jniDir.exists()) return
+            jniDirs.add(jniDir)
+        }
+        jniDirs.each { dir ->
+            dir.listFiles().each {
+                if (it.isDirectory() && !abis.contains(it.name)) {
+                    abis.add(it.name)
+                }
+            }
+        }
+
+        return JNIUtils.getABIFlag(abis)
+    }
+
     protected void hookVariantTask() {
         // Hook process-manifest task to remove the `android:icon' and `android:label' attribute
         // which declared in the plugin `AndroidManifest.xml' application node  (for #11)
         small.processManifest.doLast {
             File manifestFile = it.manifestOutputFile
             def sb = new StringBuilder()
+            def enteredApplicationNode = false
             def needsFilter = true
             manifestFile.eachLine { line ->
                 if (needsFilter) {
@@ -443,7 +467,19 @@ class AppPlugin extends BundlePlugin {
                         // So if we meet them, just ignored the whole line.
                         return
                     }
-                    if (line.indexOf('<activity') > 0) needsFilter = false
+                    if (line.indexOf('<application') > 0) {
+                        // To support plugin JNI, we overwrite the `android:label' attribute with
+                        // the ABIs flag here. So that at the runtime we can fast extract the
+                        // exact JNIs in the supported ABI. (#87, #79)
+                        int flag = getABIFlag()
+                        if (flag != 0) {
+                            line += "\n        android:label=\"$flag\""
+                        }
+                        enteredApplicationNode = true
+                    }
+                    if (enteredApplicationNode && line.indexOf('>') > 0) {
+                        needsFilter = false
+                    }
                 }
 
                 sb.append(line).append(System.lineSeparator())
