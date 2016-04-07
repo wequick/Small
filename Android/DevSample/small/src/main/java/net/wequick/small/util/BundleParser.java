@@ -60,9 +60,12 @@ public class BundleParser {
             public static final int AndroidManifest_versionCode = 0;
             public static final int AndroidManifest_versionName = 1;
             // application
-            public static int[] AndroidManifestApplication = {0x01010000, 0x01010003};
+            public static int[] AndroidManifestApplication = {
+                    0x01010000, 0x01010001, 0x01010003
+            };
             public static int AndroidManifestApplication_theme = 0;
-            public static int AndroidManifestApplication_name = 1;
+            public static int AndroidManifestApplication_label = 1; // for ABIs
+            public static int AndroidManifestApplication_name = 2;
             // activity
             public static int[] AndroidManifestActivity = {
                     0x01010000, 0x01010001, 0x01010002, 0x01010003,
@@ -175,6 +178,7 @@ public class BundleParser {
                     if (name != null) {
                         app.name = app.className = name.intern();
                     }
+                    app.labelRes = sa.getInteger(R.styleable.AndroidManifestApplication_label, 0);
                     app.theme = sa.getResourceId(
                             R.styleable.AndroidManifestApplication_theme, 0);
                     mPackageInfo.applicationInfo = app;

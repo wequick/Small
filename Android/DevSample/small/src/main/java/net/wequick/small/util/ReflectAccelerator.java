@@ -36,6 +36,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.zip.ZipFile;
 
 import dalvik.system.DexClassLoader;
@@ -52,6 +53,7 @@ public class ReflectAccelerator {
     private static Class sDexElementClass;
     private static Field sPathListField;
     private static Field sDexElementsField;
+    private static Field sDexPathList_nativeLibraryDirectories_field;
     // ApplicationInfo.resourceDirs
     private static Field sContextThemeWrapper_mTheme_field;
     private static Field sContextThemeWrapper_mResources_field;
@@ -65,6 +67,7 @@ public class ReflectAccelerator {
     private static Field sDexClassLoader_mPaths_field;
     private static Field sDexClassLoader_mZips_field;
     private static Field sDexClassLoader_mDexs_field;
+    private static Field sDexClassLoader_mLibPaths_field;
     // AppCompatActivity - 23.2+
     private static Field sAppCompatActivity_mResources_field;
     private static boolean sAppCompatActivityHasNoResourcesField;
@@ -120,10 +123,12 @@ public class ReflectAccelerator {
         }
     }
 
-    public static boolean expandDexPathList(ClassLoader cl, String dexPath,
-                                     String libraryPath, String optDexPath) {
+    public static boolean expandDexPathList(ClassLoader cl, String dexPath, String optDexPath) {
         if (Build.VERSION.SDK_INT < 14) {
             try {
+                /*
+                 * see https://android.googlesource.com/platform/libcore/+/android-2.3_r1/dalvik/src/main/java/dalvik/system/DexClassLoader.java
+                 */
                 if (sDexClassLoader_mFiles_field == null) {
                     sDexClassLoader_mFiles_field = getDeclaredField(cl.getClass(), "mFiles");
                     sDexClassLoader_mPaths_field = getDeclaredField(cl.getClass(), "mPaths");
@@ -162,6 +167,46 @@ public class ReflectAccelerator {
             }
         }
         return true;
+    }
+
+    public static void expandNativeLibraryDirectories(ClassLoader classLoader, String libPath) {
+        if (Build.VERSION.SDK_INT < 14) {
+            if (sDexClassLoader_mLibPaths_field == null) {
+                sDexClassLoader_mLibPaths_field = getDeclaredField(DexClassLoader.class, "mLibPaths");
+            }
+            File[] paths = new File[]{new File(libPath)};
+            try {
+                expandArray(classLoader, sDexClassLoader_mLibPaths_field, paths, false);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (sPathListField == null) return;
+
+        Object pathList = getValue(sPathListField, classLoader);
+        if (pathList == null) return;
+
+        if (sDexPathList_nativeLibraryDirectories_field == null) {
+            sDexPathList_nativeLibraryDirectories_field = getDeclaredField(
+                    pathList.getClass(), "nativeLibraryDirectories");
+            if (sDexPathList_nativeLibraryDirectories_field == null) return;
+        }
+        try {
+            Class<?> type = sDexPathList_nativeLibraryDirectories_field.getType();
+            if (type.isAssignableFrom(java.util.List.class)) {
+                // List<File>
+                List<File> paths = getValue(sDexPathList_nativeLibraryDirectories_field, pathList);
+                if (paths == null) return;
+                paths.add(new File(libPath));
+            } else {
+                // File[]
+                File[] paths = new File[]{new File(libPath)};
+                expandArray(pathList, sDexPathList_nativeLibraryDirectories_field, paths, false);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
