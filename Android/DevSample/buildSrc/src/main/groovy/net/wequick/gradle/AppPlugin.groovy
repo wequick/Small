@@ -144,18 +144,19 @@ class AppPlugin extends BundlePlugin {
         super.configureReleaseVariant(variant)
 
         // Fill extensions
-        def dexTask = project.hasProperty('transformClassesWithDexForRelease') ?
-                project.transformClassesWithDexForRelease : variant.dex
+        def variantName = variant.name.capitalize()
+        def newDexTaskName = 'transformClassesWithDexFor' + variantName
+        def dexTask = project.hasProperty(newDexTaskName) ? project[newDexTaskName] : variant.dex
         small.with {
             javac = variant.javaCompile
             dex = dexTask
-            processManifest = project.processReleaseManifest
+            processManifest = project['process' + variantName + 'Manifest']
 
             packagePath = variant.applicationId.replaceAll('\\.', '/')
             classesDir = javac.destinationDir
             bkClassesDir = new File(classesDir.parentFile, "${classesDir.name}~")
 
-            aapt = project.processReleaseResources
+            aapt = project['process' + variantName +'Resources']
             apFile = aapt.packageOutputFile
 
             symbolFile = new File(aapt.textSymbolOutputDir, 'R.txt')
