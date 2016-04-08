@@ -59,6 +59,9 @@ public class AppExtension extends BundleExtension {
     /** Public symbol file - public.txt */
     File publicSymbolFile
 
+    /** Paths of aar to split */
+    Set<Map> splitAars
+
     LinkedHashMap<Integer, Integer> idMaps
     LinkedHashMap<String, String> idStrMaps
     ArrayList retainedTypes

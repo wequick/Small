@@ -174,15 +174,23 @@ class AppPlugin extends BundlePlugin {
         def idsFile = small.symbolFile
         if (!idsFile.exists()) return
 
-        RootExtension rootExt = (RootExtension) project.rootProject.small
+        RootExtension rootExt = project.rootProject.small
 
         // Check if have any vendor aar dependencies who contain resources.
-        def libAars = [] // the aars compiled in host or lib.*
+        def libAars = new HashSet() // the aars compiled in host or lib.*
         rootExt.preLinkAarDir.listFiles().each { file ->
             if (!file.name.endsWith('D.txt')) return
             file.eachLine { line ->
                 def module = line.split(':')
                 libAars.add(group: module[0], name: module[1], version: module[2])
+            }
+        }
+        def prjAars = [] // normal modules who's name does not match Small way - `*.*'
+        project.rootProject.subprojects {
+            if (it.name.startsWith('lib.')) {
+                libAars.add(group: it.group, name: it.name, version: it.version)
+            } else if (it.name != 'app' && it.name != 'small' && it.name.indexOf('.') < 0) {
+                prjAars.add(group: it.group, name: it.name, version: it.version)
             }
         }
         def bundleAars = [] // the aars compiling in current bundle
@@ -191,16 +199,16 @@ class AppPlugin extends BundlePlugin {
                 name = it.moduleName,
                 version = it.moduleVersion
 
-            if (name.startsWith('lib.')) {
-                // Ignore the dependency refer to sub project like `compile project(':lib.xx')`
-                return
-            }
             if (libAars.find { aar -> group == aar.group && name == aar.name } != null) {
                 // Ignore the dependency which has declared in host or lib.*
                 return
             }
+            if (prjAars.find { aar -> group == aar.group && name == aar.name } != null) {
+                // Ignore the dependency of normal modules
+                return
+            }
             def resDir = new File(small.aarDir, "$group/$name/$version/res")
-            if (resDir.listFiles().size() == 0) {
+            if (!resDir.exists() || resDir.list().size() == 0) {
                 // Ignored the dependency which does not have any resources
                 return
             }
@@ -223,6 +231,7 @@ class AppPlugin extends BundlePlugin {
                 Log.warn("Using vendor aar(s): ${bundleAars.join('; ')}")
             }
         }
+        small.splitAars = libAars
 
         // Prepare id maps (bundle resource id -> library resource id)
         def libEntries = [:]
@@ -547,11 +556,20 @@ class AppPlugin extends BundlePlugin {
 
         // Hook dex task to split all aar classes.jar
         small.dex.doFirst {
-            small.aarDir.renameTo(small.bkAarDir)
+            small.bkAarDir.mkdir()
+            small.splitAars.each {
+                String path = "${it.group}/${it.name}/${it.version}"
+                File dir = new File(small.aarDir, path)
+                if (dir.exists()) {
+                    File todir = new File(small.bkAarDir, path)
+                    project.ant.move(file: dir, tofile: todir)
+                }
+            }
             Log.success "[${project.name}] split aar classes..."
         }
         small.dex.doLast {
-            small.bkAarDir.renameTo(small.aarDir)
+            project.ant.move(file: small.bkAarDir, tofile: small.aarDir)
+            small.bkAarDir.delete()
         }
 
         // Hook clean task to unset package id
@@ -563,8 +581,9 @@ class AppPlugin extends BundlePlugin {
     @Override
     protected void tidyUp() {
         super.tidyUp()
-        if (!small.aarDir.exists()) {
-            small.bkAarDir.renameTo(small.aarDir)
+        if (small.bkAarDir.exists()) {
+            project.ant.move(file: small.bkAarDir, tofile: small.aarDir)
+            small.bkAarDir.delete()
         }
     }
 
