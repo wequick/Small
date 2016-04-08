@@ -35,6 +35,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 
 import net.wequick.small.util.BundleParser;
+import net.wequick.small.util.FileUtils;
 import net.wequick.small.util.JNIUtils;
 import net.wequick.small.util.ReflectAccelerator;
 
@@ -70,7 +71,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
     private static final String STUB_ACTIVITY_PREFIX = PACKAGE_NAME + ".A";
     private static final String TAG = "ApkBundleLauncher";
     private static final String FD_STORAGE = "storage";
-    private static final String FD_LIBRARY = "!/lib/";
+    private static final String FD_LIBRARY = "lib";
     private static final String FILE_DEX = "bundle.dex";
 
     private static class LoadedApk {
@@ -377,9 +378,20 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             int abiFlags = pluginInfo.applicationInfo.labelRes;
             String abiPath = JNIUtils.getExtractABI(abiFlags);
             if (abiPath != null) {
-                String libPath = apkPath + FD_LIBRARY + abiPath;
-                ReflectAccelerator.expandNativeLibraryDirectories(
-                        context.getClassLoader(), libPath);
+                String libDir = FD_LIBRARY + File.separator + abiPath + File.separator;
+                File libPath = new File(packagePath, libDir);
+                if (!libPath.exists()) {
+                    libPath.mkdirs();
+                }
+                try {
+                    // Extract the JNIs with specify ABI
+                    FileUtils.unZipFolder(new File(apkPath), packagePath, libDir);
+                    // Add the JNI search path
+                    ReflectAccelerator.expandNativeLibraryDirectories(
+                            context.getClassLoader(), libPath);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             apk.dexFile = optDexFile;

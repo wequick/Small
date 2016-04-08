@@ -40,26 +40,33 @@ public final class FileUtils {
         void onProgress(int length);
     }
 
-    public static void unZipFolder(File zipFile, String outPath) throws Exception {
-        unZipFolder(new FileInputStream(zipFile), outPath, null);
+    public static void unZipFolder(File zipFile, File outPath) throws Exception {
+        unZipFolder(zipFile, outPath, null);
+    }
+
+    public static void unZipFolder(File zipFile, File outPath, String filterDir) throws Exception {
+        unZipFolder(new FileInputStream(zipFile), outPath, filterDir, null);
     }
 
     public static void unZipFolder(InputStream inStream,
-                                   String outPath,
+                                   File outPath,
+                                   String filterDir,
                                    OnProgressListener listener) throws Exception {
         ZipInputStream inZip = new ZipInputStream(inStream);
         ZipEntry zipEntry;
         while ((zipEntry = inZip.getNextEntry()) != null) {
             String szName = zipEntry.getName();
+            if (filterDir != null && !szName.startsWith(filterDir)) continue;
+
             if (szName.startsWith("META-INF")) continue;
 
             if (zipEntry.isDirectory()) {
                 // get the folder name of the widget
                 szName = szName.substring(0, szName.length() - 1);
-                File folder = new File(outPath + File.separator + szName);
+                File folder = new File(outPath, szName);
                 folder.mkdirs();
             } else {
-                File file = new File(outPath + File.separator + szName);
+                File file = new File(outPath, szName);
                 if (!file.createNewFile()) {
                     System.err.println("Failed to create file: " + file);
                     return;

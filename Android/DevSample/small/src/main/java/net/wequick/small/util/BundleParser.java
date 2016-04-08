@@ -12,6 +12,7 @@ import android.content.res.XmlResourceParser;
 import android.os.PatternMatcher;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.TypedValue;
 
 import net.wequick.small.Small;
 
@@ -178,7 +179,17 @@ public class BundleParser {
                     if (name != null) {
                         app.name = app.className = name.intern();
                     }
-                    app.labelRes = sa.getInteger(R.styleable.AndroidManifestApplication_label, 0);
+
+                    // Get the label value which used as ABI flags
+                    TypedValue label = new TypedValue();
+                    if (sa.getValue(R.styleable.AndroidManifestApplication_label, label)) {
+                        if (label.type == TypedValue.TYPE_STRING) {
+                            app.labelRes = Integer.parseInt(label.string.toString());
+                        } else {
+                            app.labelRes = label.data;
+                        }
+                    }
+
                     app.theme = sa.getResourceId(
                             R.styleable.AndroidManifestApplication_theme, 0);
                     mPackageInfo.applicationInfo = app;

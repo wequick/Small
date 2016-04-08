@@ -36,6 +36,8 @@ public final class JNIUtils {
             String[] abis;
             if (Build.VERSION.SDK_INT >= 21) {
                 abis = Build.SUPPORTED_ABIS;
+            } else if (Build.CPU_ABI2.equals(Build.UNKNOWN)) {
+                abis = new String[] { Build.CPU_ABI };
             } else {
                 abis = new String[] { Build.CPU_ABI, Build.CPU_ABI2 };
             }
