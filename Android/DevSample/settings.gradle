@@ -2,7 +2,7 @@ include ':small',
         ':app',
         ':app.main', ':app.home', ':app.detail', ':app.mine',
         ':web.about',
-        ':lib.utils', ':lib.style', ':lib.afterutils'
+        ':lib.utils', ':lib.style', ':lib.afterutils',
         ':jni_plugin'
 
 project(':app').projectDir = new File('../Sample/app')
