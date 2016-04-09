@@ -62,6 +62,9 @@ public class AppExtension extends BundleExtension {
     /** Paths of aar to split */
     Set<Map> splitAars
 
+    /** Paths of aar to retain */
+    Set<Map> retainedAars
+
     LinkedHashMap<Integer, Integer> idMaps
     LinkedHashMap<String, String> idStrMaps
     ArrayList retainedTypes

@@ -147,6 +147,26 @@ class AppPlugin extends BundlePlugin {
         def variantName = variant.name.capitalize()
         def newDexTaskName = 'transformClassesWithDexFor' + variantName
         def dexTask = project.hasProperty(newDexTaskName) ? project[newDexTaskName] : variant.dex
+
+        // Collect dependent AARs
+        RootExtension rootExt = project.rootProject.small
+        def libAars = new HashSet() // the aars compiled in host or lib.*
+        rootExt.preLinkAarDir.listFiles().each { file ->
+            if (!file.name.endsWith('D.txt')) return
+            file.eachLine { line ->
+                def module = line.split(':')
+                libAars.add(group: module[0], name: module[1], version: module[2])
+            }
+        }
+        def prjAars = new HashSet() // normal modules who's name does not match Small way - `*.*'
+        project.rootProject.subprojects {
+            if (it.name.startsWith('lib.')) {
+                libAars.add(group: it.group, name: it.name, version: it.version)
+            } else if (it.name != 'app' && it.name != 'small' && it.name.indexOf('.') < 0) {
+                prjAars.add(group: it.group, name: it.name, version: it.version)
+            }
+        }
+
         small.with {
             javac = variant.javaCompile
             dex = dexTask
@@ -156,13 +176,16 @@ class AppPlugin extends BundlePlugin {
             classesDir = javac.destinationDir
             bkClassesDir = new File(classesDir.parentFile, "${classesDir.name}~")
 
-            aapt = project['process' + variantName +'Resources']
+            aapt = project['process' + variantName + 'Resources']
             apFile = aapt.packageOutputFile
 
             symbolFile = new File(aapt.textSymbolOutputDir, 'R.txt')
             rJavaFile = new File(aapt.sourceOutputDir, "${packagePath}/R.java")
 
             mergerXml = new File(variant.mergeResources.incrementalFolder, 'merger.xml')
+
+            splitAars = libAars
+            retainedAars = prjAars
         }
 
         hookVariantTask()
@@ -177,34 +200,17 @@ class AppPlugin extends BundlePlugin {
 
         RootExtension rootExt = project.rootProject.small
 
-        // Check if have any vendor aar dependencies who contain resources.
-        def libAars = new HashSet() // the aars compiled in host or lib.*
-        rootExt.preLinkAarDir.listFiles().each { file ->
-            if (!file.name.endsWith('D.txt')) return
-            file.eachLine { line ->
-                def module = line.split(':')
-                libAars.add(group: module[0], name: module[1], version: module[2])
-            }
-        }
-        def prjAars = [] // normal modules who's name does not match Small way - `*.*'
-        project.rootProject.subprojects {
-            if (it.name.startsWith('lib.')) {
-                libAars.add(group: it.group, name: it.name, version: it.version)
-            } else if (it.name != 'app' && it.name != 'small' && it.name.indexOf('.') < 0) {
-                prjAars.add(group: it.group, name: it.name, version: it.version)
-            }
-        }
-        def bundleAars = [] // the aars compiling in current bundle
+        def vendorAars = [] // the vendor aars compiling in current bundle
         project.configurations.compile.resolvedConfiguration.firstLevelModuleDependencies.each {
             def group = it.moduleGroup,
                 name = it.moduleName,
                 version = it.moduleVersion
 
-            if (libAars.find { aar -> group == aar.group && name == aar.name } != null) {
+            if (small.splitAars.find { aar -> group == aar.group && name == aar.name } != null) {
                 // Ignore the dependency which has declared in host or lib.*
                 return
             }
-            if (prjAars.find { aar -> group == aar.group && name == aar.name } != null) {
+            if (small.retainedAars.find { aar -> group == aar.group && name == aar.name } != null) {
                 // Ignore the dependency of normal modules
                 return
             }
@@ -214,13 +220,13 @@ class AppPlugin extends BundlePlugin {
                 return
             }
 
-            bundleAars.add("$group:$name:$version")
+            vendorAars.add("$group:$name:$version")
         }
-        if (bundleAars.size() > 0) {
+        if (vendorAars.size() > 0) {
             if (rootExt.strictSplitResources) {
                 def err = new StringBuilder('In strict mode, we do not allow vendor aars, ')
                 err.append('please declare them in host build.gradle:\n')
-                bundleAars.each {
+                vendorAars.each {
                     err.append("    - compile('${it}')\n")
                 }
                 err.append('or turn off the strict mode in root build.gradle:\n')
@@ -229,10 +235,9 @@ class AppPlugin extends BundlePlugin {
                 err.append('    }')
                 throw new UnsupportedOperationException(err.toString())
             } else {
-                Log.warn("Using vendor aar(s): ${bundleAars.join('; ')}")
+                Log.warn("Using vendor aar(s): ${vendorAars.join('; ')}")
             }
         }
-        small.splitAars = libAars
 
         // Prepare id maps (bundle resource id -> library resource id)
         def libEntries = [:]
