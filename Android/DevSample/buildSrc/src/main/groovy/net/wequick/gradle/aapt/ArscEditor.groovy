@@ -137,13 +137,15 @@ public class ArscEditor extends AssetEditor {
                     offset += entry.allSize
                     if (!retainedKeyIds.contains(entry.key)) retainedKeyIds.add(entry.key)
                     retainedEntries.add(entry)
+                    int dataType
                     if (entry.value != null) {
                         // Reset entry ids
-                        if (entry.value.dataType == ResValueDataType.TYPE_STRING) {
+                        dataType = entry.value.dataType
+                        if (dataType == ResValueDataType.TYPE_STRING) {
                             // String reference
                             retainedStringIds.add(entry.value.data)
                             entry.value.data = retainedStringIds.size() - 1
-                        } else if (entry.value.dataType == ResValueDataType.TYPE_REFERENCE) {
+                        } else if (dataType == ResValueDataType.TYPE_REFERENCE) {
                             def id = idMaps.get(entry.value.data)
                             if (id != null) {
                                 if (DEBUG_NOISY) println "\t -- map ResTable_entry.value: " +
@@ -170,7 +172,12 @@ public class ArscEditor extends AssetEditor {
                                         "${String.format('0x%08x', id)}"
                                 it.name = id
                             }
-                            if (it.value.dataType == ResValueDataType.TYPE_REFERENCE) {
+                            dataType = it.value.dataType
+                            if (dataType == ResValueDataType.TYPE_STRING) {
+                                // String reference
+                                retainedStringIds.add(it.value.data)
+                                it.value.data = retainedStringIds.size() - 1
+                            } else if (dataType == ResValueDataType.TYPE_REFERENCE) {
                                 id = idMaps.get(it.value.data)
                                 if (id != null) {
                                     if (DEBUG_NOISY) println "\t -- map ResTable_map.value: " +
