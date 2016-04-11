@@ -33,6 +33,7 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Window;
 
 import net.wequick.small.util.BundleParser;
 import net.wequick.small.util.FileUtils;
@@ -508,8 +509,10 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         // Apply plugin theme
         ReflectAccelerator.setTheme(activity, null);
         activity.setTheme(ai.getThemeResource());
-        // Apply plugin softInputMode
-        activity.getWindow().setSoftInputMode(ai.softInputMode);
+
+        // Apply window attributes
+        Window window = activity.getWindow();
+        window.setSoftInputMode(ai.softInputMode);
         activity.setRequestedOrientation(ai.screenOrientation);
     }
 
