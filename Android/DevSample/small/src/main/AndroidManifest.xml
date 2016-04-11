@@ -13,6 +13,7 @@
         <!-- Stub Activities -->
         <!-- 1 standard mode -->
         <activity android:name=".A" android:launchMode="standard"/>
+        <activity android:name=".A1" android:theme="@android:style/Theme.Translucent"/>
         <!-- 4 singleTask mode -->
         <activity android:name=".A10" android:launchMode="singleTask"/>
         <activity android:name=".A11" android:launchMode="singleTask"/>

@@ -27,6 +27,7 @@ import android.content.pm.ActivityInfo;
 import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.content.res.TypedArray;
 import android.os.IBinder;
 import android.content.Context;
 import android.content.Intent;
@@ -70,6 +71,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
     private static final String PACKAGE_NAME = ApkBundleLauncher.class.getPackage().getName();
     private static final String STUB_ACTIVITY_PREFIX = PACKAGE_NAME + ".A";
+    private static final String STUB_ACTIVITY_TRANSLUCENT = STUB_ACTIVITY_PREFIX + '1';
     private static final String TAG = "ApkBundleLauncher";
     private static final String FD_STORAGE = "storage";
     private static final String FD_LIBRARY = "lib";
@@ -230,7 +232,15 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         private String dequeueStubActivity(ActivityInfo ai, String realActivityClazz) {
             if (ai.launchMode == ActivityInfo.LAUNCH_MULTIPLE) {
                 // In standard mode, the stub activity is reusable.
-                return STUB_ACTIVITY_PREFIX;
+                // Cause the `windowIsTranslucent' attribute cannot be dynamically set,
+                // We should choose the STUB activity with translucent or not here.
+                Resources.Theme theme = Small.getContext().getResources().newTheme();
+                theme.applyStyle(ai.getThemeResource(), true);
+                TypedArray sa = theme.obtainStyledAttributes(
+                        new int[] { android.R.attr.windowIsTranslucent });
+                boolean translucent = sa.getBoolean(0, false);
+                sa.recycle();
+                return translucent ? STUB_ACTIVITY_TRANSLUCENT : STUB_ACTIVITY_PREFIX;
             }
 
             int availableId = -1;
