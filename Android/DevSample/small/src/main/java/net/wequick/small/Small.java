@@ -50,16 +50,18 @@ import java.util.Map;
  * </ul>
  */
 public final class Small {
+
     public static final String KEY_QUERY = "small-query";
     public static final String EXTRAS_KEY_RET = "small-ret";
-    public static final String SHARED_PREFERENCES_SMALL = "small";
-    public static final String SHARED_PREFERENCES_KEY_UPGRADE = "upgrade";
-    public static final String SHARED_PREFERENCES_KEY_VERSION = "version";
-    public static final String SHARED_PREFERENCES_BUNDLE_VERSIONS = "small.app-versions";
-    public static final String SHARED_PREFERENCES_BUNDLE_URLS = "small.app-urls";
-    public static final String SHARED_PREFERENCES_BUNDLE_MODIFIES = "small.app-modifies";
-    public static final String SHARED_PREFERENCES_BUNDLE_UPGRADES = "small.app-upgrades";
     public static final int REQUEST_CODE_DEFAULT = 10000;
+
+    private static final String SHARED_PREFERENCES_SMALL = "small";
+    private static final String SHARED_PREFERENCES_KEY_UPGRADE = "upgrade";
+    private static final String SHARED_PREFERENCES_KEY_VERSION = "version";
+    private static final String SHARED_PREFERENCES_BUNDLE_VERSIONS = "small.app-versions";
+    private static final String SHARED_PREFERENCES_BUNDLE_URLS = "small.app-urls";
+    private static final String SHARED_PREFERENCES_BUNDLE_MODIFIES = "small.app-modifies";
+    private static final String SHARED_PREFERENCES_BUNDLE_UPGRADES = "small.app-upgrades";
 
     private static Context sContext = null;
     private static String sBaseUri = ""; // base url of uri
