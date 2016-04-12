@@ -19,16 +19,13 @@ package net.wequick.small;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.Application;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.support.v4.content.LocalBroadcastManager;
 
 import net.wequick.small.util.ApplicationUtils;
 import net.wequick.small.webkit.JsHandler;
@@ -53,7 +50,6 @@ import java.util.Map;
  * </ul>
  */
 public final class Small {
-    public static final String EVENT_OPENURI = "small-open";
     public static final String KEY_QUERY = "small-query";
     public static final String EXTRAS_KEY_RET = "small-ret";
     public static final String SHARED_PREFERENCES_SMALL = "small";
@@ -100,10 +96,6 @@ public final class Small {
 
         PackageManager pm = context.getPackageManager();
         String packageName = context.getPackageName();
-
-        // Register the local broadcast (Incubating)
-        LocalBroadcastManager.getInstance(context).registerReceiver(new OpenUriReceiver(),
-                new IntentFilter(EVENT_OPENURI));
 
         // Check if host app is first-installed or upgraded
         int backupHostVersion = getHostVersionCode();
@@ -319,14 +311,6 @@ public final class Small {
 
     public static void setWebActivityTheme(int webActivityTheme) {
         sWebActivityTheme = webActivityTheme;
-    }
-
-    private static class OpenUriReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String uri = intent.getStringExtra("uri");
-            openUri(Uri.parse(uri), context);
-        }
     }
 
     /**
