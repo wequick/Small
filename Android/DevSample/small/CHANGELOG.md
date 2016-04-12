@@ -1,3 +1,18 @@
+## 0.8.0 (2016-04-12)
+
+Features:
+
+  - 支持插件携带.so文件 (#79)
+  - 支持插件Activity透明 (#94)
+
+Performance:
+
+  - 优化部分代码，支持宿主混淆 (#85)
+
+Bugfixes:
+
+  - 修正`rules`搜寻Activity逻辑错误
+
 ## 0.7.0 (2016-04-05)
 
 Features:
@@ -62,7 +77,6 @@ Refactors:
 
   - 插件清单文件更名为`bundle.json` (原`bundles.json`)
   - 优化`Small.setUp`API，减少监听回调
-  - 
 
 Bugfixes:
 
