@@ -15,3 +15,12 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+
+# Support Libraries
+-dontwarn android.support.**
+-keep class android.support.** { *; }
+-keep interface android.support.** { *; }
+
+# Small
+-keep class net.wequick.small.Small { public *; }
+-keep interface net.wequick.small.** { *; }

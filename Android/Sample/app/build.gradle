@@ -13,8 +13,8 @@ android {
         manifestPlaceholders = [UMENG_CHANNEL_VALUE: "official"]
     }
     buildTypes {
-        release {
-            minifyEnabled false
+        debug {
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
