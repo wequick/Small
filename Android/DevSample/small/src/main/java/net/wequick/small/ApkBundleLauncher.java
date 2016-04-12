@@ -36,6 +36,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Window;
 
+import net.wequick.small.internal.InstrumentationInternal;
 import net.wequick.small.util.BundleParser;
 import net.wequick.small.util.FileUtils;
 import net.wequick.small.util.JNIUtils;
@@ -93,7 +94,8 @@ public class ApkBundleLauncher extends SoBundleLauncher {
     /**
      * Class for redirect activity from Stub(AndroidManifest.xml) to Real(Plugin)
      */
-    private static class InstrumentationWrapper extends Instrumentation {
+    private static class InstrumentationWrapper extends Instrumentation
+            implements InstrumentationInternal {
 
         private static final char REDIRECT_FLAG = '>';
         private static final int STUB_ACTIVITIES_COUNT = 4;
