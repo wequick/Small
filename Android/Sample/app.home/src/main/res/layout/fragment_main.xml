@@ -25,10 +25,22 @@
     <android.support.v7.widget.AppCompatButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="@string/go_sub_detail"
+        android:textAllCaps="false"
+        android:id="@+id/btnSubDetail"
+        android:layout_below="@+id/btnDetail"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
+    <android.support.v7.widget.AppCompatButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:text="@string/go_about"
         android:textAllCaps="false"
         android:id="@+id/btnAbout"
-        android:layout_below="@+id/btnDetail"
+        android:layout_below="@+id/btnSubDetail"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_alignParentRight="true"

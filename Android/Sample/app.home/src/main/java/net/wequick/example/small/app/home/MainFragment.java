@@ -38,6 +38,15 @@ public class MainFragment extends Fragment {
                 Small.openUri("detail?from=app.home", getContext());
             }
         });
+
+        button = (Button) rootView.findViewById(R.id.btnSubDetail);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Small.openUri("detail/sub", getContext());
+            }
+        });
+
         button = (Button) rootView.findViewById(R.id.btnAbout);
         button.setOnClickListener(new View.OnClickListener() {
             @Override

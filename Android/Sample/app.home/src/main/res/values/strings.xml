@@ -5,4 +5,5 @@
     <string name="go_about">Open web.about</string>
     <string name="call_lib">Call lib.utils</string>
     <string name="check_upgrade">Check upgrade</string>
+    <string name="go_sub_detail">Open detail/sub</string>
 </resources>
