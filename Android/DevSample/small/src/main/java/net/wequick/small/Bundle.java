@@ -523,6 +523,11 @@ public class Bundle {
         for (Bundle bundle : bundles) {
             bundle.prepareForLaunch();
         }
+
+        // Notify `postSetUp' to all launchers
+        for (BundleLauncher launcher : sBundleLaunchers) {
+            launcher.postSetUp();
+        }
     }
 
     protected static void postInitWebViewMessage(String url) {

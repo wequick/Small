@@ -21,19 +21,20 @@ import android.app.Application;
 import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.os.Build;
 import android.os.IBinder;
-import android.support.v7.app.AppCompatActivity;
-import android.view.ContextThemeWrapper;
 
 import java.io.File;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipFile;
 
 import dalvik.system.DexClassLoader;
@@ -53,11 +54,7 @@ public class ReflectAccelerator {
     private static Field sDexPathList_nativeLibraryDirectories_field;
     private static Field sDexPathList_nativeLibraryPathElements_field;
     // ApplicationInfo.resourceDirs
-    private static Field sContextThemeWrapper_mTheme_field;
-    private static Field sContextThemeWrapper_mResources_field;
     private static Field sContextImpl_mResources_field;
-    private static Field sActivity_mMainThread_field;
-    private static Method sActivityThread_currentActivityThread_method;
     private static Method sInstrumentation_execStartActivityV21_method;
     private static Method sInstrumentation_execStartActivityV20_method;
     // DexClassLoader - V13
@@ -66,9 +63,9 @@ public class ReflectAccelerator {
     private static Field sDexClassLoader_mZips_field;
     private static Field sDexClassLoader_mDexs_field;
     private static Field sPathClassLoader_libraryPathElements_field;
-    // AppCompatActivity - 23.2+
-    private static Field sAppCompatActivity_mResources_field;
-    private static boolean sAppCompatActivityHasNoResourcesField;
+    // ActivityClientRecord
+    private static Field sActivityClientRecord_intent_field;
+    private static Field sActivityClientRecord_activityInfo_field;
 
     private ReflectAccelerator() { /** cannot be instantiated */ }
 
@@ -300,48 +297,33 @@ public class ReflectAccelerator {
         }
     }
 
-    public static void setTheme(Activity activity, Resources.Theme theme) {
-        if (sContextThemeWrapper_mTheme_field == null) {
-            sContextThemeWrapper_mTheme_field = getDeclaredField(
-                    ContextThemeWrapper.class, "mTheme");
-        }
-        if (sContextThemeWrapper_mTheme_field == null) return;
-        setValue(sContextThemeWrapper_mTheme_field, activity, theme);
-    }
-
-    public static void setResources(Activity activity, Resources resources) {
-        // Modify the base context resources, fix #80
-        setResources(activity.getBaseContext(), resources);
-
-        // Compat for API 16+
-        if (Build.VERSION.SDK_INT > 16) {
-            if (sContextThemeWrapper_mResources_field == null) {
-                sContextThemeWrapper_mResources_field = getDeclaredField(
-                        ContextThemeWrapper.class, "mResources");
-            }
-            setValue(sContextThemeWrapper_mResources_field, activity, resources);
-        }
-
-        // Compat for AppCompat 23.2+
-        if (activity instanceof AppCompatActivity) {
-            if (sAppCompatActivityHasNoResourcesField) return; // below 23.2
-
-            if (sAppCompatActivity_mResources_field == null) {
-                sAppCompatActivity_mResources_field = getDeclaredField(
-                        AppCompatActivity.class, "mResources");
-                if (sAppCompatActivity_mResources_field == null) {
-                    sAppCompatActivityHasNoResourcesField = true;
-                    return;
-                }
-            }
-            // Set the `mResources' to null, and the AppCompatActivity.getResources() will
-            // re-lazy-initialized it with the `TintResources` class.
-            setValue(sAppCompatActivity_mResources_field, activity, null);
-        }
-    }
-
     public static void setResources(Application app, Resources resources) {
         setResources(app.getBaseContext(), resources);
+        // Though we replace the application resources, while a new activity created,
+        // it will be attached to a new context who's resources is got from somewhere cached.
+        // So we need to update the cache to ensure `activity.mContext.mResources' correct.
+        try {
+            if (Build.VERSION.SDK_INT >= 19) {
+                Class cl = Class.forName("android.app.ContextImpl");
+                Field field = cl.getDeclaredField("mResourcesManager");
+                field.setAccessible(true);
+                Object resManager = field.get(app.getBaseContext());
+                field = resManager.getClass().getDeclaredField("mActiveResources");
+                field.setAccessible(true);
+                Map map = (Map) field.get(resManager);
+                Object k = map.keySet().iterator().next();
+                WeakReference<Resources> wr = new WeakReference<Resources>(resources);
+                map.put(k, wr);
+            } else {
+                Field field = getDeclaredField(app.getBaseContext().getClass(), "mPackageInfo");
+                Object apk = getValue(field, app.getBaseContext());
+                if (apk == null) return;
+                field = getDeclaredField(apk.getClass(), "mResources");
+                setValue(field, apk, resources);
+            }
+        } catch (Exception ignored) {
+            ignored.printStackTrace();
+        }
     }
 
     public static void setResources(Context context, Resources resources) {
@@ -351,27 +333,6 @@ public class ReflectAccelerator {
             if (sContextImpl_mResources_field == null) return;
         }
         setValue(sContextImpl_mResources_field, context, resources);
-    }
-
-    public static Object getActivityThread(Context context) {
-        if (context instanceof Activity) {
-            if (sActivity_mMainThread_field == null) {
-                sActivity_mMainThread_field = getDeclaredField(Activity.class, "mMainThread");
-            }
-            if (sActivity_mMainThread_field == null) return null;
-            return getValue(sActivity_mMainThread_field, context);
-        } else {
-            if (sActivityThread_currentActivityThread_method == null) {
-                try {
-                    Class<?> activityThreadClazz = Class.forName("android.app.ActivityThread");
-                    sActivityThread_currentActivityThread_method = getMethod(
-                            activityThreadClazz, "currentActivityThread", null);
-                } catch (ClassNotFoundException e) {
-                    return null;
-                }
-            }
-            return invoke(sActivityThread_currentActivityThread_method, null, (Object[]) null);
-        }
     }
 
     public static AssetManager newAssetManager() {
@@ -418,22 +379,27 @@ public class ReflectAccelerator {
                 who, contextThread, token, target, intent, requestCode);
     }
 
+    public static Intent getIntent(Object/*ActivityClientRecord*/ r) {
+        if (sActivityClientRecord_intent_field == null) {
+            sActivityClientRecord_intent_field = getDeclaredField(r.getClass(), "intent");
+        }
+        return getValue(sActivityClientRecord_intent_field, r);
+    }
+
+    public static void setActivityInfo(Object/*ActivityClientRecord*/ r, ActivityInfo ai) {
+        if (sActivityClientRecord_activityInfo_field == null) {
+            sActivityClientRecord_activityInfo_field = getDeclaredField(
+                    r.getClass(), "activityInfo");
+        }
+        setValue(sActivityClientRecord_activityInfo_field, r, ai);
+    }
+
     //______________________________________________________________________________________________
     // Private
 
     private static Method getMethod(Class cls, String methodName, Class[] types) {
         try {
             Method method = cls.getMethod(methodName, types);
-            method.setAccessible(true);
-            return method;
-        } catch (NoSuchMethodException e) {
-            return null;
-        }
-    }
-
-    private static Method getDeclaredMethod(Class cls, String methodName, Class[] types) {
-        try {
-            Method method = cls.getDeclaredMethod(methodName, types);
             method.setAccessible(true);
             return method;
         } catch (NoSuchMethodException e) {

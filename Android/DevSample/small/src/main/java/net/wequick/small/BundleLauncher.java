@@ -86,6 +86,12 @@ public abstract class BundleLauncher {
     public void setUp(Context context) { }
 
     /**
+     * Called when Small is finish setUp by {@link Small#setUp}. This is where most completion
+     * should go: do something with the loaded bundles.
+     */
+    public void postSetUp() { }
+
+    /**
      * Called when loading bundles by {@link Bundle#loadLaunchableBundles(Small.OnCompleteListener)}.
      *
      * <p>This method try to preload a bundle, if succeed, load it later.

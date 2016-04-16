@@ -101,6 +101,7 @@ public class BundleParser {
     private XmlResourceParser parser;
     private Resources res;
     private ConcurrentHashMap<String, List<IntentFilter>> mIntentFilters;
+    private int mABIFlags;
 
     public BundleParser(File sourceFile, String packageName) {
         mArchiveSourcePath = sourceFile.getPath();
@@ -170,23 +171,27 @@ public class BundleParser {
 
                 String tagName = parser.getName();
                 if (tagName.equals("application")) {
-                    ApplicationInfo app = new ApplicationInfo();
+                    ApplicationInfo app = new ApplicationInfo(
+                            Small.getContext().getApplicationInfo());
+
                     sa = res.obtainAttributes(attrs,
                             R.styleable.AndroidManifestApplication);
 
                     String name = sa.getString(
                             R.styleable.AndroidManifestApplication_name);
                     if (name != null) {
-                        app.name = app.className = name.intern();
+                        app.className = name.intern();
+                    } else {
+                        app.className = null;
                     }
 
                     // Get the label value which used as ABI flags
                     TypedValue label = new TypedValue();
                     if (sa.getValue(R.styleable.AndroidManifestApplication_label, label)) {
                         if (label.type == TypedValue.TYPE_STRING) {
-                            app.labelRes = Integer.parseInt(label.string.toString());
+                            mABIFlags = Integer.parseInt(label.string.toString());
                         } else {
-                            app.labelRes = label.data;
+                            mABIFlags = label.data;
                         }
                     }
 
@@ -226,12 +231,13 @@ public class BundleParser {
                 // <activity ...
                 ActivityInfo ai = new ActivityInfo();
                 ai.applicationInfo = mPackageInfo.applicationInfo;
+                ai.packageName = ai.applicationInfo.packageName;
 
                 TypedArray sa = res.obtainAttributes(attrs,
                         R.styleable.AndroidManifestActivity);
                 String name = sa.getString(R.styleable.AndroidManifestActivity_name);
                 if (name != null) {
-                    ai.name = buildClassName(mPackageName, name);
+                    ai.name = ai.targetActivity = buildClassName(mPackageName, name);
                 }
                 ai.labelRes = sa.getResourceId(R.styleable.AndroidManifestActivity_label, 0);
                 ai.icon = sa.getResourceId(R.styleable.AndroidManifestActivity_icon, 0);
@@ -546,5 +552,9 @@ public class BundleParser {
 
     public ConcurrentHashMap<String, List<IntentFilter>> getIntentFilters() {
         return mIntentFilters;
+    }
+
+    public int getABIFlags() {
+        return mABIFlags;
     }
 }

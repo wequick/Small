@@ -21,17 +21,18 @@ import android.app.Application;
 import android.app.Instrumentation;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
-import android.content.ContextWrapper;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
+import android.os.Handler;
 import android.os.IBinder;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
+import android.os.Message;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Window;
@@ -91,13 +92,37 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
     protected static Instrumentation sHostInstrumentation;
 
+    private static final char REDIRECT_FLAG = '>';
+
+    /**
+     * Class for restore activity info from Stub to Real
+     */
+    private static class ActivityThreadHandlerCallback implements Handler.Callback {
+
+        private static final int LAUNCH_ACTIVITY = 100;
+
+        @Override
+        public boolean handleMessage(Message msg) {
+            if (msg.what != LAUNCH_ACTIVITY) return false;
+
+            Object/*ActivityClientRecord*/ r = msg.obj;
+            Intent intent = ReflectAccelerator.getIntent(r);
+            String targetClass = unwrapIntent(intent);
+            if (targetClass == null) return false;
+
+            // Replace with the REAL activityInfo
+            ActivityInfo targetInfo = sLoadedActivities.get(targetClass);
+            ReflectAccelerator.setActivityInfo(r, targetInfo);
+            return false;
+        }
+    }
+
     /**
      * Class for redirect activity from Stub(AndroidManifest.xml) to Real(Plugin)
      */
     private static class InstrumentationWrapper extends Instrumentation
             implements InstrumentationInternal {
 
-        private static final char REDIRECT_FLAG = '>';
         private static final int STUB_ACTIVITIES_COUNT = 4;
 
         public InstrumentationWrapper() { }
@@ -123,19 +148,6 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         }
 
         @Override
-        /** Unwrap activity from STUB to REAL */
-        public Activity newActivity(ClassLoader cl, String className, Intent intent)
-                throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-            // Stub -> Real
-            if (!className.startsWith(STUB_ACTIVITY_PREFIX)) {
-                return super.newActivity(cl, className, intent);
-            }
-            className = unwrapIntent(intent, className);
-            Activity activity = super.newActivity(cl, className, intent);
-            return activity;
-        }
-
-        @Override
         /** Prepare resources for REAL */
         public void callActivityOnCreate(Activity activity, android.os.Bundle icicle) {
             do {
@@ -143,7 +155,6 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 ActivityInfo ai = sLoadedActivities.get(activity.getClass().getName());
                 if (ai == null) break;
 
-                ensureAddAssetPath(activity);
                 applyActivityInfo(activity, ai);
             } while (false);
             super.callActivityOnCreate(activity, icicle);
@@ -184,24 +195,6 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             intent.addCategory(REDIRECT_FLAG + realClazz);
             String stubClazz = dequeueStubActivity(ai, realClazz);
             intent.setComponent(new ComponentName(Small.getContext(), stubClazz));
-        }
-
-        private String unwrapIntent(Intent intent, String className) {
-            Set<String> categories = intent.getCategories();
-            if (categories == null) return className;
-
-            // Get plugin activity class name from categories
-            Iterator<String> it = categories.iterator();
-            String realClazz = null;
-            while (it.hasNext()) {
-                String category = it.next();
-                if (category.charAt(0) == REDIRECT_FLAG) {
-                    realClazz = category.substring(1);
-                    break;
-                }
-            }
-            if (realClazz == null) return className;
-            return realClazz;
         }
 
         private String resolveActivity(Intent intent) {
@@ -290,12 +283,27 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         }
     }
 
+    private static String unwrapIntent(Intent intent) {
+        Set<String> categories = intent.getCategories();
+        if (categories == null) return null;
+
+        // Get plugin activity class name from categories
+        Iterator<String> it = categories.iterator();
+        while (it.hasNext()) {
+            String category = it.next();
+            if (category.charAt(0) == REDIRECT_FLAG) {
+                return category.substring(1);
+            }
+        }
+        return null;
+    }
+
     @Override
     public void setUp(Context context) {
         super.setUp(context);
-        // Inject instrumentation
         if (sHostInstrumentation == null) {
             try {
+                // Inject instrumentation
                 final Class<?> activityThreadClass = Class.forName("android.app.ActivityThread");
                 final Method method = activityThreadClass.getMethod("currentActivityThread");
                 Object thread = method.invoke(null, (Object[]) null);
@@ -310,6 +318,14 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                     field.setAccessible(true);
                     field.set(context, wrapper);
                 }
+
+                // Inject handler
+                field = activityThreadClass.getDeclaredField("mH");
+                field.setAccessible(true);
+                Handler ah = (Handler) field.get(thread);
+                field = Handler.class.getDeclaredField("mCallback");
+                field.setAccessible(true);
+                field.set(ah, new ActivityThreadHandlerCallback());
             } catch (Exception ignored) {
                 ignored.printStackTrace();
                 // Usually, cannot reach here
@@ -318,36 +334,18 @@ public class ApkBundleLauncher extends SoBundleLauncher {
     }
 
     @Override
-    protected String[] getSupportingTypes() {
-        return new String[] {"app", "lib"};
+    public void postSetUp() {
+        super.postSetUp();
+
+        // Merge all the resources in bundles and replace the host one
+        Application app = (Application) Small.getContext();
+        ResourcesMerger rm = ResourcesMerger.merge(app.getBaseContext());
+        ReflectAccelerator.setResources(app, rm);
     }
 
-    /** Incubating */
-    private void unloadBundle(String packageName) {
-        if (sLoadedApks == null) return;
-        LoadedApk apk = sLoadedApks.get(packageName);
-        if (apk == null) return;
-
-        if (sLoadedActivities != null && apk.activities != null) {
-            for (ActivityInfo ai : apk.activities) {
-                sLoadedActivities.remove(ai.name);
-            }
-        }
-        sLoadedApks.remove(packageName);
-
-        // Remove asset path from application (Reset resources merger)
-        Context appContext = ((ContextWrapper) Small.getContext()).getBaseContext();
-        ResourcesMerger rm = ResourcesMerger.merge(appContext);
-        ReflectAccelerator.setResources(appContext, rm);
-        // TODO: Remove asset path from launching activities
-
-        // Remove dexElement from ClassLoader?
-        for (LoadedApk a : sLoadedApks.values()) {
-            if (a.dexElementIndex > apk.dexElementIndex) a.dexElementIndex--;
-        }
-        ReflectAccelerator.removeDexPathList(
-                appContext.getClassLoader(), apk.dexElementIndex);
-        if (apk.dexFile.exists()) apk.dexFile.delete();
+    @Override
+    protected String[] getSupportingTypes() {
+        return new String[] {"app", "lib"};
     }
 
     @Override
@@ -388,7 +386,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                     context.getClassLoader(), apkPath, optDexFile.getPath());
 
             // Expand the native library directories if plugin has any JNIs. (#79)
-            int abiFlags = pluginInfo.applicationInfo.labelRes;
+            int abiFlags = parser.getABIFlags();
             String abiPath = JNIUtils.getExtractABI(abiFlags);
             if (abiPath != null) {
                 String libDir = FD_LIBRARY + File.separator + abiPath + File.separator;
@@ -510,7 +508,6 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 // TODO: check package name
                 assert false;
             }
-            ensureAddAssetPath((Activity) context);
             if (type.endsWith("v4")) {
                 return (T) android.support.v4.app.Fragment.instantiate(context, fname);
             }
@@ -525,33 +522,10 @@ public class ApkBundleLauncher extends SoBundleLauncher {
      * @param ai
      */
     private static void applyActivityInfo(Activity activity, ActivityInfo ai) {
-        // Apply plugin theme
-        ReflectAccelerator.setTheme(activity, null);
-        activity.setTheme(ai.getThemeResource());
-
         // Apply window attributes
         Window window = activity.getWindow();
         window.setSoftInputMode(ai.softInputMode);
         activity.setRequestedOrientation(ai.screenOrientation);
-    }
-
-    /**
-     * Try to get plugin resource, if failed, add plugin asset path
-     * @param activity
-     */
-    private static void ensureAddAssetPath(Activity activity) {
-        Context appBase = activity.getApplication().getBaseContext();
-        Resources appRes = appBase.getResources();
-        Resources activityRes = activity.getResources();
-        if (appRes instanceof ResourcesMerger) {
-            // Synchronize resources from application
-            if (!activityRes.equals(appRes)) ReflectAccelerator.setResources(activity, appRes);
-        } else {
-            // Replace resources for application and activity
-            ResourcesMerger rm = ResourcesMerger.merge(activity.getBaseContext());
-            ReflectAccelerator.setResources(activity.getApplication(), rm);
-            ReflectAccelerator.setResources(activity, rm);
-        }
     }
 
     private static class ResourcesMerger extends Resources {
