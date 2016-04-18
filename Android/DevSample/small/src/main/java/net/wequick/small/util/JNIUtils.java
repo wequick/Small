@@ -33,7 +33,7 @@ public final class JNIUtils {
      *
      * @param flag the flag refer to an ABI, this is automatically set by `gradle-small'
      */
-    public static String getExtractABI(int flag) {
+    public static String getExtractABI(int flag, boolean is64bit) {
         if (flag == 0) return null;
 
         if (sSupportedABIFlags == null) {
@@ -50,11 +50,15 @@ public final class JNIUtils {
 
             String[] abis;
             if (Build.VERSION.SDK_INT >= 21) {
-                // Cause we stub all the bundle(*.so) in host's `armeabi' directory which is
-                // regard as 32 bit, and then System.loadLibrary cannot accept 64 bit ABIs.
-                // So we had to give up the support of 64 bit JNI in plugins.
+                // Cause we stub all the bundle(*.so) in host, if the host ABI is something
+                // 32(64) bit, and then System.loadLibrary cannot accept 64(32) bit ABIs.
+                // So we had to choose the related ABI as host.
                 // FIXME: any solution?
-                abis = Build.SUPPORTED_32_BIT_ABIS;
+                if (is64bit) {
+                    abis = Build.SUPPORTED_64_BIT_ABIS;
+                } else {
+                    abis = Build.SUPPORTED_32_BIT_ABIS;
+                }
             } else if (Build.CPU_ABI2.equals(Build.UNKNOWN)) {
                 abis = new String[] { Build.CPU_ABI };
             } else {

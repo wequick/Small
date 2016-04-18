@@ -70,6 +70,8 @@ public class Bundle {
     private static List<BundleLauncher> sBundleLaunchers = null;
     private static List<Bundle> sPreloadBundles = null;
     private static File sPatchManifestFile = null;
+    private static String sUserBundlesPath = null;
+    private static boolean sIs64bit = false;
 
     // Thread & Handler
     private static final int MSG_COMPLETE = 1;
@@ -114,8 +116,8 @@ public class Bundle {
         return null;
     }
 
-    public static String getUserBundlesPath() {
-        return Small.getContext().getApplicationInfo().nativeLibraryDir;
+    public static boolean is64bit() {
+        return sIs64bit;
     }
 
     /**
@@ -315,7 +317,7 @@ public class Bundle {
         String pkg = map.getString("pkg");
         if (pkg != null && !pkg.equals(HOST_PACKAGE)) {
             String soName = "lib" + pkg.replaceAll("\\.", "_") + ".so";
-            mBuiltinFile = new File(getUserBundlesPath(), soName);
+            mBuiltinFile = new File(sUserBundlesPath, soName);
             mPatchFile = new File(FileUtils.getDownloadBundlePath(), soName);
             mPackageName = pkg;
         }
@@ -504,6 +506,10 @@ public class Bundle {
     }
 
     private static void loadBundles(JSONArray bundleDescs) {
+        // Init context
+        sUserBundlesPath = Small.getContext().getApplicationInfo().nativeLibraryDir;
+        sIs64bit = sUserBundlesPath.contains("64");
+
         List<Bundle> bundles = new ArrayList<Bundle>(bundleDescs.length());
         for (int i = 0; i < bundleDescs.length(); i++) {
             try {

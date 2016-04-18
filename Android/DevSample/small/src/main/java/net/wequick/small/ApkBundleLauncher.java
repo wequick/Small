@@ -387,7 +387,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
             // Expand the native library directories if plugin has any JNIs. (#79)
             int abiFlags = parser.getABIFlags();
-            String abiPath = JNIUtils.getExtractABI(abiFlags);
+            String abiPath = JNIUtils.getExtractABI(abiFlags, Bundle.is64bit());
             if (abiPath != null) {
                 String libDir = FD_LIBRARY + File.separator + abiPath + File.separator;
                 File libPath = new File(packagePath, libDir);
