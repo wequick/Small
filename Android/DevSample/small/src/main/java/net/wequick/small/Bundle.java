@@ -69,6 +69,7 @@ public class Bundle {
 
     private static List<BundleLauncher> sBundleLaunchers = null;
     private static List<Bundle> sPreloadBundles = null;
+    private static File sPatchManifestFile = null;
 
     // Thread & Handler
     private static final int MSG_COMPLETE = 1;
@@ -122,54 +123,63 @@ public class Bundle {
      */
     public static void loadLaunchableBundles(Small.OnCompleteListener listener) {
         Context context = Small.getContext();
-        // Read manifest file
-        File manifestFile = new File(context.getFilesDir(), BUNDLE_MANIFEST_NAME);
-        manifestFile.delete();
-        String manifestJson;
-        if (!manifestFile.exists()) {
-            // Copy asset to files
-            try {
-                InputStream is = context.getAssets().open(BUNDLE_MANIFEST_NAME);
-                int size = is.available();
-                byte[] buffer = new byte[size];
-                is.read(buffer);
-                is.close();
 
-                manifestFile.createNewFile();
-                FileOutputStream os = new FileOutputStream(manifestFile);
-                os.write(buffer);
-                os.close();
+        if (listener == null) {
+            loadBundles(context);
+            return;
+        }
 
-                manifestJson = new String(buffer, 0, size);
-            } catch (IOException e) {
-                e.printStackTrace();
-                return;
-            }
-        } else {
-            try {
-                BufferedReader br = new BufferedReader(new FileReader(manifestFile));
+        // Asynchronous
+        if (sThread == null) {
+            sThread = new LoadBundleThread(context);
+            sHandler = new LoadBundleHandler(listener);
+            sThread.start();
+        }
+    }
+
+    private static File getPatchManifestFile() {
+        if (sPatchManifestFile == null) {
+            sPatchManifestFile = new File(Small.getContext().getFilesDir(), BUNDLE_MANIFEST_NAME);
+        }
+        return sPatchManifestFile;
+    }
+
+    private static void loadBundles(Context context) {
+        try {
+            // Read manifest file
+            String manifestJson;
+            File patchManifestFile = getPatchManifestFile();
+            if (patchManifestFile.exists()) {
+                // Load from patch
+                BufferedReader br = new BufferedReader(new FileReader(patchManifestFile));
                 StringBuilder sb = new StringBuilder();
                 String line;
                 while ((line = br.readLine()) != null) {
                     sb.append(line);
                 }
+
+                br.close();
                 manifestJson = sb.toString();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-                return;
-            } catch (IOException e) {
-                e.printStackTrace();
-                return;
+            } else {
+                // Load from built-in `assets/bundle.json'
+                InputStream builtinManifestStream = context.getAssets().open(BUNDLE_MANIFEST_NAME);
+                int builtinSize = builtinManifestStream.available();
+                byte[] buffer = new byte[builtinSize];
+                builtinManifestStream.read(buffer);
+                builtinManifestStream.close();
+                manifestJson = new String(buffer, 0, builtinSize);
             }
-        }
-        // Parse manifest file
-        try {
+
+            // Parse manifest file
             JSONObject jsonObject = new JSONObject(manifestJson);
             String version = jsonObject.getString("version");
-            loadManifest(version, jsonObject, listener);
+            loadManifest(version, jsonObject);
         } catch (JSONException e) {
             e.printStackTrace();
-            return;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -177,12 +187,11 @@ public class Bundle {
         return (sThread != null);
     }
 
-    private static boolean loadManifest(String version, JSONObject jsonObject,
-                                        Small.OnCompleteListener listener) {
+    private static boolean loadManifest(String version, JSONObject jsonObject) {
         if (version.equals("1.0.0")) {
             try {
                 JSONArray bundles = jsonObject.getJSONArray(BUNDLES_KEY);
-                loadBundles(bundles, listener);
+                loadBundles(bundles);
                 return true;
             } catch (JSONException e) {
                 return false;
@@ -190,20 +199,6 @@ public class Bundle {
         }
 
         throw new UnsupportedOperationException("Unknown version " + version);
-    }
-
-    private static void loadBundles(JSONArray bundles, Small.OnCompleteListener listener) {
-        if (listener == null) {
-            loadBundles(bundles);
-            return;
-        }
-
-        // Asynchronous
-        if (sThread == null) {
-            sThread = new LoadBundleThread(bundles);
-            sHandler = new LoadBundleHandler(listener);
-            sThread.start();
-        }
     }
 
     public static List<Bundle> getLaunchableBundles() {
@@ -493,15 +488,17 @@ public class Bundle {
     // Internal class
 
     private static class LoadBundleThread extends Thread {
-        JSONArray bundleDescs;
 
-        public LoadBundleThread(JSONArray bundles) {
-            this.bundleDescs = bundles;
+        Context mContext;
+
+        public LoadBundleThread(Context context) {
+            mContext = context;
         }
+
         @Override
         public void run() {
             // Instantiate bundle
-            loadBundles(bundleDescs);
+            loadBundles(mContext);
             sHandler.obtainMessage(MSG_COMPLETE).sendToTarget();
         }
     }
