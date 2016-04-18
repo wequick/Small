@@ -115,7 +115,7 @@ public class Bundle {
     }
 
     public static String getUserBundlesPath() {
-        return Small.getContext().getApplicationInfo().dataDir + "/lib/";
+        return Small.getContext().getApplicationInfo().nativeLibraryDir;
     }
 
     /**
@@ -315,7 +315,7 @@ public class Bundle {
         String pkg = map.getString("pkg");
         if (pkg != null && !pkg.equals(HOST_PACKAGE)) {
             String soName = "lib" + pkg.replaceAll("\\.", "_") + ".so";
-            mBuiltinFile = new File(Bundle.getUserBundlesPath(), soName);
+            mBuiltinFile = new File(getUserBundlesPath(), soName);
             mPatchFile = new File(FileUtils.getDownloadBundlePath(), soName);
             mPackageName = pkg;
         }
