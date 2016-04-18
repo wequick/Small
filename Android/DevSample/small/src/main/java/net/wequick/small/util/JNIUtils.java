@@ -50,11 +50,11 @@ public final class JNIUtils {
 
             String[] abis;
             if (Build.VERSION.SDK_INT >= 21) {
-                abis = Build.SUPPORTED_ABIS;
-                // FIXME: seems the emulator no support 64bit JNI?
-                if (abis[0].equals("x86_64")) {
-                    abis = Build.SUPPORTED_32_BIT_ABIS;
-                }
+                // Cause we stub all the bundle(*.so) in host's `armeabi' directory which is
+                // regard as 32 bit, and then System.loadLibrary cannot accept 64 bit ABIs.
+                // So we had to give up the support of 64 bit JNI in plugins.
+                // FIXME: any solution?
+                abis = Build.SUPPORTED_32_BIT_ABIS;
             } else if (Build.CPU_ABI2.equals(Build.UNKNOWN)) {
                 abis = new String[] { Build.CPU_ABI };
             } else {
