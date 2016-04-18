@@ -56,10 +56,8 @@ public final class Small {
     public static final int REQUEST_CODE_DEFAULT = 10000;
 
     private static final String SHARED_PREFERENCES_SMALL = "small";
-    private static final String SHARED_PREFERENCES_KEY_UPGRADE = "upgrade";
     private static final String SHARED_PREFERENCES_KEY_VERSION = "version";
     private static final String SHARED_PREFERENCES_BUNDLE_VERSIONS = "small.app-versions";
-    private static final String SHARED_PREFERENCES_BUNDLE_URLS = "small.app-urls";
     private static final String SHARED_PREFERENCES_BUNDLE_MODIFIES = "small.app-modifies";
     private static final String SHARED_PREFERENCES_BUNDLE_UPGRADES = "small.app-upgrades";
 
