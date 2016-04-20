@@ -79,7 +79,7 @@ public final class SymbolParser {
         }
 
         int typeId = Integer.parseInt(idStr.substring(4, 6), 16)
-        int entryId = Integer.parseInt(idStr.substring(7), 16)
+        int entryId = Integer.parseInt(idStr.substring(6), 16)
         int id = Integer.decode(idStr)
         return [vtype: vtype, type: type, key: key,
                 typeId: typeId, entryId: entryId, idStr: idStr, id: id, isStyleable: false]
