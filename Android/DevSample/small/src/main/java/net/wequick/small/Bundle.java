@@ -63,9 +63,9 @@ import java.util.List;
 public class Bundle {
     //______________________________________________________________________________
     // Fields
-    public static final String BUNDLE_MANIFEST_NAME = "bundle.json";
-    public static final String BUNDLES_KEY = "bundles";
-    public static final String HOST_PACKAGE = "main";
+    private static final String BUNDLE_MANIFEST_NAME = "bundle.json";
+    private static final String BUNDLES_KEY = "bundles";
+    private static final String HOST_PACKAGE = "main";
 
     private static List<BundleLauncher> sBundleLaunchers = null;
     private static List<Bundle> sPreloadBundles = null;
@@ -106,6 +106,11 @@ public class Bundle {
     //______________________________________________________________________________
     // Class methods
 
+    /**
+     * @deprecated Use {@link Small#getBundle} instead.
+     * @param name
+     * @return
+     */
     public static Bundle findByName(String name) {
         if (name == null) return null;
         if (sPreloadBundles == null) return null;
@@ -116,14 +121,14 @@ public class Bundle {
         return null;
     }
 
-    public static boolean is64bit() {
+    protected static boolean is64bit() {
         return sIs64bit;
     }
 
     /**
      * Load bundles from manifest
      */
-    public static void loadLaunchableBundles(Small.OnCompleteListener listener) {
+    protected static void loadLaunchableBundles(Small.OnCompleteListener listener) {
         Context context = Small.getContext();
 
         if (listener == null) {
@@ -185,7 +190,7 @@ public class Bundle {
         }
     }
 
-    public static Boolean isLoadingAsync() {
+    protected static Boolean isLoadingAsync() {
         return (sThread != null);
     }
 
@@ -203,25 +208,25 @@ public class Bundle {
         throw new UnsupportedOperationException("Unknown version " + version);
     }
 
-    public static List<Bundle> getLaunchableBundles() {
+    protected static List<Bundle> getLaunchableBundles() {
         return sPreloadBundles;
     }
 
-    public static void registerLauncher(BundleLauncher launcher) {
+    protected static void registerLauncher(BundleLauncher launcher) {
         if (sBundleLaunchers == null) {
             sBundleLaunchers = new ArrayList<BundleLauncher>();
         }
         sBundleLaunchers.add(launcher);
     }
 
-    public static void setupLaunchers(Context context) {
+    protected static void setupLaunchers(Context context) {
         if (sBundleLaunchers == null) return;
         for (BundleLauncher launcher : sBundleLaunchers) {
             launcher.setUp(context);
         }
     }
 
-    public static Bundle getLaunchableBundle(Uri uri) {
+    protected static Bundle getLaunchableBundle(Uri uri) {
         if (sPreloadBundles != null) {
             for (Bundle bundle : sPreloadBundles) {
                 if (bundle.matchesRule(uri)) {
@@ -348,7 +353,7 @@ public class Bundle {
         }
     }
 
-    public void prepareForLaunch() {
+    protected void prepareForLaunch() {
         if (mIntent != null) return;
 
         if (mApplicableLauncher == null && sBundleLaunchers != null) {
@@ -361,13 +366,13 @@ public class Bundle {
         }
     }
 
-    public void launchFrom(Context context) {
+    protected void launchFrom(Context context) {
         if (mApplicableLauncher != null) {
             mApplicableLauncher.launchBundle(this, context);
         }
     }
 
-    public Intent createIntent(Context context) {
+    protected Intent createIntent(Context context) {
         if (mApplicableLauncher == null) {
             prepareForLaunch();
         }
@@ -378,26 +383,26 @@ public class Bundle {
         return mIntent;
     }
 
-    public Intent getIntent() { return mIntent; }
-    public void setIntent(Intent intent) { mIntent = intent; }
+    protected Intent getIntent() { return mIntent; }
+    protected void setIntent(Intent intent) { mIntent = intent; }
 
-    public String getPackageName() {
+    protected String getPackageName() {
         return mPackageName;
     }
 
-    public Uri getUri() {
+    protected Uri getUri() {
         return uri;
     }
 
-    public void setURL(URL url) {
+    protected void setURL(URL url) {
         this.url = url;
     }
 
-    public URL getURL() {
+    protected URL getURL() {
         return url;
     }
 
-    public File getBuiltinFile() {
+    protected File getBuiltinFile() {
         return mBuiltinFile;
     }
 
@@ -405,56 +410,52 @@ public class Bundle {
         return mPatchFile;
     }
 
-    public void setPatchFile(File file) {
-        mPatchFile = file;
-    }
-
-    public String getType() {
+    protected String getType() {
         return type;
     }
 
-    public void setType(String type) {
+    protected void setType(String type) {
         this.type = type;
     }
 
-    public String getQuery() {
+    protected String getQuery() {
         return query;
     }
 
-    public void setQuery(String query) {
+    protected void setQuery(String query) {
         this.query = query;
     }
 
-    public String getPath() {
+    protected String getPath() {
         return path;
     }
 
-    public void setPath(String path) {
+    protected void setPath(String path) {
         this.path = path;
     }
 
-    public void setVersionCode(int versionCode) {
+    protected void setVersionCode(int versionCode) {
         this.versionCode = versionCode;
         Small.setBundleVersionCode(this.mPackageName, versionCode);
     }
 
-    public boolean isLaunchable() {
+    protected boolean isLaunchable() {
         return launchable && enabled;
     }
 
-    public void setLaunchable(boolean flag) {
+    protected void setLaunchable(boolean flag) {
         this.launchable = flag;
     }
 
-    public String getEntrance() {
+    protected String getEntrance() {
         return entrance;
     }
 
-    public void setEntrance(String entrance) {
+    protected void setEntrance(String entrance) {
         this.entrance = entrance;
     }
 
-    public <T> T createObject(Context context, String type) {
+    protected <T> T createObject(Context context, String type) {
         if (mApplicableLauncher == null) {
             prepareForLaunch();
         }
@@ -462,27 +463,27 @@ public class Bundle {
         return mApplicableLauncher.createObject(this, context, type);
     }
 
-    public boolean isEnabled() {
+    protected boolean isEnabled() {
         return enabled;
     }
 
-    public void setEnabled(boolean enabled) {
+    protected void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
 
-    public boolean isPatching() {
+    protected boolean isPatching() {
         return patching;
     }
 
-    public void setPatching(boolean patching) {
+    protected void setPatching(boolean patching) {
         this.patching = patching;
     }
 
-    public BundleParser getParser() {
+    protected BundleParser getParser() {
         return parser;
     }
 
-    public void setParser(BundleParser parser) {
+    protected void setParser(BundleParser parser) {
         this.parser = parser;
     }
 

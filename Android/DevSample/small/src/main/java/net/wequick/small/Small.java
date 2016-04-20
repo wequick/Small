@@ -135,6 +135,10 @@ public final class Small {
         Bundle.loadLaunchableBundles(listener);
     }
 
+    public static Bundle getBundle(String bundleName) {
+        return Bundle.findByName(bundleName);
+    }
+
     public static void setWebViewClient(WebViewClient client) {
         WebView.setWebViewClient(client);
     }
