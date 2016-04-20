@@ -23,4 +23,5 @@
 
 # Small
 -keep class net.wequick.small.Small { public *; }
+-keep class net.wequick.small.Bundle { public *; }
 -keep interface net.wequick.small.** { *; }
