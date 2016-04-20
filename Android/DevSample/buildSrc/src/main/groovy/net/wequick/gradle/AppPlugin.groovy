@@ -146,23 +146,31 @@ class AppPlugin extends BundlePlugin {
         // Fill extensions
         def variantName = variant.name.capitalize()
         def newDexTaskName = 'transformClassesWithDexFor' + variantName
-        def dexTask = project.hasProperty(newDexTaskName) ? project[newDexTaskName] : variant.dex
+        def dexTask = project.hasProperty(newDexTaskName) ? project.tasks[newDexTaskName] : variant.dex
+        File mergerDir = variant.mergeResources.incrementalFolder
+
         small.with {
             javac = variant.javaCompile
             dex = dexTask
-            processManifest = project['process' + variantName + 'Manifest']
+            processManifest = project.tasks['process' + variantName + 'Manifest']
 
-            packagePath = variant.applicationId.replaceAll('\\.', '/')
+            packageName = variant.applicationId
+            packagePath = packageName.replaceAll('\\.', '/')
             classesDir = javac.destinationDir
             bkClassesDir = new File(classesDir.parentFile, "${classesDir.name}~")
 
-            aapt = project['process' + variantName + 'Resources']
+            aapt = project.tasks['process' + variantName + 'Resources']
             apFile = aapt.packageOutputFile
 
-            symbolFile = new File(aapt.textSymbolOutputDir, 'R.txt')
-            rJavaFile = new File(aapt.sourceOutputDir, "${packagePath}/R.java")
+            File symbolDir = aapt.textSymbolOutputDir
+            File sourceDir = aapt.sourceOutputDir
 
-            mergerXml = new File(variant.mergeResources.incrementalFolder, 'merger.xml')
+            symbolFile = new File(symbolDir, 'R.txt')
+            rJavaFile = new File(sourceDir, "${packagePath}/R.java")
+
+            splitRJavaFile = new File(sourceDir.parentFile, "small/${packagePath}/R.java")
+
+            mergerXml = new File(mergerDir, 'merger.xml')
         }
 
         hookVariantTask()
@@ -419,6 +427,43 @@ class AppPlugin extends BundlePlugin {
         small.idStrMaps = staticIdStrMaps
         small.retainedTypes = retainedTypes
         small.retainedStyleables = retainedStyleables
+
+        if (pluginType == PluginType.Library) return
+
+        // Cause the app.* module may use R.xx of lib.*, collect all the resources here
+        // for generating a temporary full edition R.java which required in javac.
+        def allTypes = []
+        def allStyleables = []
+        def addedTypes = [:]
+        libEntries.each { k, e ->
+            if (e.isStyleable) {
+                allStyleables.add(e);
+            } else {
+                if (!addedTypes.containsKey(e.type)) {
+                    // New type
+                    currType = [type: e.vtype, name: e.type, entries: []]
+                    allTypes.add(currType)
+                    addedTypes.put(e.type, currType)
+                } else {
+                    currType = addedTypes[e.type]
+                }
+
+                def entry = [name: e.key, _vs: e.idStr]
+                currType.entries.add(entry)
+            }
+        }
+        retainedTypes.each { t ->
+            def at = addedTypes[t.name]
+            if (at != null) {
+                at.entries.addAll(t.entries)
+            } else {
+                allTypes.add(t)
+            }
+        }
+        allStyleables.addAll(retainedStyleables)
+
+        small.allTypes = allTypes
+        small.allStyleables = allStyleables
     }
 
     protected int getABIFlag() {
@@ -528,6 +573,21 @@ class AppPlugin extends BundlePlugin {
 
                 aapt.filterPackage(small.retainedTypes, small.packageId, small.idMaps,
                         small.retainedStyleables)
+
+                String pkg = small.packageName
+                if (small.allTypes == null) {
+                    // Overwrite the aapt-generated R.java with split edition
+                    aapt.generateRJava(small.rJavaFile, pkg,
+                            small.retainedTypes, small.retainedStyleables)
+                } else {
+                    // Overwrite the aapt-generated R.java with full edition
+                    aapt.generateRJava(small.rJavaFile, pkg, small.allTypes, small.allStyleables)
+
+                    // Also generate a split edition for later re-compiling
+                    aapt.generateRJava(small.splitRJavaFile, pkg,
+                            small.retainedTypes, small.retainedStyleables)
+                }
+
                 Log.success "[${project.name}] slice asset package and reset package id..."
             } else {
                 aapt.resetPackage(small.packageId, small.packageIdStr, small.idMaps)
@@ -558,6 +618,20 @@ class AppPlugin extends BundlePlugin {
                 into dstDir
             }
             tempDir.deleteDir()
+
+            if (small.splitRJavaFile.exists()) {
+                // Re-compile the split R.java to R.class
+                project.ant.javac(srcdir: small.splitRJavaFile.parentFile,
+                        source: it.sourceCompatibility,
+                        target: it.targetCompatibility,
+                        destdir: classesDir)
+                // Also needs to delete the original generated R$xx.class
+                dstDir.listFiles().each { f ->
+                    if (f.name.startsWith('R$')) {
+                        f.delete()
+                    }
+                }
+            }
 
             Log.success "[${project.name}] split library R.class files..."
         }

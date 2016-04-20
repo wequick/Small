@@ -29,6 +29,9 @@ public class AppExtension extends BundleExtension {
     /** Task of merge manifest */
     Task processManifest
 
+    /** Variant application id */
+    String packageName
+
     /** Package path for java classes */
     String packagePath
 
@@ -65,10 +68,19 @@ public class AppExtension extends BundleExtension {
     /** Paths of aar to retain */
     Set<Map> retainedAars
 
+    /** File of split R.java */
+    File splitRJavaFile
+
     LinkedHashMap<Integer, Integer> idMaps
     LinkedHashMap<String, String> idStrMaps
     ArrayList retainedTypes
     ArrayList retainedStyleables
+
+    /** List of all resource types */
+    ArrayList allTypes
+
+    /** List of all resource styleables */
+    ArrayList allStyleables
 
     AppExtension(Project project) {
         super(project)
