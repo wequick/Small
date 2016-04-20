@@ -493,25 +493,25 @@ class AppPlugin extends BundlePlugin {
         project.preBuild.doFirst {
             // Collect dependent AARs
             RootExtension rootExt = project.rootProject.small
-            def libAars = new HashSet() // the aars compiled in host or lib.*
+            def smallLibAars = new HashSet() // the aars compiled in host or lib.*
             rootExt.preLinkAarDir.listFiles().each { file ->
                 if (!file.name.endsWith('D.txt')) return
                 file.eachLine { line ->
                     def module = line.split(':')
-                    libAars.add(group: module[0], name: module[1], version: module[2])
+                    smallLibAars.add(group: module[0], name: module[1], version: module[2])
                 }
             }
-            def prjAars = new HashSet() // normal modules who's name does not match Small way - `*.*'
+            def userLibAars = new HashSet() // user modules who's name are not in Small way - `*.*'
             project.rootProject.subprojects {
                 if (it.name.startsWith('lib.')) {
-                    libAars.add(group: it.group, name: it.name, version: it.version)
+                    smallLibAars.add(group: it.group, name: it.name, version: it.version)
                 } else if (it.name != 'app' && it.name != 'small' && it.name.indexOf('.') < 0) {
-                    prjAars.add(group: it.group, name: it.name, version: it.version)
+                    userLibAars.add(group: it.group, name: it.name, version: it.version)
                 }
             }
 
-            small.splitAars = libAars
-            small.retainedAars = prjAars
+            small.splitAars = smallLibAars
+            small.retainedAars = userLibAars
         }
 
         // Hook process-manifest task to remove the `android:icon' and `android:label' attribute
