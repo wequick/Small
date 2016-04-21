@@ -43,10 +43,9 @@ abstract class BundlePlugin extends AndroidPlugin {
             // Copy host signing configs
             if (isBuildingRelease()) {
                 Project hostProject = project.rootProject.findProject('app')
-                hostProject.android.buildTypes.each {
-                    def bt = project.android.buildTypes[it.name]
-                    bt.signingConfig = it.signingConfig
-                }
+                def cs = hostProject.android.signingConfigs
+                def signingConfig = (cs.hasProperty('release')) ? cs.release : cs.debug
+                project.android.buildTypes.release.signingConfig = signingConfig
             }
         }
     }
