@@ -605,6 +605,7 @@ class AppPlugin extends BundlePlugin {
                     file.delete()
                 }
             }
+            Log.success "[${project.name}] split library R.java files..."
 
             // Repack resources.ap_
             project.ant.zip(baseDir: unzipApDir, destFile: apFile)
@@ -612,33 +613,24 @@ class AppPlugin extends BundlePlugin {
 
         // Hook javac task to split libraries' R.class
         small.javac.doLast {
-            File classesDir = it.destinationDir
-            File tempDir = new File(classesDir.parentFile, "${classesDir.name}~")
-            // Filter [package] classes
-            classesDir.renameTo(tempDir)
-            def srcDir = new File(tempDir, small.packagePath)
-            def dstDir = new File(classesDir, small.packagePath)
-            project.copy {
-                from project.fileTree(srcDir)
-                into dstDir
-            }
-            tempDir.deleteDir()
+            if (!small.splitRJavaFile.exists()) return
 
-            if (small.splitRJavaFile.exists()) {
-                // Re-compile the split R.java to R.class
-                project.ant.javac(srcdir: small.splitRJavaFile.parentFile,
-                        source: it.sourceCompatibility,
-                        target: it.targetCompatibility,
-                        destdir: classesDir)
-                // Also needs to delete the original generated R$xx.class
-                dstDir.listFiles().each { f ->
-                    if (f.name.startsWith('R$')) {
-                        f.delete()
-                    }
+            File classesDir = it.destinationDir
+            File dstDir = new File(classesDir, small.packagePath)
+
+            // Re-compile the split R.java to R.class
+            project.ant.javac(srcdir: small.splitRJavaFile.parentFile,
+                    source: it.sourceCompatibility,
+                    target: it.targetCompatibility,
+                    destdir: classesDir)
+            // Also needs to delete the original generated R$xx.class
+            dstDir.listFiles().each { f ->
+                if (f.name.startsWith('R$')) {
+                    f.delete()
                 }
             }
 
-            Log.success "[${project.name}] split library R.class files..."
+            Log.success "[${project.name}] re-generate(slice) R.class..."
         }
 
         // Hook dex task to split all aar classes.jar
