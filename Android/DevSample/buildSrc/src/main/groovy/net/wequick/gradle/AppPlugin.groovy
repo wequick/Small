@@ -433,8 +433,9 @@ class AppPlugin extends BundlePlugin {
 
         if (pluginType == PluginType.Library) return
 
-        // Cause the app.* module may use R.xx of lib.*, collect all the resources here
-        // for generating a temporary full edition R.java which required in javac.
+        // Cause the source of app.* module may use R.xx of lib.*, we need to collect all the
+        // resources here for generating a temporary full edition R.java which required in javac.
+        // TODO: Do this only for the modules who's code really use R.xx of lib.*
         def allTypes = []
         def allStyleables = []
         def addedTypes = [:]
@@ -630,7 +631,7 @@ class AppPlugin extends BundlePlugin {
                 }
             }
 
-            Log.success "[${project.name}] re-generate(slice) R.class..."
+            Log.success "[${project.name}] split R.class..."
         }
 
         // Hook dex task to split all aar classes.jar
