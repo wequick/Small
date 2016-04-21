@@ -1,3 +1,20 @@
+## 0.9.0 (2016-04-21)
+
+Performance:
+
+  - 改进资源hook，一步到位，无需每次在创建插件Activity时反射修改其Resources与应用主题
+  - 改进插件ActivityInfo hook，增加targetActivity属性以利用系统源码自动回复真身
+  - 将bundle.json解析放入线程，移除部分同步I/O操作，提高首次启动速度
+
+Bugfixes:
+
+  - 修正插件ABI 32位与64位冲突问题
+
+Others:
+
+  - 最小支持版本升至2.3，API 9
+  - 重构部分接口以支持ProGuard
+
 ## 0.8.0 (2016-04-12)
 
 Features:
