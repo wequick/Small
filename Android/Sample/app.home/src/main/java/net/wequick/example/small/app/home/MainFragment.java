@@ -105,8 +105,7 @@ public class MainFragment extends Fragment {
                 @Override
                 public void onResponse(Object object) {
                     UpgradeInfo info = (UpgradeInfo) object;
-                    final net.wequick.small.Bundle bundle =
-                            net.wequick.small.Bundle.findByName(info.packageName);
+                    final net.wequick.small.Bundle bundle = Small.getBundle(info.packageName);
                     mProgressDlg.setMessage("Upgrading...");
                     upgradeBundle(bundle, info.downloadUrl, bundle.getPatchFile(),
                             new OnUpgradeListener() {
