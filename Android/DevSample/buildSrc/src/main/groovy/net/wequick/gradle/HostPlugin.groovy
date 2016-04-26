@@ -20,7 +20,7 @@ class HostPlugin extends AndroidPlugin {
             } else {
                 project.android.sourceSets.main.jniLibs.srcDirs += SMALL_LIBS
             }
-            // If contains release signing config, all bundles will be sign with it,
+            // If contains release signing config, all bundles will be signed with it,
             // copy the config to debug type to ensure the signature-validating works
             // while launching application from IDE.
             def releaseSigningConfig = project.android.buildTypes.release.signingConfig
@@ -44,6 +44,7 @@ class HostPlugin extends AndroidPlugin {
     protected void createTask() {
         super.createTask()
 
+        project.task('cleanLib', dependsOn: 'clean')
         project.task('buildLib')
     }
 

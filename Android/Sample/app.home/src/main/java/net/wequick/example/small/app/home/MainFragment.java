@@ -38,6 +38,15 @@ public class MainFragment extends Fragment {
                 Small.openUri("detail?from=app.home", getContext());
             }
         });
+
+        button = (Button) rootView.findViewById(R.id.btnSubDetail);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Small.openUri("detail/sub", getContext());
+            }
+        });
+
         button = (Button) rootView.findViewById(R.id.btnAbout);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -96,8 +105,7 @@ public class MainFragment extends Fragment {
                 @Override
                 public void onResponse(Object object) {
                     UpgradeInfo info = (UpgradeInfo) object;
-                    final net.wequick.small.Bundle bundle =
-                            net.wequick.small.Bundle.findByName(info.packageName);
+                    final net.wequick.small.Bundle bundle = Small.getBundle(info.packageName);
                     mProgressDlg.setMessage("Upgrading...");
                     upgradeBundle(bundle, info.downloadUrl, bundle.getPatchFile(),
                             new OnUpgradeListener() {

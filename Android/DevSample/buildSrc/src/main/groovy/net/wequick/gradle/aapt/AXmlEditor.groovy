@@ -34,17 +34,6 @@ public class AXmlEditor extends AssetEditor {
         return isEdited()
     }
 
-    /**
-     * Slice resources and reset package id, only for `AndroidManifest.xml'
-     * @param pp
-     * @param idMaps
-     * @param retainedTypes
-     */
-    def slice(int pp, Map idMaps, List retainedTypes) {
-        // TODO: slice resources exclude `retainedTypes'
-        println retainedTypes
-    }
-
     private def setPackageIdRecursive(int pp, Map idMaps, long size) {
         if (tellp() >= size) return
         def chunk = readChunkHeader()

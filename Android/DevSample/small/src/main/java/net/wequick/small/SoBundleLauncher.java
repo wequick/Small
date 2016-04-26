@@ -71,7 +71,7 @@ public abstract class SoBundleLauncher extends BundleLauncher {
         File patch = bundle.getPatchFile();
         BundleParser patchParser = BundleParser.parsePackage(patch, packageName);
         if (patchParser != null) { // has
-            if (patchParser.getPackageInfo().versionCode < parser.getPackageInfo().versionCode) {
+            if (patchParser.getPackageInfo().versionCode <= parser.getPackageInfo().versionCode) {
                 Log.d(TAG, "Patch file should be later than built-in!");
                 patch.delete();
             } else {

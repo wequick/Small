@@ -12,6 +12,7 @@ import android.content.res.XmlResourceParser;
 import android.os.PatternMatcher;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.TypedValue;
 
 import net.wequick.small.Small;
 
@@ -60,9 +61,12 @@ public class BundleParser {
             public static final int AndroidManifest_versionCode = 0;
             public static final int AndroidManifest_versionName = 1;
             // application
-            public static int[] AndroidManifestApplication = {0x01010000, 0x01010003};
+            public static int[] AndroidManifestApplication = {
+                    0x01010000, 0x01010001, 0x01010003
+            };
             public static int AndroidManifestApplication_theme = 0;
-            public static int AndroidManifestApplication_name = 1;
+            public static int AndroidManifestApplication_label = 1; // for ABIs
+            public static int AndroidManifestApplication_name = 2;
             // activity
             public static int[] AndroidManifestActivity = {
                     0x01010000, 0x01010001, 0x01010002, 0x01010003,
@@ -97,6 +101,7 @@ public class BundleParser {
     private XmlResourceParser parser;
     private Resources res;
     private ConcurrentHashMap<String, List<IntentFilter>> mIntentFilters;
+    private int mABIFlags;
 
     public BundleParser(File sourceFile, String packageName) {
         mArchiveSourcePath = sourceFile.getPath();
@@ -166,15 +171,30 @@ public class BundleParser {
 
                 String tagName = parser.getName();
                 if (tagName.equals("application")) {
-                    ApplicationInfo app = new ApplicationInfo();
+                    ApplicationInfo app = new ApplicationInfo(
+                            Small.getContext().getApplicationInfo());
+
                     sa = res.obtainAttributes(attrs,
                             R.styleable.AndroidManifestApplication);
 
                     String name = sa.getString(
                             R.styleable.AndroidManifestApplication_name);
                     if (name != null) {
-                        app.name = app.className = name.intern();
+                        app.className = name.intern();
+                    } else {
+                        app.className = null;
                     }
+
+                    // Get the label value which used as ABI flags
+                    TypedValue label = new TypedValue();
+                    if (sa.getValue(R.styleable.AndroidManifestApplication_label, label)) {
+                        if (label.type == TypedValue.TYPE_STRING) {
+                            mABIFlags = Integer.parseInt(label.string.toString());
+                        } else {
+                            mABIFlags = label.data;
+                        }
+                    }
+
                     app.theme = sa.getResourceId(
                             R.styleable.AndroidManifestApplication_theme, 0);
                     mPackageInfo.applicationInfo = app;
@@ -211,12 +231,13 @@ public class BundleParser {
                 // <activity ...
                 ActivityInfo ai = new ActivityInfo();
                 ai.applicationInfo = mPackageInfo.applicationInfo;
+                ai.packageName = ai.applicationInfo.packageName;
 
                 TypedArray sa = res.obtainAttributes(attrs,
                         R.styleable.AndroidManifestActivity);
                 String name = sa.getString(R.styleable.AndroidManifestActivity_name);
                 if (name != null) {
-                    ai.name = buildClassName(mPackageName, name);
+                    ai.name = ai.targetActivity = buildClassName(mPackageName, name);
                 }
                 ai.labelRes = sa.getResourceId(R.styleable.AndroidManifestActivity_label, 0);
                 ai.icon = sa.getResourceId(R.styleable.AndroidManifestActivity_icon, 0);
@@ -531,5 +552,9 @@ public class BundleParser {
 
     public ConcurrentHashMap<String, List<IntentFilter>> getIntentFilters() {
         return mIntentFilters;
+    }
+
+    public int getABIFlags() {
+        return mABIFlags;
     }
 }

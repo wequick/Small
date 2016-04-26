@@ -19,16 +19,13 @@ package net.wequick.small;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.Application;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.support.v4.content.LocalBroadcastManager;
 
 import net.wequick.small.util.ApplicationUtils;
 import net.wequick.small.webkit.JsHandler;
@@ -53,17 +50,16 @@ import java.util.Map;
  * </ul>
  */
 public final class Small {
-    public static final String EVENT_OPENURI = "small-open";
+
     public static final String KEY_QUERY = "small-query";
     public static final String EXTRAS_KEY_RET = "small-ret";
-    public static final String SHARED_PREFERENCES_SMALL = "small";
-    public static final String SHARED_PREFERENCES_KEY_UPGRADE = "upgrade";
-    public static final String SHARED_PREFERENCES_KEY_VERSION = "version";
-    public static final String SHARED_PREFERENCES_BUNDLE_VERSIONS = "small.app-versions";
-    public static final String SHARED_PREFERENCES_BUNDLE_URLS = "small.app-urls";
-    public static final String SHARED_PREFERENCES_BUNDLE_MODIFIES = "small.app-modifies";
-    public static final String SHARED_PREFERENCES_BUNDLE_UPGRADES = "small.app-upgrades";
     public static final int REQUEST_CODE_DEFAULT = 10000;
+
+    private static final String SHARED_PREFERENCES_SMALL = "small";
+    private static final String SHARED_PREFERENCES_KEY_VERSION = "version";
+    private static final String SHARED_PREFERENCES_BUNDLE_VERSIONS = "small.app-versions";
+    private static final String SHARED_PREFERENCES_BUNDLE_MODIFIES = "small.app-modifies";
+    private static final String SHARED_PREFERENCES_BUNDLE_UPGRADES = "small.app-upgrades";
 
     private static Context sContext = null;
     private static String sBaseUri = ""; // base url of uri
@@ -101,10 +97,6 @@ public final class Small {
         PackageManager pm = context.getPackageManager();
         String packageName = context.getPackageName();
 
-        // Register the local broadcast (Incubating)
-        LocalBroadcastManager.getInstance(context).registerReceiver(new OpenUriReceiver(),
-                new IntentFilter(EVENT_OPENURI));
-
         // Check if host app is first-installed or upgraded
         int backupHostVersion = getHostVersionCode();
         int currHostVersion = 0;
@@ -114,10 +106,10 @@ public final class Small {
         } catch (PackageManager.NameNotFoundException ignored) {
             // Never reach
         }
+
         if (backupHostVersion != currHostVersion) {
             sIsNewHostApp = true;
             setHostVersionCode(currHostVersion);
-            clearAppCache(context);
         } else {
             sIsNewHostApp = false;
         }
@@ -143,6 +135,10 @@ public final class Small {
         Bundle.loadLaunchableBundles(listener);
     }
 
+    public static Bundle getBundle(String bundleName) {
+        return Bundle.findByName(bundleName);
+    }
+
     public static void setWebViewClient(WebViewClient client) {
         WebView.setWebViewClient(client);
     }
@@ -165,38 +161,7 @@ public final class Small {
         SharedPreferences small = getContext().getSharedPreferences(SHARED_PREFERENCES_SMALL, 0);
         SharedPreferences.Editor editor = small.edit();
         editor.putInt(SHARED_PREFERENCES_KEY_VERSION, versionCode);
-        editor.commit();
-    }
-
-    public static boolean getNeedsUpgradeBundle() {
-        return getContext().getSharedPreferences(SHARED_PREFERENCES_SMALL, 0).
-                getBoolean(SHARED_PREFERENCES_KEY_UPGRADE, false);
-    }
-
-    public static void setNeedsUpgradeBundle(boolean flag) {
-        SharedPreferences small = getContext().getSharedPreferences(SHARED_PREFERENCES_SMALL, 0);
-        SharedPreferences.Editor editor = small.edit();
-        editor.putBoolean(SHARED_PREFERENCES_KEY_UPGRADE, flag);
-        editor.commit();
-    }
-
-    public static Map<String, String> getBundleUpgradeUrls() {
-        return (Map<String, String>) getContext().
-                getSharedPreferences(SHARED_PREFERENCES_BUNDLE_URLS, 0).getAll();
-    }
-
-    public static void setBundleUpgradeUrls(Map<String, String> urls) {
-        SharedPreferences sp = getContext().getSharedPreferences(SHARED_PREFERENCES_BUNDLE_URLS, 0);
-        SharedPreferences.Editor editor = sp.edit();
-        editor.clear();
-        if (urls != null) {
-            Iterator<Map.Entry<String, String>> it = urls.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry<String, String> entry = it.next();
-                editor.putString(entry.getKey(), entry.getValue());
-            }
-        }
-        editor.commit();
+        editor.apply();
     }
 
     public static void setBundleVersionCode(String bundleName, int versionCode) {
@@ -204,7 +169,7 @@ public final class Small {
                 getSharedPreferences(SHARED_PREFERENCES_BUNDLE_VERSIONS, 0);
         SharedPreferences.Editor editor = bundlesInfo.edit();
         editor.putInt(bundleName, versionCode);
-        editor.commit();
+        editor.apply();
     }
 
     public static void setBundleLastModified(String bundleName, long lastModified) {
@@ -212,7 +177,7 @@ public final class Small {
                 getSharedPreferences(SHARED_PREFERENCES_BUNDLE_MODIFIES, 0);
         SharedPreferences.Editor editor = sp.edit();
         editor.putLong(bundleName, lastModified);
-        editor.commit();
+        editor.apply();
     }
 
     public static long getBundleLastModified(String bundleName) {
@@ -227,7 +192,7 @@ public final class Small {
                 getSharedPreferences(SHARED_PREFERENCES_BUNDLE_UPGRADES, 0);
         SharedPreferences.Editor editor = sp.edit();
         editor.putBoolean(bundleName, flag);
-        editor.commit();
+        editor.apply();
     }
 
     public static boolean getBundleUpgraded(String bundleName) {
@@ -319,27 +284,6 @@ public final class Small {
 
     public static void setWebActivityTheme(int webActivityTheme) {
         sWebActivityTheme = webActivityTheme;
-    }
-
-    private static class OpenUriReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String uri = intent.getStringExtra("uri");
-            openUri(Uri.parse(uri), context);
-        }
-    }
-
-    /**
-     * Clear cache for application
-     */
-    public static void clearAppCache(Context context) {
-        File file = context.getCacheDir();
-        if (file != null && file.exists() && file.isDirectory()) {
-            for (File item : file.listFiles()) {
-                item.delete();
-            }
-            file.delete();
-        }
     }
 
     //______________________________________________________________________________________________

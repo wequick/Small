@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.example.hellojni.HelloPluginJni;
 import com.example.mylib.Greet;
 import net.wequick.example.small.lib.utils.UIUtils;
 
@@ -31,7 +32,7 @@ public class MainFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         TextView tvSection = (TextView) rootView.findViewById(R.id.section_label);
         tvSection.setText(R.string.hello);
-        tvSection.setTextColor(getResources().getColor(net.wequick.example.small.lib.utils.R.color.my_test_color2));
+        tvSection.setTextColor(getResources().getColor(R.color.my_test_color2));
 
         Button button = (Button) rootView.findViewById(R.id.inter_start_button);
         button.setOnClickListener(new View.OnClickListener() {
@@ -68,6 +69,9 @@ public class MainFragment extends Fragment {
 
         TextView tvLib = (TextView) rootView.findViewById(R.id.lib_label);
         tvLib.setText(Greet.hello());
+
+        TextView tvJni = (TextView) rootView.findViewById(R.id.jni_label);
+        tvJni.setText(HelloPluginJni.stringFromJNI());
 
         return rootView;
     }

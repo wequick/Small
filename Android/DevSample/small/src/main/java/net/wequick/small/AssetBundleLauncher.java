@@ -68,7 +68,7 @@ public abstract class AssetBundleLauncher extends SoBundleLauncher {
         }
         if (needsUnzip) {
             try {
-                FileUtils.unZipFolder(plugin, unzipDir.getPath());
+                FileUtils.unZipFolder(plugin, unzipDir);
             } catch (Exception e) {
                 Log.e(TAG, "Failed to unzip plugin: " + plugin);
                 return;
@@ -86,7 +86,7 @@ public abstract class AssetBundleLauncher extends SoBundleLauncher {
         File patchPlugin = bundle.getPatchFile();
         if (patchPlugin.exists() && SignUtils.verifyPlugin(patchPlugin)) {
             try {
-                FileUtils.unZipFolder(plugin, unzipDir.getPath());
+                FileUtils.unZipFolder(plugin, unzipDir);
                 patchPlugin.delete();
             } catch (Exception ignored) {
                 Log.e(TAG, "Failed to overlay patch for bundle " + packageName);

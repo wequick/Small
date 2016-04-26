@@ -37,6 +37,9 @@ class AndroidPlugin extends BasePlugin {
     protected void configureReleaseVariant(variant) {
         // Init default output file (*.apk)
         small.outputFile = variant.outputs[0].outputFile
+        small.explodeAarDirs = project.tasks.findAll {
+            it.hasProperty('explodedDir')
+        }.collect { it.explodedDir }
 
         // Hook variant tasks
         variant.assemble.doLast {

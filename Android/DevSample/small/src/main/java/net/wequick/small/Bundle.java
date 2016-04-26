@@ -63,12 +63,15 @@ import java.util.List;
 public class Bundle {
     //______________________________________________________________________________
     // Fields
-    public static final String BUNDLE_MANIFEST_NAME = "bundle.json";
-    public static final String BUNDLES_KEY = "bundles";
-    public static final String HOST_PACKAGE = "main";
+    private static final String BUNDLE_MANIFEST_NAME = "bundle.json";
+    private static final String BUNDLES_KEY = "bundles";
+    private static final String HOST_PACKAGE = "main";
 
     private static List<BundleLauncher> sBundleLaunchers = null;
     private static List<Bundle> sPreloadBundles = null;
+    private static File sPatchManifestFile = null;
+    private static String sUserBundlesPath = null;
+    private static boolean sIs64bit = false;
 
     // Thread & Handler
     private static final int MSG_COMPLETE = 1;
@@ -103,6 +106,11 @@ public class Bundle {
     //______________________________________________________________________________
     // Class methods
 
+    /**
+     * @deprecated Use {@link Small#getBundle} instead.
+     * @param name
+     * @return
+     */
     public static Bundle findByName(String name) {
         if (name == null) return null;
         if (sPreloadBundles == null) return null;
@@ -113,76 +121,84 @@ public class Bundle {
         return null;
     }
 
-    public static String getUserBundlesPath() {
-        return Small.getContext().getApplicationInfo().dataDir + "/lib/";
+    protected static boolean is64bit() {
+        return sIs64bit;
     }
 
     /**
      * Load bundles from manifest
      */
-    public static void loadLaunchableBundles(Small.OnCompleteListener listener) {
+    protected static void loadLaunchableBundles(Small.OnCompleteListener listener) {
         Context context = Small.getContext();
-        // Read manifest file
-        File manifestFile = new File(context.getFilesDir(), BUNDLE_MANIFEST_NAME);
-        manifestFile.delete();
-        String manifestJson;
-        if (!manifestFile.exists()) {
-            // Copy asset to files
-            try {
-                InputStream is = context.getAssets().open(BUNDLE_MANIFEST_NAME);
-                int size = is.available();
-                byte[] buffer = new byte[size];
-                is.read(buffer);
-                is.close();
 
-                manifestFile.createNewFile();
-                FileOutputStream os = new FileOutputStream(manifestFile);
-                os.write(buffer);
-                os.close();
+        if (listener == null) {
+            loadBundles(context);
+            return;
+        }
 
-                manifestJson = new String(buffer, 0, size);
-            } catch (IOException e) {
-                e.printStackTrace();
-                return;
-            }
-        } else {
-            try {
-                BufferedReader br = new BufferedReader(new FileReader(manifestFile));
+        // Asynchronous
+        if (sThread == null) {
+            sThread = new LoadBundleThread(context);
+            sHandler = new LoadBundleHandler(listener);
+            sThread.start();
+        }
+    }
+
+    private static File getPatchManifestFile() {
+        if (sPatchManifestFile == null) {
+            sPatchManifestFile = new File(Small.getContext().getFilesDir(), BUNDLE_MANIFEST_NAME);
+        }
+        return sPatchManifestFile;
+    }
+
+    private static void loadBundles(Context context) {
+        try {
+            // Read manifest file
+            String manifestJson;
+            File patchManifestFile = getPatchManifestFile();
+            if (patchManifestFile.exists()) {
+                // Load from patch
+                BufferedReader br = new BufferedReader(new FileReader(patchManifestFile));
                 StringBuilder sb = new StringBuilder();
                 String line;
                 while ((line = br.readLine()) != null) {
                     sb.append(line);
                 }
+
+                br.close();
                 manifestJson = sb.toString();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-                return;
-            } catch (IOException e) {
-                e.printStackTrace();
-                return;
+            } else {
+                // Load from built-in `assets/bundle.json'
+                InputStream builtinManifestStream = context.getAssets().open(BUNDLE_MANIFEST_NAME);
+                int builtinSize = builtinManifestStream.available();
+                byte[] buffer = new byte[builtinSize];
+                builtinManifestStream.read(buffer);
+                builtinManifestStream.close();
+                manifestJson = new String(buffer, 0, builtinSize);
             }
-        }
-        // Parse manifest file
-        try {
+
+            // Parse manifest file
             JSONObject jsonObject = new JSONObject(manifestJson);
             String version = jsonObject.getString("version");
-            loadManifest(version, jsonObject, listener);
+            loadManifest(version, jsonObject);
         } catch (JSONException e) {
             e.printStackTrace();
-            return;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
-    public static Boolean isLoadingAsync() {
+    protected static Boolean isLoadingAsync() {
         return (sThread != null);
     }
 
-    private static boolean loadManifest(String version, JSONObject jsonObject,
-                                        Small.OnCompleteListener listener) {
+    private static boolean loadManifest(String version, JSONObject jsonObject) {
         if (version.equals("1.0.0")) {
             try {
                 JSONArray bundles = jsonObject.getJSONArray(BUNDLES_KEY);
-                loadBundles(bundles, listener);
+                loadBundles(bundles);
                 return true;
             } catch (JSONException e) {
                 return false;
@@ -192,39 +208,25 @@ public class Bundle {
         throw new UnsupportedOperationException("Unknown version " + version);
     }
 
-    private static void loadBundles(JSONArray bundles, Small.OnCompleteListener listener) {
-        if (listener == null) {
-            loadBundles(bundles);
-            return;
-        }
-
-        // Asynchronous
-        if (sThread == null) {
-            sThread = new LoadBundleThread(bundles);
-            sHandler = new LoadBundleHandler(listener);
-            sThread.start();
-        }
-    }
-
-    public static List<Bundle> getLaunchableBundles() {
+    protected static List<Bundle> getLaunchableBundles() {
         return sPreloadBundles;
     }
 
-    public static void registerLauncher(BundleLauncher launcher) {
+    protected static void registerLauncher(BundleLauncher launcher) {
         if (sBundleLaunchers == null) {
             sBundleLaunchers = new ArrayList<BundleLauncher>();
         }
         sBundleLaunchers.add(launcher);
     }
 
-    public static void setupLaunchers(Context context) {
+    protected static void setupLaunchers(Context context) {
         if (sBundleLaunchers == null) return;
         for (BundleLauncher launcher : sBundleLaunchers) {
             launcher.setUp(context);
         }
     }
 
-    public static Bundle getLaunchableBundle(Uri uri) {
+    protected static Bundle getLaunchableBundle(Uri uri) {
         if (sPreloadBundles != null) {
             for (Bundle bundle : sPreloadBundles) {
                 if (bundle.matchesRule(uri)) {
@@ -320,7 +322,7 @@ public class Bundle {
         String pkg = map.getString("pkg");
         if (pkg != null && !pkg.equals(HOST_PACKAGE)) {
             String soName = "lib" + pkg.replaceAll("\\.", "_") + ".so";
-            mBuiltinFile = new File(Bundle.getUserBundlesPath(), soName);
+            mBuiltinFile = new File(sUserBundlesPath, soName);
             mPatchFile = new File(FileUtils.getDownloadBundlePath(), soName);
             mPackageName = pkg;
         }
@@ -351,7 +353,7 @@ public class Bundle {
         }
     }
 
-    public void prepareForLaunch() {
+    protected void prepareForLaunch() {
         if (mIntent != null) return;
 
         if (mApplicableLauncher == null && sBundleLaunchers != null) {
@@ -364,13 +366,13 @@ public class Bundle {
         }
     }
 
-    public void launchFrom(Context context) {
+    protected void launchFrom(Context context) {
         if (mApplicableLauncher != null) {
             mApplicableLauncher.launchBundle(this, context);
         }
     }
 
-    public Intent createIntent(Context context) {
+    protected Intent createIntent(Context context) {
         if (mApplicableLauncher == null) {
             prepareForLaunch();
         }
@@ -381,26 +383,26 @@ public class Bundle {
         return mIntent;
     }
 
-    public Intent getIntent() { return mIntent; }
-    public void setIntent(Intent intent) { mIntent = intent; }
+    protected Intent getIntent() { return mIntent; }
+    protected void setIntent(Intent intent) { mIntent = intent; }
 
-    public String getPackageName() {
+    protected String getPackageName() {
         return mPackageName;
     }
 
-    public Uri getUri() {
+    protected Uri getUri() {
         return uri;
     }
 
-    public void setURL(URL url) {
+    protected void setURL(URL url) {
         this.url = url;
     }
 
-    public URL getURL() {
+    protected URL getURL() {
         return url;
     }
 
-    public File getBuiltinFile() {
+    protected File getBuiltinFile() {
         return mBuiltinFile;
     }
 
@@ -408,56 +410,52 @@ public class Bundle {
         return mPatchFile;
     }
 
-    public void setPatchFile(File file) {
-        mPatchFile = file;
-    }
-
-    public String getType() {
+    protected String getType() {
         return type;
     }
 
-    public void setType(String type) {
+    protected void setType(String type) {
         this.type = type;
     }
 
-    public String getQuery() {
+    protected String getQuery() {
         return query;
     }
 
-    public void setQuery(String query) {
+    protected void setQuery(String query) {
         this.query = query;
     }
 
-    public String getPath() {
+    protected String getPath() {
         return path;
     }
 
-    public void setPath(String path) {
+    protected void setPath(String path) {
         this.path = path;
     }
 
-    public void setVersionCode(int versionCode) {
+    protected void setVersionCode(int versionCode) {
         this.versionCode = versionCode;
         Small.setBundleVersionCode(this.mPackageName, versionCode);
     }
 
-    public boolean isLaunchable() {
+    protected boolean isLaunchable() {
         return launchable && enabled;
     }
 
-    public void setLaunchable(boolean flag) {
+    protected void setLaunchable(boolean flag) {
         this.launchable = flag;
     }
 
-    public String getEntrance() {
+    protected String getEntrance() {
         return entrance;
     }
 
-    public void setEntrance(String entrance) {
+    protected void setEntrance(String entrance) {
         this.entrance = entrance;
     }
 
-    public <T> T createObject(Context context, String type) {
+    protected <T> T createObject(Context context, String type) {
         if (mApplicableLauncher == null) {
             prepareForLaunch();
         }
@@ -465,27 +463,27 @@ public class Bundle {
         return mApplicableLauncher.createObject(this, context, type);
     }
 
-    public boolean isEnabled() {
+    protected boolean isEnabled() {
         return enabled;
     }
 
-    public void setEnabled(boolean enabled) {
+    protected void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
 
-    public boolean isPatching() {
+    protected boolean isPatching() {
         return patching;
     }
 
-    public void setPatching(boolean patching) {
+    protected void setPatching(boolean patching) {
         this.patching = patching;
     }
 
-    public BundleParser getParser() {
+    protected BundleParser getParser() {
         return parser;
     }
 
-    public void setParser(BundleParser parser) {
+    protected void setParser(BundleParser parser) {
         this.parser = parser;
     }
 
@@ -493,20 +491,26 @@ public class Bundle {
     // Internal class
 
     private static class LoadBundleThread extends Thread {
-        JSONArray bundleDescs;
 
-        public LoadBundleThread(JSONArray bundles) {
-            this.bundleDescs = bundles;
+        Context mContext;
+
+        public LoadBundleThread(Context context) {
+            mContext = context;
         }
+
         @Override
         public void run() {
             // Instantiate bundle
-            loadBundles(bundleDescs);
+            loadBundles(mContext);
             sHandler.obtainMessage(MSG_COMPLETE).sendToTarget();
         }
     }
 
     private static void loadBundles(JSONArray bundleDescs) {
+        // Init context
+        sUserBundlesPath = Small.getContext().getApplicationInfo().nativeLibraryDir;
+        sIs64bit = sUserBundlesPath.contains("64");
+
         List<Bundle> bundles = new ArrayList<Bundle>(bundleDescs.length());
         for (int i = 0; i < bundleDescs.length(); i++) {
             try {
@@ -522,6 +526,11 @@ public class Bundle {
         // Prepare bundle
         for (Bundle bundle : bundles) {
             bundle.prepareForLaunch();
+        }
+
+        // Notify `postSetUp' to all launchers
+        for (BundleLauncher launcher : sBundleLaunchers) {
+            launcher.postSetUp();
         }
     }
 

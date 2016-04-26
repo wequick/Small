@@ -26,12 +26,16 @@
         android:layout_below="@id/assets_label"
         android:layout_height="wrap_content" />
 
+    <TextView android:id="@+id/jni_label" android:layout_width="wrap_content"
+        android:layout_below="@id/lib_label"
+        android:layout_height="wrap_content" />
+
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/inter_start_button"
         android:text="@string/inter_start"
-        android:layout_below="@id/lib_label"
+        android:layout_below="@id/jni_label"
         android:textAllCaps="false" />
 
     <Button

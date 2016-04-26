@@ -113,11 +113,9 @@ class RootPlugin extends BasePlugin {
             }
         }
         //  - copy dependencies jars
-        lib.tasks.findAll {
-            it.hasProperty('explodedDir')
-        }.each {
+        ext.explodeAarDirs.each {
             // explodedDir: **/exploded-aar/$group/$artifact/$version
-            File version = it.explodedDir
+            File version = it
             File jarFile = new File(version, 'jars/classes.jar')
             if (!jarFile.exists()) return
 

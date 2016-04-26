@@ -2,7 +2,8 @@ include ':small',
         ':app',
         ':app.main', ':app.home', ':app.detail', ':app.mine',
         ':web.about',
-        ':lib.utils', ':lib.style', ':lib.afterutils'
+        ':lib.utils', ':lib.style', ':lib.afterutils',
+        ':jni_plugin'
 
 project(':app').projectDir = new File('../Sample/app')
 project(':app.main').projectDir = new File('../Sample/app.main')
@@ -13,3 +14,4 @@ project(':lib.style').projectDir = new File('../Sample/lib.style')
 project(':lib.utils').projectDir = new File('../Sample/lib.utils')
 project(':lib.afterutils').projectDir = new File('../Sample/lib.afterutils')
 project(':web.about').projectDir = new File('../Sample/web.about')
+project(':jni_plugin').projectDir = new File('../Sample/jni_plugin')

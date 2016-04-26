@@ -5,7 +5,7 @@ android {
     buildToolsVersion "23.0.1"
 
     defaultConfig {
-        minSdkVersion 8
+        minSdkVersion 9
         targetSdkVersion 23
         applicationId "net.wequick.example.small.app.mine"
         versionCode 1
@@ -25,5 +25,6 @@ dependencies {
 
     compile project(':lib.style')
     compile project(':lib.utils')
+    compile project(':jni_plugin')
 }
 

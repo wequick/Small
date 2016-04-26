@@ -5,7 +5,7 @@ android {
     buildToolsVersion "23.0.1"
 
     defaultConfig {
-        minSdkVersion 8
+        minSdkVersion 9
         targetSdkVersion 23
         applicationId "net.wequick.example.small"
         versionCode 1
@@ -13,8 +13,8 @@ android {
         manifestPlaceholders = [UMENG_CHANNEL_VALUE: "official"]
     }
     buildTypes {
-        release {
-            minifyEnabled false
+        debug {
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }

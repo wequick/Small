@@ -94,7 +94,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:1.3.0'
-        classpath 'net.wequick.tools.build:gradle-small:0.4.1'
+        classpath 'net.wequick.tools.build:gradle-small:0.6.0'
     }
 }
 
@@ -109,7 +109,7 @@ apply plugin: 'net.wequick.small'
 
 ```groovy
 small {
-    aarVersion = '0.7.0'
+    aarVersion = '0.9.0'
 }
 ```
 
