@@ -112,6 +112,7 @@ class AppPlugin extends BundlePlugin {
 
         // Pre-split all the jar dependencies (deep level)
         def compile = project.configurations.compile
+        compile.exclude group: 'com.android.support', module: 'support-annotations'
         rootExt.preLinkJarDir.listFiles().each { file ->
             if (!file.name.endsWith('D.txt')) return
             file.eachLine { line ->
