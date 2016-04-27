@@ -496,10 +496,11 @@ class AppPlugin extends BundlePlugin {
     }
 
     protected void hookVariantTask() {
+        RootExtension rootExt = project.rootProject.small
+
         // Hook preBuild task to resolve dependent AARs
         project.preBuild.doFirst {
             // Collect dependent AARs
-            RootExtension rootExt = project.rootProject.small
             def smallLibAars = new HashSet() // the aars compiled in host or lib.*
             rootExt.preLinkAarDir.listFiles().each { file ->
                 if (!file.name.endsWith('D.txt')) return
@@ -614,6 +615,11 @@ class AppPlugin extends BundlePlugin {
         }
 
         // Hook javac task to split libraries' R.class
+        small.javac.doFirst { t ->
+            // Dynamically provided jars
+            def baseJars = project.fileTree(dir: rootExt.preBaseJarDir, include: ['*.jar'])
+            t.classpath += baseJars
+        }
         small.javac.doLast {
             if (!small.splitRJavaFile.exists()) return
 
