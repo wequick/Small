@@ -240,7 +240,6 @@ class AppPlugin extends BundlePlugin {
         def retainedPublicEntries = []
         def retainedStyleables = []
         def reservedKeys = getReservedResourceKeys()
-        def overwriteKeys = []
 
         bundleEntries.each { k, Map be ->
             be._typeId = UNSET_TYPEID // for sort
@@ -256,15 +255,13 @@ class AppPlugin extends BundlePlugin {
                 return
             }
 
-            le = libEntries.get(k)
-            def hasDeclaredInLib = (le != null)
             if (reservedKeys.contains(k)) {
                 be.isStyleable ? retainedStyleables.add(be) : retainedEntries.add(be)
-                if (hasDeclaredInLib) overwriteKeys.add(k)
                 return
             }
 
-            if (hasDeclaredInLib) {
+            le = libEntries.get(k)
+            if (le != null) {
                 // Add static id maps to host or library resources and map it later at
                 // compile-time with the aapt-generated `resources.arsc' and `R.java' file
                 staticIdMaps.put(be.id, le.id)
@@ -441,7 +438,7 @@ class AppPlugin extends BundlePlugin {
         def allStyleables = []
         def addedTypes = [:]
         libEntries.each { k, e ->
-            if (overwriteKeys.contains(k)) return
+            if (reservedKeys.contains(k)) return
 
             if (e.isStyleable) {
                 allStyleables.add(e);
