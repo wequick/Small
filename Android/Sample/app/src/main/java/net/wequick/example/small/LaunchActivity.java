@@ -1,9 +1,11 @@
 package net.wequick.example.small;
 
+import android.app.*;
 import android.os.Build;
 import android.support.v7.app.ActionBar;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -18,7 +20,10 @@ public class LaunchActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        Log.e("Small", "before create");
         super.onCreate(savedInstanceState);
+        Log.e("Small", "after create");
         setContentView(R.layout.activity_launch);
 
         mContentView = findViewById(R.id.fullscreen_content);
@@ -41,17 +46,23 @@ public class LaunchActivity extends AppCompatActivity {
             TextView tvPrepare = (TextView) findViewById(R.id.prepare_text);
             tvPrepare.setVisibility(View.VISIBLE);
         }
+
+        findViewById(R.id.fullscreen_content).setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                Small.setUp(LaunchActivity.this, new net.wequick.small.Small.OnCompleteListener() {
+                    @Override
+                    public void onComplete() {
+                        Small.openUri("main", LaunchActivity.this);
+                        finish();
+                    }
+                });
+            }
+        });
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        Small.setUp(this, new net.wequick.small.Small.OnCompleteListener() {
-            @Override
-            public void onComplete() {
-                Small.openUri("main", LaunchActivity.this);
-                finish();
-            }
-        });
+        Log.e("Small", "after start");
     }
 }

@@ -63,6 +63,16 @@ public class MainFragment extends Fragment {
             }
         });
 
+        rootView.findViewById(R.id.btnAar).setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                new com.afollestad.materialdialogs.MaterialDialog.Builder(getActivity())
+                    .title("Small")
+                    .content("Material Dialog by dependent AAR")
+                    .positiveText("OK")
+                    .show();
+            }
+        });
+
         button = (Button) rootView.findViewById(R.id.btnUpgrade);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
