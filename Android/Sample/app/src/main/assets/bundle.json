@@ -19,7 +19,10 @@
     },
     {
       "uri": "mine",
-      "pkg": "net.wequick.example.small.app.mine"
+      "pkg": "net.wequick.example.small.app.mine",
+      "interfaces": {
+        "mine_say_hi": ".SayHiHandler"
+      }
     },
     {
       "uri": "detail",

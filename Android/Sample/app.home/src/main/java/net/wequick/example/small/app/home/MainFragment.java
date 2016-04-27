@@ -30,7 +30,7 @@ import java.util.Map;
 public class MainFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+        final View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         Button button = (Button) rootView.findViewById(R.id.btnDetail);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -70,6 +70,18 @@ public class MainFragment extends Fragment {
                 checkUpgrade();
             }
         });
+
+        rootView.findViewById(R.id.btnInvokeBundle).setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                final String ret = Small.invokeBundle(getActivity(), "mine_say_hi", "Regards from main");
+                rootView.postDelayed(new Runnable() {
+                    @Override public void run() {
+                        Toast.makeText(getActivity(), "mine returns: " + ret, Toast.LENGTH_SHORT).show();
+                    }
+                }, 1000);
+            }
+        });
+
         return rootView;
     }
 

@@ -26,16 +26,15 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-
+import android.util.Log;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.List;
+import java.util.Map;
 import net.wequick.small.util.ApplicationUtils;
 import net.wequick.small.webkit.JsHandler;
 import net.wequick.small.webkit.WebView;
 import net.wequick.small.webkit.WebViewClient;
-
-import java.io.File;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 
 /**
  * This class consists exclusively of static methods that operate on bundle.
@@ -223,6 +222,41 @@ public final class Small {
         if (bundle != null) {
             bundle.launchFrom(context);
         }
+    }
+
+    public static String invokeBundle(Context context, String uri, String param) {
+        List<Bundle> bundles = Bundle.getLaunchableBundles();
+        if (bundles == null || bundles.size() == 0) {
+            return null;
+        }
+        for (Bundle bundle : bundles) {
+            Map<String, String> map = bundle.bundleInterfaces();
+            if (map == null) continue;
+            for (Map.Entry<String, String> entry : map.entrySet()) {
+                if (entry.getKey().equals(uri)) {
+                    try {
+                        return invoke(context, entry.getValue(), param);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    public static String invoke(Context context, String clsName, String param)
+        throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException,
+        InvocationTargetException, InstantiationException {
+        Class clz = Class.forName(clsName);
+        Constructor constructor = clz.getConstructor();
+        Object instance = constructor.newInstance();
+        if (!BundleInterface.class.isAssignableFrom(instance.getClass())) {
+            throw new ClassCastException(
+                "invoke handler declared in bundle.json must implement BundleInterface.class");
+        }
+        BundleInterface handler = (BundleInterface) instance;
+        return handler.call(context, param);
     }
 
     public static Intent getIntentOfUri(String uriString, Context context) {
