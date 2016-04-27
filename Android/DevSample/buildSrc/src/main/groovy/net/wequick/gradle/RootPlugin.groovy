@@ -116,7 +116,8 @@ class RootPlugin extends BasePlugin {
         ext.explodeAarDirs.each {
             // explodedDir: **/exploded-aar/$group/$artifact/$version
             File version = it
-            File jarFile = new File(version, 'jars/classes.jar')
+            File jarDir = new File(version, 'jars')
+            File jarFile = new File(jarDir, 'classes.jar')
             if (!jarFile.exists()) return
 
             File artifact = version.parentFile
@@ -129,6 +130,21 @@ class RootPlugin extends BasePlugin {
                 from jarFile
                 into preJarDir
                 rename {destFile.name}
+            }
+
+            // Check if exists `jars/libs/*.jar' and copy
+            File libDir = new File(jarDir, 'libs')
+            libDir.listFiles().each { jar ->
+                if (!jar.name.endsWith('.jar')) return
+
+                destFile = new File(preJarDir, "${group.name}-${artifact.name}-${jar.name}")
+                if (destFile.exists()) return
+
+                project.copy {
+                    from jar
+                    into preJarDir
+                    rename {destFile.name}
+                }
             }
         }
 
