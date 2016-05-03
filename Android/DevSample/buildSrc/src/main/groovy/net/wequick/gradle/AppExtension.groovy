@@ -75,6 +75,8 @@ public class AppExtension extends BundleExtension {
     LinkedHashMap<String, String> idStrMaps
     ArrayList retainedTypes
     ArrayList retainedStyleables
+    Map vendorTypes
+    Map vendorStyleables
 
     /** List of all resource types */
     ArrayList allTypes

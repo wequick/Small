@@ -59,8 +59,8 @@ class LibraryPlugin extends AppPlugin {
 
         // Add library dependencies for `buildLib', fix issue #65
         project.afterEvaluate {
-            compileLibs.each {
-                project.preBuild.dependsOn "${it.dependencyProject.path}:buildLib"
+            mDependentLibProjects.each {
+                project.preBuild.dependsOn "${it.path}:buildLib"
             }
         }
     }

@@ -18,9 +18,9 @@ package net.wequick.gradle
 import groovy.io.FileType
 import net.wequick.gradle.aapt.Aapt
 import net.wequick.gradle.aapt.SymbolParser
-import net.wequick.gradle.util.DependenciesUtils
 import net.wequick.gradle.util.JNIUtils
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ResolvedDependency
 
 class AppPlugin extends BundlePlugin {
 
@@ -28,7 +28,8 @@ class AppPlugin extends BundlePlugin {
     private static final int UNSET_TYPEID = 99
     private static final int UNSET_ENTRYID = -1
 
-    protected def compileLibs
+    protected Set<Project> mDependentLibProjects
+    protected Set<ResolvedDependency> mVendorAars
 
     void apply(Project project) {
         super.apply(project)
@@ -60,15 +61,16 @@ class AppPlugin extends BundlePlugin {
 
         project.afterEvaluate {
             // Get all dependencies with gradle script `compile project(':lib.*')'
-            compileLibs = project.configurations.compile.dependencies.findAll {
+            def libs = project.configurations.compile.dependencies.findAll {
                 it.hasProperty('dependencyProject') &&
                         it.dependencyProject.name.startsWith('lib.')
             }
+            mDependentLibProjects = libs.collect { it.dependencyProject }
             if (isBuildingLibs()) {
                 // While building libs, `lib.*' modules are changing to be an application
                 // module and cannot be depended by any other modules. To avoid warnings,
                 // remove the `compile project(':lib.*')' dependencies temporary.
-                project.configurations.compile.dependencies.removeAll(compileLibs)
+                project.configurations.compile.dependencies.removeAll(libs)
             }
         }
 
@@ -99,8 +101,8 @@ class AppPlugin extends BundlePlugin {
         project.dependencies.add('provided', baseJars)
         //  - lib.*
         def libJarNames = []
-        compileLibs.each {
-            libJarNames += getJarName(it.dependencyProject)
+        mDependentLibProjects.each {
+            libJarNames += getJarName(it)
         }
         if (libJarNames.size() > 0) {
             // Collect the jars with absolute file path, fix issue #65
@@ -177,6 +179,56 @@ class AppPlugin extends BundlePlugin {
         hookVariantTask()
     }
 
+    /** The vendor aars (has resources) compiling in current bundle */
+    protected def getVendorAars() {
+        if (mVendorAars != null) return mVendorAars
+
+        mVendorAars = new HashSet<>()
+        project.configurations.compile.resolvedConfiguration.firstLevelModuleDependencies.each {
+            collectVendorAars(it, false, mVendorAars)
+        }
+        return mVendorAars
+    }
+
+    protected Set<ResolvedDependency> getAllVendorAars() {
+        Set<ResolvedDependency> aars = new HashSet<>()
+        project.configurations.compile.resolvedConfiguration.firstLevelModuleDependencies.each {
+            collectVendorAars(it, true, aars)
+        }
+        return aars
+    }
+
+    protected void collectVendorAars(ResolvedDependency node, boolean recursive,
+                                     Set<ResolvedDependency> out) {
+        def group = node.moduleGroup,
+            name = node.moduleName,
+            version = node.moduleVersion
+
+        if (out.find { addedNode -> addedNode.name == node.name } != null) return
+
+        if (small.splitAars.find { aar -> group == aar.group && name == aar.name } != null) {
+            // Ignore the dependency which has declared in host or lib.*
+            return
+        }
+        if (small.retainedAars.find { aar -> group == aar.group && name == aar.name } != null) {
+            // Ignore the dependency of normal modules
+            return
+        }
+        def resDir = new File(small.aarDir, "$group/$name/$version/res")
+        if (!resDir.exists() || resDir.list().size() == 0) {
+            // Ignored the dependency which does not have any resources
+            return
+        }
+
+        out.add(node)
+
+        if (!recursive) return
+
+        node.children.each { next ->
+            collectVendorAars(next, true, out)
+        }
+    }
+
     /**
      * Prepare retained resource types and resource id maps for package slicing
      */
@@ -186,34 +238,15 @@ class AppPlugin extends BundlePlugin {
 
         RootExtension rootExt = project.rootProject.small
 
-        def vendorAars = [] // the vendor aars compiling in current bundle
-        project.configurations.compile.resolvedConfiguration.firstLevelModuleDependencies.each {
-            def group = it.moduleGroup,
-                name = it.moduleName,
-                version = it.moduleVersion
-
-            if (small.splitAars.find { aar -> group == aar.group && name == aar.name } != null) {
-                // Ignore the dependency which has declared in host or lib.*
-                return
-            }
-            if (small.retainedAars.find { aar -> group == aar.group && name == aar.name } != null) {
-                // Ignore the dependency of normal modules
-                return
-            }
-            def resDir = new File(small.aarDir, "$group/$name/$version/res")
-            if (!resDir.exists() || resDir.list().size() == 0) {
-                // Ignored the dependency which does not have any resources
-                return
-            }
-
-            vendorAars.add("$group:$name:$version")
-        }
+        // Check if has any vendor aars
+        def vendorAars = getVendorAars()
+        def allVendorAars = [] as Set<ResolvedDependency>
         if (vendorAars.size() > 0) {
             if (rootExt.strictSplitResources) {
                 def err = new StringBuilder('In strict mode, we do not allow vendor aars, ')
                 err.append('please declare them in host build.gradle:\n')
                 vendorAars.each {
-                    err.append("    - compile('${it}')\n")
+                    err.append("    - compile('${it.name}')\n")
                 }
                 err.append('or turn off the strict mode in root build.gradle:\n')
                 err.append('    small {\n')
@@ -221,7 +254,11 @@ class AppPlugin extends BundlePlugin {
                 err.append('    }')
                 throw new UnsupportedOperationException(err.toString())
             } else {
-                Log.warn("Using vendor aar(s): ${vendorAars.join('; ')}")
+                def aars = vendorAars.collect{ it.name }.join('; ')
+                Log.warn("Using vendor aar(s): $aars")
+                vendorAars.each {
+                    collectVendorAars(it, true, allVendorAars)
+                }
             }
         }
 
@@ -405,6 +442,7 @@ class AppPlugin extends BundlePlugin {
             // Prepare styleable id maps for resolving R.java
             if (retainedStyleables.size() > 0 && e.typeId == 1) {
                 retainedStyleables.findAll { it.idStrs != null }.each {
+                    // Replace `e.idStr' with `newResIdStr'
                     def index = it.idStrs.indexOf(e.idStr)
                     if (index >= 0) {
                         it.idStrs[index] = newResIdStr
@@ -424,15 +462,8 @@ class AppPlugin extends BundlePlugin {
             it.idStrs = null
         }
 
-        small.idMaps = staticIdMaps
-        small.idStrMaps = staticIdStrMaps
-        small.retainedTypes = retainedTypes
-        small.retainedStyleables = retainedStyleables
-
-        if (pluginType == PluginType.Library) return
-
-        // Cause the source of app.* module may use R.xx of lib.*, we need to collect all the
-        // resources here for generating a temporary full edition R.java which required in javac.
+        // Collect all the resources for generating a temporary full edition R.java
+        // which required in javac.
         // TODO: Do this only for the modules who's code really use R.xx of lib.*
         def allTypes = []
         def allStyleables = []
@@ -466,8 +497,69 @@ class AppPlugin extends BundlePlugin {
         }
         allStyleables.addAll(retainedStyleables)
 
+        // Collect vendor types and styleables if needed
+        def vendorEntries = [:]
+        def vendorStyleableKeys = [:]
+        allVendorAars.each { aar ->
+            File dir = new File(small.aarDir, "$aar.moduleGroup/$aar.moduleName/$aar.moduleVersion")
+            File vendorIdsFile = new File(dir, 'R.txt')
+            def entries = []
+            def styleables = []
+
+            SymbolParser.collectResourceKeys(vendorIdsFile, entries, styleables)
+
+            def name = "$aar.moduleGroup/$aar.moduleName/$aar.moduleVersion"
+            vendorEntries.put(name, entries)
+            vendorStyleableKeys.put(name, styleables)
+        }
+
+        def vendorTypes = [:]
+        def vendorStyleables = [:]
+        vendorEntries.each { name, es ->
+            allTypes.each { t ->
+                t.entries.each { e ->
+                    def ve = es.find { it.type == t.name && it.name == e.name }
+                    if (ve != null) {
+                        def vendorType
+                        def vts = vendorTypes[name]
+                        if (vts == null) {
+                            vts = vendorTypes[name] = []
+                        } else {
+                            vendorType = vts.find { it.name == t.name }
+                        }
+                        if (vendorType == null) {
+                            vendorType = [:]
+                            vendorType.putAll(t)
+                            vendorType.entries = []
+                            vts.add(vendorType)
+                        }
+                        vendorType.entries.add(e)
+                    }
+                }
+            }
+        }
+        vendorStyleableKeys.each { name, vs ->
+            allStyleables.each { s ->
+                if (vs.contains(s.key)) {
+                    if (vendorStyleables[name] == null) {
+                        vendorStyleables[name] = []
+                    }
+                    vendorStyleables[name].add(s)
+                    return
+                }
+            }
+        }
+
+        small.idMaps = staticIdMaps
+        small.idStrMaps = staticIdStrMaps
+        small.retainedTypes = retainedTypes
+        small.retainedStyleables = retainedStyleables
+
         small.allTypes = allTypes
         small.allStyleables = allStyleables
+
+        small.vendorTypes = vendorTypes
+        small.vendorStyleables = vendorStyleables
     }
 
     protected int getABIFlag() {
@@ -501,6 +593,8 @@ class AppPlugin extends BundlePlugin {
             def smallLibAars = new HashSet() // the aars compiled in host or lib.*
             rootExt.preLinkAarDir.listFiles().each { file ->
                 if (!file.name.endsWith('D.txt')) return
+                if (file.name.startsWith(project.name)) return
+
                 file.eachLine { line ->
                     def module = line.split(':')
                     smallLibAars.add(group: module[0], name: module[1], version: module[2])
@@ -536,8 +630,8 @@ class AppPlugin extends BundlePlugin {
                     }
                     if (line.indexOf('<application') > 0) {
                         // To support plugin JNI, we overwrite the `android:label' attribute with
-                        // the ABIs flag here. So that at the runtime we can fast extract the
-                        // exact JNIs in the supported ABI. (#87, #79)
+                        // the ABIs flag here. So that at the runtime we can exactly extract the
+                        // usable JNIs in the supported ABI. (#87, #79)
                         int flag = getABIFlag()
                         if (flag != 0) {
                             line += "\n        android:label=\"$flag\""
@@ -579,33 +673,42 @@ class AppPlugin extends BundlePlugin {
                 aapt.filterPackage(small.retainedTypes, small.packageId, small.idMaps,
                         small.retainedStyleables)
 
-                String pkg = small.packageName
-                if (small.allTypes == null) {
-                    // Overwrite the aapt-generated R.java with split edition
-                    aapt.generateRJava(small.rJavaFile, pkg,
-                            small.retainedTypes, small.retainedStyleables)
-                } else {
-                    // Overwrite the aapt-generated R.java with full edition
-                    aapt.generateRJava(small.rJavaFile, pkg, small.allTypes, small.allStyleables)
+                Log.success "[${project.name}] slice asset package and reset package id..."
 
-                    // Also generate a split edition for later re-compiling
-                    aapt.generateRJava(small.splitRJavaFile, pkg,
-                            small.retainedTypes, small.retainedStyleables)
+                String pkg = small.packageName
+                // Overwrite the aapt-generated R.java with full edition
+                aapt.generateRJava(small.rJavaFile, pkg, small.allTypes, small.allStyleables)
+                // Also generate a split edition for later re-compiling
+                aapt.generateRJava(small.splitRJavaFile, pkg,
+                        small.retainedTypes, small.retainedStyleables)
+
+                // Overwrite the retained vendor R.java
+                def retainedRFiles = [small.rJavaFile]
+                small.vendorTypes.each { name, types ->
+                    File aarDir = new File(small.aarDir, name)
+                    File manifestFile = new File(aarDir, 'AndroidManifest.xml')
+                    def manifest = new XmlParser().parse(manifestFile)
+                    String aarPkg = manifest.@package
+                    String pkgPath = aarPkg.replaceAll('\\.', '/')
+                    File r = new File(sourceOutputDir, "$pkgPath/R.java")
+                    retainedRFiles.add(r)
+
+                    def styleables = small.vendorStyleables[name]
+                    aapt.generateRJava(r, aarPkg, types, styleables)
                 }
 
-                Log.success "[${project.name}] slice asset package and reset package id..."
+                // Remove unused R.java to fix the reference of shared library resource, issue #63
+                sourceOutputDir.eachFileRecurse(FileType.FILES) { file ->
+                    if (!retainedRFiles.contains(file)) {
+                        file.delete()
+                    }
+                }
+
+                Log.success "[${project.name}] split library R.java files..."
             } else {
                 aapt.resetPackage(small.packageId, small.packageIdStr, small.idMaps)
                 Log.success "[${project.name}] reset resource package id..."
             }
-
-            // Remove unused R.java to fix the reference of shared library resource, issue #63
-            sourceOutputDir.eachFileRecurse(FileType.FILES) { file ->
-                if (file != rJavaFile) {
-                    file.delete()
-                }
-            }
-            Log.success "[${project.name}] split library R.java files..."
 
             // Repack resources.ap_
             project.ant.zip(baseDir: unzipApDir, destFile: apFile)
@@ -623,17 +726,17 @@ class AppPlugin extends BundlePlugin {
             File classesDir = it.destinationDir
             File dstDir = new File(classesDir, small.packagePath)
 
-            // Re-compile the split R.java to R.class
-            project.ant.javac(srcdir: small.splitRJavaFile.parentFile,
-                    source: it.sourceCompatibility,
-                    target: it.targetCompatibility,
-                    destdir: classesDir)
-            // Also needs to delete the original generated R$xx.class
+            // Delete the original generated R$xx.class
             dstDir.listFiles().each { f ->
                 if (f.name.startsWith('R$')) {
                     f.delete()
                 }
             }
+            // Re-compile the split R.java to R.class
+            project.ant.javac(srcdir: small.splitRJavaFile.parentFile,
+                    source: it.sourceCompatibility,
+                    target: it.targetCompatibility,
+                    destdir: classesDir)
 
             Log.success "[${project.name}] split R.class..."
         }
