@@ -179,54 +179,58 @@ class AppPlugin extends BundlePlugin {
         hookVariantTask()
     }
 
-    /** The vendor aars (has resources) compiling in current bundle */
-    protected def getVendorAars() {
-        if (mVendorAars != null) return mVendorAars
-
-        mVendorAars = new HashSet<>()
+    /** Collect the vendor aars (has resources) compiling in current bundle */
+    protected void collectVendorAars(Set<Map> outFirstLevelAars,
+                                     Set<Map> outTransitiveAars) {
         project.configurations.compile.resolvedConfiguration.firstLevelModuleDependencies.each {
-            collectVendorAars(it, false, mVendorAars)
+            collectVendorAars(it, outFirstLevelAars, outTransitiveAars)
         }
-        return mVendorAars
     }
 
-    protected Set<ResolvedDependency> getAllVendorAars() {
-        Set<ResolvedDependency> aars = new HashSet<>()
-        project.configurations.compile.resolvedConfiguration.firstLevelModuleDependencies.each {
-            collectVendorAars(it, true, aars)
-        }
-        return aars
-    }
-
-    protected void collectVendorAars(ResolvedDependency node, boolean recursive,
-                                     Set<ResolvedDependency> out) {
+    protected boolean collectVendorAars(ResolvedDependency node,
+                                        Set<Map> outFirstLevelAars,
+                                        Set<Map> outTransitiveAars) {
         def group = node.moduleGroup,
             name = node.moduleName,
             version = node.moduleVersion
 
-        if (out.find { addedNode -> addedNode.name == node.name } != null) return
-
         if (small.splitAars.find { aar -> group == aar.group && name == aar.name } != null) {
             // Ignore the dependency which has declared in host or lib.*
-            return
+            return false
         }
         if (small.retainedAars.find { aar -> group == aar.group && name == aar.name } != null) {
             // Ignore the dependency of normal modules
-            return
-        }
-        def resDir = new File(small.aarDir, "$group/$name/$version/res")
-        if (!resDir.exists() || resDir.list().size() == 0) {
-            // Ignored the dependency which does not have any resources
-            return
+            return false
         }
 
-        out.add(node)
+        def path = "$group/$name/$version"
+        def aar = [path: path, name: node.name]
+        def resDir = new File(small.aarDir, "$path/res")
+        // If the dependency has resources, collect it
+        if (resDir.exists() && resDir.list().size() > 0) {
+            if (outFirstLevelAars != null && !outFirstLevelAars.contains(aar)) {
+                outFirstLevelAars.add(aar)
+            }
+            if (!outTransitiveAars.contains(aar)) {
+                outTransitiveAars.add(aar)
+            }
+            node.children.each { next ->
+                collectVendorAars(next, null, outTransitiveAars)
+            }
+            return true
+        }
 
-        if (!recursive) return
-
+        // Otherwise, check it's children for recursively collecting
+        boolean flag = false
         node.children.each { next ->
-            collectVendorAars(next, true, out)
+            flag |= collectVendorAars(next, null, outTransitiveAars)
         }
+        if (!flag) return false
+
+        if (outFirstLevelAars != null && !outFirstLevelAars.contains(aar)) {
+            outFirstLevelAars.add(aar)
+        }
+        return true
     }
 
     /**
@@ -239,13 +243,14 @@ class AppPlugin extends BundlePlugin {
         RootExtension rootExt = project.rootProject.small
 
         // Check if has any vendor aars
-        def vendorAars = getVendorAars()
-        def allVendorAars = [] as Set<ResolvedDependency>
-        if (vendorAars.size() > 0) {
+        def firstLevelVendorAars = [] as Set<Map>
+        def transitiveVendorAars = [] as Set<Map>
+        collectVendorAars(firstLevelVendorAars, transitiveVendorAars)
+        if (firstLevelVendorAars.size() > 0) {
             if (rootExt.strictSplitResources) {
                 def err = new StringBuilder('In strict mode, we do not allow vendor aars, ')
                 err.append('please declare them in host build.gradle:\n')
-                vendorAars.each {
+                firstLevelVendorAars.each {
                     err.append("    - compile('${it.name}')\n")
                 }
                 err.append('or turn off the strict mode in root build.gradle:\n')
@@ -254,11 +259,8 @@ class AppPlugin extends BundlePlugin {
                 err.append('    }')
                 throw new UnsupportedOperationException(err.toString())
             } else {
-                def aars = vendorAars.collect{ it.name }.join('; ')
+                def aars = firstLevelVendorAars.collect{ it.name }.join('; ')
                 Log.warn("Using vendor aar(s): $aars")
-                vendorAars.each {
-                    collectVendorAars(it, true, allVendorAars)
-                }
             }
         }
 
@@ -500,17 +502,17 @@ class AppPlugin extends BundlePlugin {
         // Collect vendor types and styleables if needed
         def vendorEntries = [:]
         def vendorStyleableKeys = [:]
-        allVendorAars.each { aar ->
-            File dir = new File(small.aarDir, "$aar.moduleGroup/$aar.moduleName/$aar.moduleVersion")
+        transitiveVendorAars.each { aar ->
+            String path = aar.path
+            File dir = new File(small.aarDir, path)
             File vendorIdsFile = new File(dir, 'R.txt')
             def entries = []
             def styleables = []
 
             SymbolParser.collectResourceKeys(vendorIdsFile, entries, styleables)
 
-            def name = "$aar.moduleGroup/$aar.moduleName/$aar.moduleVersion"
-            vendorEntries.put(name, entries)
-            vendorStyleableKeys.put(name, styleables)
+            vendorEntries.put(path, entries)
+            vendorStyleableKeys.put(path, styleables)
         }
 
         def vendorTypes = [:]
