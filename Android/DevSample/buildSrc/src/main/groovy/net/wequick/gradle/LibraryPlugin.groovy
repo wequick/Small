@@ -19,7 +19,18 @@ class LibraryPlugin extends AppPlugin {
     protected void configureProject() {
         super.configureProject()
 
-        if (!isBuildingRelease()) return
+        if (!isBuildingRelease()) {
+            // If executing `buildBundle', we may be dependently build in release mode,
+            // to avoid the `Small' class not found, provided the small jar here.
+            // TODO: we'd better check the gradle task if it's really doing `buildBundle'
+            project.afterEvaluate {
+                RootExtension rootExt = project.rootProject.small
+                def smallJar = project.fileTree(
+                        dir: rootExt.preBaseJarDir, include: [SMALL_JAR_PATTERN])
+                project.dependencies.add('provided', smallJar)
+            }
+            return
+        }
 
         mBakBuildFile = new File(project.buildFile.parentFile, "${project.buildFile.name}~")
 
