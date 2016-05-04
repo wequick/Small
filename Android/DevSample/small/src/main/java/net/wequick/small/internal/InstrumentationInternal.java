@@ -22,7 +22,7 @@ import android.content.Intent;
 import android.os.IBinder;
 
 /**
- * Extract the private methods of <tt>android.app.Instrumentation</tt> for hook.
+ * Extract the private methods of <tt>android.app.Instrumentation</tt> for hook and ProGuard.
  */
 public interface InstrumentationInternal {
 
