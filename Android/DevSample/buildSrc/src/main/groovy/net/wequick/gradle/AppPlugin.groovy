@@ -29,7 +29,6 @@ class AppPlugin extends BundlePlugin {
     private static final int UNSET_ENTRYID = -1
 
     protected Set<Project> mDependentLibProjects
-    protected Set<ResolvedDependency> mVendorAars
 
     void apply(Project project) {
         super.apply(project)
