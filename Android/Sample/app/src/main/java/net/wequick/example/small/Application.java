@@ -12,6 +12,7 @@ public class Application extends android.app.Application {
 
         // Options
         Small.setBaseUri("http://m.wequick.net/demo/");
+        Small.setLoadFromAssets(true);
 
         // Required
         Small.preSetUp(this);

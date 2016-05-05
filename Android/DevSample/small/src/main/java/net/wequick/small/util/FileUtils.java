@@ -35,6 +35,7 @@ import java.util.zip.ZipInputStream;
  */
 public final class FileUtils {
     private static final String DOWNLOAD_PATH = "small_patch";
+    private static final String INTERNAL_PATH = "small_base";
 
     public interface OnProgressListener {
         void onProgress(int length);
@@ -100,5 +101,9 @@ public final class FileUtils {
 
     public static File getDownloadBundlePath() {
         return getInternalFilesPath(DOWNLOAD_PATH);
+    }
+
+    public static File getInternalBundlePath() {
+        return getInternalFilesPath(INTERNAL_PATH);
     }
 }
