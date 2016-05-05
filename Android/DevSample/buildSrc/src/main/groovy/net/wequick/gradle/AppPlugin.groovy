@@ -193,12 +193,16 @@ class AppPlugin extends BundlePlugin {
             name = node.moduleName,
             version = node.moduleVersion
 
+        if (group == '' && version == '') {
+            // Ignores the dependency of local aar
+            return false
+        }
         if (small.splitAars.find { aar -> group == aar.group && name == aar.name } != null) {
-            // Ignore the dependency which has declared in host or lib.*
+            // Ignores the dependency which has declared in host or lib.*
             return false
         }
         if (small.retainedAars.find { aar -> group == aar.group && name == aar.name } != null) {
-            // Ignore the dependency of normal modules
+            // Ignores the dependency of normal modules
             return false
         }
 
@@ -598,7 +602,12 @@ class AppPlugin extends BundlePlugin {
 
                 file.eachLine { line ->
                     def module = line.split(':')
-                    smallLibAars.add(group: module[0], name: module[1], version: module[2])
+                    if (module.size() == 3) {
+                        smallLibAars.add(group: module[0], name: module[1], version: module[2])
+                    } else {
+                        // If using local aar, the version may be unspecific
+                        smallLibAars.add(group: module[0], name: module[1], version: '')
+                    }
                 }
             }
             def userLibAars = new HashSet() // user modules who's name are not in Small way - `*.*'
