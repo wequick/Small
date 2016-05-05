@@ -20,14 +20,24 @@ class LibraryPlugin extends AppPlugin {
         super.configureProject()
 
         if (!isBuildingRelease()) {
-            // If executing `buildBundle', we may be dependently build in release mode,
-            // to avoid the `Small' class not found, provided the small jar here.
+            // If executing `buildBundle', we may be dependently build in release mode
+            // and met some unexpected compile-time error.
             // TODO: we'd better check the gradle task if it's really doing `buildBundle'
             project.afterEvaluate {
+                // To avoid the `Small' class not found, provided the small jar here.
                 RootExtension rootExt = project.rootProject.small
                 def smallJar = project.fileTree(
                         dir: rootExt.preBaseJarDir, include: [SMALL_JAR_PATTERN])
                 project.dependencies.add('provided', smallJar)
+
+                // To avoid transformNative_libsWithSyncJniLibsForRelease task error, skip it.
+                // FIXME: we'd better figure out why the task failed and fix it
+                project.preBuild.doLast {
+                    def syncJniTaskName = 'transformNative_libsWithSyncJniLibsForRelease'
+                    if (!project.hasProperty(syncJniTaskName)) return
+                    def syncJniTask = project.tasks[syncJniTaskName]
+                    syncJniTask.onlyIf { false }
+                }
             }
             return
         }
