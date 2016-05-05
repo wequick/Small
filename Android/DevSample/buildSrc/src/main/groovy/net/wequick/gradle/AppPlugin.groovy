@@ -755,7 +755,8 @@ class AppPlugin extends BundlePlugin {
         small.dex.doFirst {
             small.bkAarDir.mkdir()
             small.splitAars.each {
-                String path = "${it.group}/${it.name}/${it.version}"
+                // TODO: Resolve the version conflict
+                String path = "${it.group}/${it.name}" // /${it.version}
                 File dir = new File(small.aarDir, path)
                 if (dir.exists()) {
                     File todir = new File(small.bkAarDir, path)
