@@ -24,6 +24,7 @@ task clean(type: Delete) {
 apply plugin: 'net.wequick.small'
 
 small {
+    // buildToAssets = true
     android {
         compileSdkVersion = 23
         buildToolsVersion = "23.0.3"

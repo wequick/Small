@@ -62,6 +62,12 @@ public class RootExtension extends BaseExtension {
      */
     protected AndroidConfig android
 
+    /**
+     * If <tt>true</tt> build plugins to host assets as *.apk,
+     * otherwise build to host smallLibs as *.so
+     */
+    boolean buildToAssets = false
+
     /** Count of libraries */
     protected int libCount
 

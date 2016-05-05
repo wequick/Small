@@ -32,6 +32,8 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.InputStream;
@@ -39,6 +41,7 @@ import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -102,6 +105,7 @@ public class Bundle {
 
     private BundleLauncher mApplicableLauncher = null;
 
+    private String mBuiltinAssetName = null;
     private File mBuiltinFile = null;
     private File mPatchFile = null;
     private File mExtractPath;
@@ -465,6 +469,52 @@ public class Bundle {
         mApplicableLauncher.upgradeBundle(this);
     }
 
+    private void extractBundle(String assetName, File outFile) throws IOException {
+        if (!outFile.exists()) {
+            InputStream in = Small.getContext().getAssets().open(assetName);
+            FileOutputStream out = new FileOutputStream(outFile);
+            byte[] buffer = new byte[1024];
+            int read;
+            while ((read = in.read(buffer)) != -1) {
+                out.write(buffer, 0, read);
+            }
+            in.close();
+            out.flush();
+            out.close();
+        } else {
+            FileInputStream fin = new FileInputStream(outFile);
+            InputStream in = Small.getContext().getAssets().open(assetName);
+
+            // Compare the zip time to see if needs re-extract.
+            // @see https://en.wikipedia.org/wiki/Zip_(file_format)
+            final int headerSizeBeforeTime = 10;
+            final int headerSizeOfTime = 4;
+            byte[] inHeader = new byte[headerSizeBeforeTime];
+            byte[] inTime = new byte[headerSizeOfTime];
+            byte[] outTime = new byte[headerSizeOfTime];
+
+            in.read(inHeader);
+            in.read(inTime);
+            fin.skip(headerSizeBeforeTime);
+            fin.read(outTime);
+            fin.close();
+            if (!Arrays.equals(inTime, outTime)) {
+                // The apk in assets has updated, re-extract it
+                FileOutputStream out = new FileOutputStream(outFile);
+                out.write(inHeader, 0, headerSizeBeforeTime);
+                out.write(inTime, 0, headerSizeOfTime);
+                byte[] buffer = new byte[1024];
+                int read;
+                while ((read = in.read(buffer)) != -1) {
+                    out.write(buffer, 0, read);
+                }
+                out.flush();
+                out.close();
+            }
+            in.close();
+        }
+    }
+
     private void initWithMap(JSONObject map) throws JSONException {
         if (sUserBundlesPath == null) { // Lazy init
             sUserBundlesPath = Small.getContext().getApplicationInfo().nativeLibraryDir;
@@ -474,10 +524,22 @@ public class Bundle {
         if (map.has("pkg")) {
             String pkg = map.getString("pkg");
             if (pkg != null && !pkg.equals(HOST_PACKAGE)) {
-                String soName = "lib" + pkg.replaceAll("\\.", "_") + ".so";
-                mBuiltinFile = new File(sUserBundlesPath, soName);
-                mPatchFile = new File(FileUtils.getDownloadBundlePath(), soName);
                 mPackageName = pkg;
+                if (Small.isLoadFromAssets()) {
+                    mBuiltinAssetName = pkg + ".apk";
+                    mBuiltinFile = new File(FileUtils.getInternalBundlePath(), mBuiltinAssetName);
+                    mPatchFile = new File(FileUtils.getDownloadBundlePath(), mBuiltinAssetName);
+                    // Extract from assets to files
+                    try {
+                        extractBundle(mBuiltinAssetName, mBuiltinFile);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    String soName = "lib" + pkg.replaceAll("\\.", "_") + ".so";
+                    mBuiltinFile = new File(sUserBundlesPath, soName);
+                    mPatchFile = new File(FileUtils.getDownloadBundlePath(), soName);
+                }
             }
         }
 
@@ -679,6 +741,10 @@ public class Bundle {
 
     protected void setParser(BundleParser parser) {
         this.parser = parser;
+    }
+
+    public String getBuiltinAssetName() {
+        return mBuiltinAssetName;
     }
 
     //______________________________________________________________________________

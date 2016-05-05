@@ -74,6 +74,16 @@ public final class Small {
 
     private static List<ActivityLifecycleCallbacks> sSetUpActivityLifecycleCallbacks;
 
+    private static boolean sLoadFromAssets;
+
+    public static boolean isLoadFromAssets() {
+        return sLoadFromAssets;
+    }
+
+    public static void setLoadFromAssets(boolean flag) {
+        sLoadFromAssets = flag;
+    }
+
     public interface OnCompleteListener {
         void onComplete();
     }

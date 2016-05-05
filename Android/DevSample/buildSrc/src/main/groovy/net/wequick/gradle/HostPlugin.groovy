@@ -15,11 +15,13 @@ class HostPlugin extends AndroidPlugin {
         
         project.afterEvaluate {
             // Configure libs dir
-            def jniDirs = android.sourceSets.main.jniLibs.srcDirs
-            if (jniDirs == null) {
-                android.sourceSets.main.jniLibs.srcDirs = [SMALL_LIBS]
+            RootExtension rootExt = project.rootProject.small
+            def sourceSet = project.android.sourceSets.main
+            def source = rootExt.buildToAssets ? sourceSet.assets : sourceSet.jniLibs
+            if (source.srcDirs == null) {
+                source.srcDirs = [SMALL_LIBS]
             } else {
-                android.sourceSets.main.jniLibs.srcDirs += SMALL_LIBS
+                source.srcDirs += SMALL_LIBS
             }
             // If contains release signing config, all bundles will be signed with it,
             // copy the config to debug type to ensure the signature-validating works
