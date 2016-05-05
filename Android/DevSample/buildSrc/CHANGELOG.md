@@ -1,3 +1,17 @@
+## 0.7.0 (2016-05-05)
+
+Features:
+
+  - 插件模块支持依赖本地aar模块
+
+Bugfixes:
+
+  - 修正`lib.*`插件在`buildLib`时漏分离`support-annotations.jar`
+  - 修正`lib.*`插件相互依赖时可能出现的类找不到问题 (#117)
+  - 修正_非强制分离_模式下深层次依赖的R.java未被正确处理的问题 (#81, #114 @peacepassion)
+  - 修正在执行`buildBundle`时，`lib.*`插件可能出现的`找不到Small类`错误
+  - 修正在执行`buildBundle`时，`lib.*`插件可能出现的`transformNative_libsWithSyncJniLibsForRelease`任务异常
+
 ## 0.6.0 (2016-04-21)
 
 Features:
