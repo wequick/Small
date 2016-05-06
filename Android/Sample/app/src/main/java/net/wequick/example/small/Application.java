@@ -20,7 +20,7 @@ public class Application extends android.app.Application {
         // Optional
         Small.setBaseUri("http://m.wequick.net/demo/");
         Small.setWebViewClient(new MyWebViewClient());
-        Small.setLoadFromAssets(true);
+        //Small.setLoadFromAssets(true);
 
         // Required
         Small.preSetUp(this);

@@ -15,9 +15,8 @@ class HostPlugin extends AndroidPlugin {
         
         project.afterEvaluate {
             // Configure libs dir
-            RootExtension rootExt = project.rootProject.small
             def sourceSet = project.android.sourceSets.main
-            def source = rootExt.buildToAssets ? sourceSet.assets : sourceSet.jniLibs
+            def source = rootSmall.buildToAssets ? sourceSet.assets : sourceSet.jniLibs
             if (source.srcDirs == null) {
                 source.srcDirs = [SMALL_LIBS]
             } else {
