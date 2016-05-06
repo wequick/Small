@@ -765,10 +765,6 @@ class AppPlugin extends BundlePlugin {
             }
             Log.success "[${project.name}] split aar classes..."
         }
-        small.dex.doLast {
-            project.ant.move(file: small.bkAarDir, tofile: small.aarDir)
-            small.bkAarDir.delete()
-        }
 
         // Hook clean task to unset package id
         project.clean.doLast {
