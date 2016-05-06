@@ -133,7 +133,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 Context who, IBinder contextThread, IBinder token, Activity target,
                 Intent intent, int requestCode, android.os.Bundle options) {
             wrapIntent(intent);
-            return ReflectAccelerator.execStartActivityV21(sHostInstrumentation,
+            return ReflectAccelerator.execStartActivity(sHostInstrumentation,
                     who, contextThread, token, target, intent, requestCode, options);
         }
 
@@ -143,7 +143,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 Context who, IBinder contextThread, IBinder token, Activity target,
                 Intent intent, int requestCode) {
             wrapIntent(intent);
-            return ReflectAccelerator.execStartActivityV20(sHostInstrumentation,
+            return ReflectAccelerator.execStartActivity(sHostInstrumentation,
                     who, contextThread, token, target, intent, requestCode);
         }
 
