@@ -578,11 +578,16 @@ class AppPlugin extends BundlePlugin {
             if (!jniDir.exists()) return
             jniDirs.add(jniDir)
         }
+        def filters = project.android.defaultConfig.ndkConfig.abiFilters
         jniDirs.each { dir ->
-            dir.listFiles().each {
-                if (it.isDirectory() && !abis.contains(it.name)) {
-                    abis.add(it.name)
-                }
+            dir.listFiles().each { File d ->
+                if (d.isFile()) return
+
+                def abi = d.name
+                if (filters != null && !filters.contains(abi)) return
+                if (abis.contains(abi)) return
+
+                abis.add(abi)
             }
         }
 
