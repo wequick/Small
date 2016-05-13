@@ -20,9 +20,10 @@ class LibraryPlugin extends AppPlugin {
         super.configureProject()
 
         if (!isBuildingRelease()) {
-            // If executing `buildBundle', we may be dependently build in release mode
-            // and met some unexpected compile-time error.
-            // TODO: we'd better check the gradle task if it's really doing `buildBundle'
+            if (!isBuildingApps()) return
+
+            // If is building any app.* in release mode,  we may be dependently
+            // built in release mode and met some unexpected compile-time error.
             project.afterEvaluate {
                 // To avoid the `Small' class not found, provided the small jar here.
                 RootExtension rootExt = project.rootProject.small
