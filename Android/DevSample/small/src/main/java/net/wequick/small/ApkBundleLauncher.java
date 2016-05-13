@@ -17,6 +17,8 @@
 package net.wequick.small;
 
 import android.app.Activity;
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningAppProcessInfo;
 import android.app.Application;
 import android.app.Instrumentation;
 import android.content.ActivityNotFoundException;
@@ -159,7 +161,49 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
                 applyActivityInfo(activity, ai);
             } while (false);
-            super.callActivityOnCreate(activity, icicle);
+            sHostInstrumentation.callActivityOnCreate(activity, icicle);
+        }
+
+        @Override
+        public void callActivityOnStop(Activity activity) {
+            sHostInstrumentation.callActivityOnStop(activity);
+
+            if (!Small.isUpgrading()) return;
+
+            // If is upgrading, we are going to kill self while application turn into background,
+            // and while we are back to foreground, all the things(code & layout) will be reload.
+            // Don't worry about the data missing in current activity, you can do all the backups
+            // with your activity's `onSaveInstanceState' and `onRestoreInstanceState'.
+            ActivityManager am = (ActivityManager) activity.getSystemService(Context.ACTIVITY_SERVICE);
+            List<RunningAppProcessInfo> processes = am.getRunningAppProcesses();
+            if (processes == null) return;
+
+            String pkg = activity.getApplicationContext().getPackageName();
+            ActivityManager.RunningAppProcessInfo self = null;
+            for (ActivityManager.RunningAppProcessInfo p : processes) {
+                if (p.processName.equals(pkg)) {
+                    self = p;
+                    break;
+                }
+            }
+            if (self == null) return;
+            if (self.importance == RunningAppProcessInfo.IMPORTANCE_FOREGROUND) return;
+
+            final int pid = self.pid;
+            // Seems should delay some time to ensure the activity can be successfully
+            // restarted after the application restart.
+            // FIXME: remove following thread if you find the better place to `killProcess'
+            new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        sleep(100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    android.os.Process.killProcess(pid);
+                }
+            }.start();
         }
 
         @Override
@@ -171,7 +215,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 if (ai == null) break;
                 inqueueStubActivity(ai, realClazz);
             } while (false);
-            super.callActivityOnDestroy(activity);
+            sHostInstrumentation.callActivityOnDestroy(activity);
         }
 
         private void wrapIntent(Intent intent) {

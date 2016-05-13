@@ -62,15 +62,18 @@ public abstract class SoBundleLauncher extends BundleLauncher {
         }
         if (!supporting) return false;
 
-        // Check if has builtin
+        // Parse builtin if exists
         File plugin = bundle.getBuiltinFile();
         BundleParser parser = BundleParser.parsePackage(plugin, packageName);
-        if (parser == null) return false; // required builtin
-
-        // Check if has a patch
         File patch = bundle.getPatchFile();
         BundleParser patchParser = BundleParser.parsePackage(patch, packageName);
-        if (patchParser != null) { // has
+        if (parser == null) {
+            if (patchParser == null) {
+                return false;
+            } else {
+                parser = patchParser; // use patch
+            }
+        } else if (patchParser != null) {
             if (patchParser.getPackageInfo().versionCode <= parser.getPackageInfo().versionCode) {
                 Log.d(TAG, "Patch file should be later than built-in!");
                 patch.delete();
