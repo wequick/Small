@@ -8,15 +8,23 @@ import android.util.Log;
  */
 public class AppContext extends Application {
 
-    public AppContext(){
-        Log.d("main application","AppContext()");
+    private static final String TAG = "Main Plugin";
+
+    public AppContext() {
+        Log.d(TAG, "AppContext()");
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        System.out.println(this.getSharedPreferences("small.app-versions", 0).getAll());
-        Log.d("main application","onCreate()");
+        Log.d(TAG, "onCreate()");
+
+        // Test shared data
+        Log.d(TAG, this.getSharedPreferences("small.app-versions", 0).getAll().toString());
+
+        // Test resources
+        String s = this.getString(R.string.action_settings);
+        Log.d(TAG, s);
     }
 
     @Override
