@@ -339,7 +339,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
     public void postSetUp() {
         super.postSetUp();
 
-        if (sLoadedApks.size() == 0) {
+        if (sLoadedApks == null) {
             Log.e(TAG, "Could not find any Small bundles!");
             return;
         }
@@ -348,8 +348,8 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
         // Merge all the resources in bundles and replace the host one
         Application app = (Application) Small.getContext();
-        ResourcesMerger rm = ResourcesMerger.merge(app.getBaseContext(), apks);
-        ReflectAccelerator.setResources(app, rm);
+        Resources res = mergeResources(app.getBaseContext(), apks);
+        ReflectAccelerator.setResources(app, res);
 
         // Trigger all the bundle application `onCreate' event
         for (LoadedApk apk : apks) {
@@ -542,25 +542,25 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         activity.setRequestedOrientation(ai.screenOrientation);
     }
 
-    private static class ResourcesMerger extends Resources {
-        public ResourcesMerger(AssetManager assets,
-                               DisplayMetrics metrics, Configuration config) {
-            super(assets, metrics, config);
+    private static Resources mergeResources(Context context, Collection<LoadedApk> apks) {
+        AssetManager assets = ReflectAccelerator.newAssetManager();
+        // Add plugin asset paths
+        for (LoadedApk apk : apks){
+            ReflectAccelerator.addAssetPath(assets, apk.assetPath);
         }
+        // Add host asset path
+        ReflectAccelerator.addAssetPath(assets, context.getPackageResourcePath());
 
-        public static ResourcesMerger merge(Context context, Collection<LoadedApk> apks) {
-            AssetManager assets = ReflectAccelerator.newAssetManager();
-
-            // Add plugin asset paths
-            for (LoadedApk apk : apks){
-                ReflectAccelerator.addAssetPath(assets, apk.assetPath);
-            }
-            // Add host asset path
-            ReflectAccelerator.addAssetPath(assets, context.getPackageResourcePath());
-
-            Resources base = context.getResources();
-            return new ResourcesMerger(assets,
-                    base.getDisplayMetrics(), base.getConfiguration());
+        Resources base = context.getResources();
+        DisplayMetrics metrics = base.getDisplayMetrics();
+        Configuration configuration = base.getConfiguration();
+        Class baseClass = base.getClass();
+        if (baseClass == Resources.class) {
+            return new Resources(assets, metrics, configuration);
+        } else {
+            // Some crazy manufacturers will modify the application resources class.
+            // As Nubia, it use `NubiaResources'. So we had to create a related instance. #135
+            return ReflectAccelerator.newResources(baseClass, assets, metrics, configuration);
         }
     }
 }
