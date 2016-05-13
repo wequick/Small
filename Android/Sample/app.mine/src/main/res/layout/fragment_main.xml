@@ -30,20 +30,20 @@
         android:layout_below="@id/lib_label"
         android:layout_height="wrap_content" />
 
-    <Button
+    <android.support.v7.widget.AppCompatButton
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/inter_start_button"
         android:text="@string/inter_start"
         android:layout_below="@id/jni_label"
-        android:textAllCaps="false" />
+        app:textAllCaps="false" />
 
-    <Button
+    <android.support.v7.widget.AppCompatButton
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/call_system_button"
         android:text="@string/call_system"
         android:layout_below="@id/inter_start_button"
-        android:textAllCaps="false" />
+        app:textAllCaps="false" />
 
 </RelativeLayout>
