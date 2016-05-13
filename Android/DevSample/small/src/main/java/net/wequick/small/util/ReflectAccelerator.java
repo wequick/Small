@@ -23,10 +23,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.AssetManager;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.util.DisplayMetrics;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
@@ -360,6 +362,18 @@ public class ReflectAccelerator {
         Integer ret = invoke(sAssetManager_addAssetPath_method, assets, path);
         if (ret == null) return 0;
         return ret;
+    }
+
+    public static Resources newResources(Class resourcesClass, AssetManager assets,
+                                         DisplayMetrics metrics, Configuration configuration) {
+        try {
+            Constructor c = resourcesClass.getConstructor(
+                    AssetManager.class, DisplayMetrics.class, Configuration.class);
+            return (Resources) c.newInstance(assets, metrics, configuration);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public static boolean expandDexPathList(ClassLoader cl, String dexPath, String optDexPath) {
