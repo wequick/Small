@@ -88,6 +88,7 @@ public class Bundle {
     private String path;
     private String query;
     private HashMap<String, String> rules;
+    private HashMap<String, String> bundleInterfaces = new HashMap<>();
     private int versionCode;
 
     private BundleLauncher mApplicableLauncher = null;
@@ -351,6 +352,20 @@ public class Bundle {
                 this.rules.put("/" + key, rulesObj.getString(key));
             }
         }
+
+        if (map.has("interfaces")) {
+            JSONObject jsonObject = map.getJSONObject("interfaces");
+            Iterator<String> it = jsonObject.keys();
+            while (it.hasNext()) {
+                String key = it.next();
+                String value = jsonObject.getString(key);
+                bundleInterfaces.put(key, value.startsWith(".") ? pkg + value : value);
+            }
+        }
+    }
+
+    public HashMap<String, String> bundleInterfaces() {
+        return bundleInterfaces;
     }
 
     protected void prepareForLaunch() {
