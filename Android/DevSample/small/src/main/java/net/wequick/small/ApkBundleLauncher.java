@@ -46,6 +46,7 @@ import net.wequick.small.util.ReflectAccelerator;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -80,6 +81,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
     private static final String FILE_DEX = "bundle.dex";
 
     private static class LoadedApk {
+        public String applicationName;
         public String assetPath;
         public int dexElementIndex;
         public File dexFile;
@@ -337,10 +339,32 @@ public class ApkBundleLauncher extends SoBundleLauncher {
     public void postSetUp() {
         super.postSetUp();
 
+        if (sLoadedApks.size() == 0) {
+            Log.e(TAG, "Could not find any Small bundles!");
+            return;
+        }
+
+        Collection<LoadedApk> apks = sLoadedApks.values();
+
         // Merge all the resources in bundles and replace the host one
         Application app = (Application) Small.getContext();
-        ResourcesMerger rm = ResourcesMerger.merge(app.getBaseContext());
+        ResourcesMerger rm = ResourcesMerger.merge(app.getBaseContext(), apks);
         ReflectAccelerator.setResources(app, rm);
+
+        // Trigger all the bundle application `onCreate' event
+        for (LoadedApk apk : apks) {
+            String bundleApplicationName = apk.applicationName;
+            if (bundleApplicationName == null) continue;
+
+            try {
+                Class applicationClass = Class.forName(bundleApplicationName);
+                Application bundleApplication = Instrumentation.newApplication(
+                        applicationClass, Small.getContext());
+                sHostInstrumentation.callApplicationOnCreate(bundleApplication);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -365,6 +389,9 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             apk.assetPath = apkPath;
             apk.dexElementIndex = 0; // insert to header
             apk.activities = pluginInfo.activities;
+            if (pluginInfo.applicationInfo != null) {
+                apk.applicationName = pluginInfo.applicationInfo.className;
+            }
 
             // Add dex element to class loader's pathList
             Context context = Small.getContext();
@@ -407,19 +434,6 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
             apk.dexFile = optDexFile;
             sLoadedApks.put(packageName, apk);
-        }
-
-        // Call bundle application onCreate
-        String bundleApplicationName = pluginInfo.applicationInfo.className;
-        if (bundleApplicationName != null) {
-            try {
-                Class applicationClass = Class.forName(bundleApplicationName);
-                Application bundleApplication = Instrumentation.newApplication(
-                        applicationClass, Small.getContext());
-                sHostInstrumentation.callApplicationOnCreate(bundleApplication);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
         }
 
         if (pluginInfo.activities == null) {
@@ -534,11 +548,11 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             super(assets, metrics, config);
         }
 
-        public static ResourcesMerger merge(Context context) {
+        public static ResourcesMerger merge(Context context, Collection<LoadedApk> apks) {
             AssetManager assets = ReflectAccelerator.newAssetManager();
 
             // Add plugin asset paths
-            for (LoadedApk apk : sLoadedApks.values()){
+            for (LoadedApk apk : apks){
                 ReflectAccelerator.addAssetPath(assets, apk.assetPath);
             }
             // Add host asset path
