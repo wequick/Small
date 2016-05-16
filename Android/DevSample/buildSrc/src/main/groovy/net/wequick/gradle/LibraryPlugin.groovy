@@ -21,6 +21,14 @@ class LibraryPlugin extends AppPlugin {
 
         if (!isBuildingRelease()) {
             project.afterEvaluate {
+                // Cause `isBuildingRelease()' return false, at this time, super's
+                // `resolveReleaseDependencies' will not be triggered.
+                // To avoid the `Small' class not found, provided the small jar here.
+                RootExtension rootExt = project.rootProject.small
+                def smallJar = project.fileTree(
+                        dir: rootExt.preBaseJarDir, include: [SMALL_JAR_PATTERN])
+                project.dependencies.add('provided', smallJar)
+
                 if (isBuildingApps()) {
                     // Dependently built by `buildBundle' or `:app.xx:assembleRelease'.
                     // To avoid transformNative_libsWithSyncJniLibsForRelease task error, skip it.
@@ -31,15 +39,6 @@ class LibraryPlugin extends AppPlugin {
                         def syncJniTask = project.tasks[syncJniTaskName]
                         syncJniTask.onlyIf { false }
                     }
-                } else {
-                    // Dependently built by `:app.xx:assembleDebug' or run `app.xx' from IDE.
-                    // Cause `isBuildingRelease()' return false, at this time, super's
-                    // `resolveReleaseDependencies' will not be triggered.
-                    // To avoid the `Small' class not found, provided the small jar here.
-                    RootExtension rootExt = project.rootProject.small
-                    def smallJar = project.fileTree(
-                            dir: rootExt.preBaseJarDir, include: [SMALL_JAR_PATTERN])
-                    project.dependencies.add('provided', smallJar)
                 }
             }
             return
