@@ -49,6 +49,7 @@ import dalvik.system.DexFile;
 public class ReflectAccelerator {
     // AssetManager.addAssetPath
     private static Method sAssetManager_addAssetPath_method;
+    private static Method sAssetManager_addAssetPaths_method;
     // ApplicationInfo.resourceDirs
     private static Field sContextImpl_mResources_field;
     // ActivityClientRecord
@@ -362,6 +363,15 @@ public class ReflectAccelerator {
         Integer ret = invoke(sAssetManager_addAssetPath_method, assets, path);
         if (ret == null) return 0;
         return ret;
+    }
+
+    public static int[] addAssetPaths(AssetManager assets, String[] paths) {
+        if (sAssetManager_addAssetPaths_method == null) {
+            sAssetManager_addAssetPaths_method = getMethod(AssetManager.class,
+                    "addAssetPaths", new Class[]{String[].class});
+        }
+        if (sAssetManager_addAssetPaths_method == null) return null;
+        return invoke(sAssetManager_addAssetPaths_method, assets, new Object[]{paths});
     }
 
     public static Resources newResources(Class resourcesClass, AssetManager assets,

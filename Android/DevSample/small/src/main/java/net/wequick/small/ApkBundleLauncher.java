@@ -588,12 +588,13 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
     private static Resources mergeResources(Context context, Collection<LoadedApk> apks) {
         AssetManager assets = ReflectAccelerator.newAssetManager();
-        // Add plugin asset paths
-        for (LoadedApk apk : apks){
-            ReflectAccelerator.addAssetPath(assets, apk.assetPath);
+        String[] paths = new String[apks.size() + 1];
+        paths[0] = context.getPackageResourcePath(); // Add host asset path
+        int i = 1;
+        for (LoadedApk apk : apks) {
+            paths[i++] = apk.assetPath; // Add plugin asset paths
         }
-        // Add host asset path
-        ReflectAccelerator.addAssetPath(assets, context.getPackageResourcePath());
+        ReflectAccelerator.addAssetPaths(assets, paths);
 
         Resources base = context.getResources();
         DisplayMetrics metrics = base.getDisplayMetrics();
