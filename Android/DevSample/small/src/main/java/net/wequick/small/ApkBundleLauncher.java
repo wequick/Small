@@ -197,7 +197,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 @Override
                 public void run() {
                     try {
-                        sleep(100);
+                        sleep(300);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
