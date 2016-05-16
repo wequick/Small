@@ -113,6 +113,8 @@ small {
 }
 ```
 
+注意上述代码要放在`apply plugin: 'net.wequick.small'`下，否则编译报错
+
 > 最新的版本号可以在[Bintray][bintray]上看到。
 
 ### 3. Create Module
@@ -183,7 +185,31 @@ buildTypes {
 compile 'com.android.support:design:23.1.1'
 ```
 
-#### 5.3 加载插件
+### 5.3 配置Application
+
+在`app`模块中新建`MyApplication`重载`onCreate`方法：
+
+```java
+public class MyApplication extends Application {
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+        Small.preSetUp(this);
+    }
+}
+```
+
+修改`app`模块中新建`AndroidManifest`中`<application>`节点：
+```xml
+<application
+        android:name="MyApplication"
+        ...
+        >
+```
+
+#### 5.4 加载插件
 
 在`app`模块的`LaunchActivity`重载`onStart`方法：
 
@@ -196,7 +222,7 @@ protected void onStart() {
 
         @Override
         public void onComplete() {
-            Small.openUri("main", LaunchActivity.this);
+            Small.openUri("main", LaunchActivity.this);//启动默认的Activity，参考wiki中的UI route启动其他Activity
         }
     });
 }
