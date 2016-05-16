@@ -48,6 +48,7 @@ import net.wequick.small.util.ReflectAccelerator;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -83,10 +84,12 @@ public class ApkBundleLauncher extends SoBundleLauncher {
     private static final String FILE_DEX = "bundle.dex";
 
     private static class LoadedApk {
+        public String packageName;
+        public File packagePath;
         public String applicationName;
-        public String assetPath;
-        public int dexElementIndex;
-        public File dexFile;
+        public String path;
+        public int abiFlags;
+        public File optDexFile;
         public ActivityInfo[] activities;
     }
 
@@ -384,7 +387,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         super.postSetUp();
 
         if (sLoadedApks == null) {
-            Log.e(TAG, "Could not find any Small bundles!");
+            Log.e(TAG, "Could not find any APK bundles!");
             return;
         }
 
@@ -395,6 +398,51 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         Resources res = mergeResources(app.getBaseContext(), apks);
         ReflectAccelerator.setResources(app, res);
 
+        // Merge all the dex into host's class loader
+        Context context = Small.getContext();
+        ClassLoader cl = context.getClassLoader();
+        int i = 0;
+        int N = apks.size();
+        String[] dexPaths = new String[N];
+        String[] optDexPaths = new String[N];
+        for (LoadedApk apk : apks) {
+            dexPaths[i] = apk.path;
+            optDexPaths[i] = apk.optDexFile.getPath();
+            if (Small.getBundleUpgraded(apk.packageName)) {
+                // If upgraded, delete the opt dex file for recreating
+                if (apk.optDexFile.exists()) apk.optDexFile.delete();
+                Small.setBundleUpgraded(apk.packageName, false);
+            }
+            i++;
+        }
+        ReflectAccelerator.expandDexPathList(cl, dexPaths, optDexPaths);
+
+        // Expand the native library directories if plugin has any JNIs. (#79)
+        List<File> libPathList = new ArrayList<File>();
+        for (LoadedApk apk : apks) {
+            String abiPath = JNIUtils.getExtractABI(apk.abiFlags, Bundle.is64bit());
+            if (abiPath != null) {
+                // Extract the JNIs with specify ABI
+                String libDir = FD_LIBRARY + File.separator + abiPath + File.separator;
+                File libPath = new File(apk.packagePath, libDir);
+                if (!libPath.exists()) {
+                    if (!libPath.mkdirs()) {
+                        Log.e(TAG, "Failed to create libPath: " + libPath);
+                        continue;
+                    }
+                }
+                try {
+                    FileUtils.unZipFolder(new File(apk.path), apk.packagePath, libDir);
+                    libPathList.add(libPath);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        if (libPathList.size() > 0) {
+            ReflectAccelerator.expandNativeLibraryDirectories(cl, libPathList);
+        }
+
         // Trigger all the bundle application `onCreate' event
         for (LoadedApk apk : apks) {
             String bundleApplicationName = apk.applicationName;
@@ -403,7 +451,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             try {
                 Class applicationClass = Class.forName(bundleApplicationName);
                 Application bundleApplication = Instrumentation.newApplication(
-                        applicationClass, Small.getContext());
+                        applicationClass, context);
                 sHostInstrumentation.callApplicationOnCreate(bundleApplication);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -430,53 +478,22 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         LoadedApk apk = sLoadedApks.get(packageName);
         if (apk == null) {
             apk = new LoadedApk();
-            apk.assetPath = apkPath;
-            apk.dexElementIndex = 0; // insert to header
+            apk.packageName = packageName;
+            apk.path = apkPath;
+            apk.abiFlags = parser.getABIFlags();
             apk.activities = pluginInfo.activities;
             if (pluginInfo.applicationInfo != null) {
                 apk.applicationName = pluginInfo.applicationInfo.className;
             }
 
-            // Add dex element to class loader's pathList
             Context context = Small.getContext();
             File packagePath = context.getFileStreamPath(FD_STORAGE);
             packagePath = new File(packagePath, packageName);
             if (!packagePath.exists()) {
                 packagePath.mkdirs();
             }
-            File optDexFile = new File(packagePath, FILE_DEX);
-
-            // Going to insert dexElement to header, so increase the index of the others
-            for (LoadedApk a : sLoadedApks.values()) a.dexElementIndex++;
-            if (Small.getBundleUpgraded(packageName)) {
-                // If upgraded, delete the opt dex file for recreating
-                if (optDexFile.exists()) optDexFile.delete();
-                Small.setBundleUpgraded(packageName, false);
-            }
-            ReflectAccelerator.expandDexPathList(
-                    context.getClassLoader(), apkPath, optDexFile.getPath());
-
-            // Expand the native library directories if plugin has any JNIs. (#79)
-            int abiFlags = parser.getABIFlags();
-            String abiPath = JNIUtils.getExtractABI(abiFlags, Bundle.is64bit());
-            if (abiPath != null) {
-                String libDir = FD_LIBRARY + File.separator + abiPath + File.separator;
-                File libPath = new File(packagePath, libDir);
-                if (!libPath.exists()) {
-                    libPath.mkdirs();
-                }
-                try {
-                    // Extract the JNIs with specify ABI
-                    FileUtils.unZipFolder(new File(apkPath), packagePath, libDir);
-                    // Add the JNI search path
-                    ReflectAccelerator.expandNativeLibraryDirectories(
-                            context.getClassLoader(), libPath);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            apk.dexFile = optDexFile;
+            apk.packagePath = packagePath;
+            apk.optDexFile = new File(packagePath, FILE_DEX);
             sLoadedApks.put(packageName, apk);
         }
 
@@ -592,7 +609,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         paths[0] = context.getPackageResourcePath(); // Add host asset path
         int i = 1;
         for (LoadedApk apk : apks) {
-            paths[i++] = apk.assetPath; // Add plugin asset paths
+            paths[i++] = apk.path; // Add plugin asset paths
         }
         ReflectAccelerator.addAssetPaths(assets, paths);
 
