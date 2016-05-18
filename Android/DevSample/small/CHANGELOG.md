@@ -1,3 +1,21 @@
+## 1.0.0-beta1 (2016-05-18)
+
+Features:
+
+  - 支持新增插件 (#72)
+  - 标记升级时，支持在进入后台后自动重启应用，完成静默升级
+
+Performance:
+
+  - 重构各反射方法至`private static Vxx`私有类下
+  - 增加`addAssetPaths`方法以减少`addAssetPath`反射次数
+  - 减少dex相关`expandArray`反射次数
+
+Bugfixes:
+
+  - 修正插件`application`的`onCreate`调用时机 (#136)
+  - 修正`Nubia`机型可能出现的闪退 (#135)
+
 ## 0.9.0 (2016-04-21)
 
 Performance:
