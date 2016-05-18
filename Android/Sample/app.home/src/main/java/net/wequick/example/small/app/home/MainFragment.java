@@ -15,6 +15,9 @@ import android.widget.Toast;
 import net.wequick.small.Small;
 import net.wequick.example.small.lib.utils.UIUtils;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -22,6 +25,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -79,18 +84,41 @@ public class MainFragment extends Fragment {
 
     private static class UpgradeManager {
 
-        private static class UpgradeInfo {
+        private static class UpdateInfo {
             public String packageName;
             public String downloadUrl;
         }
 
+        private static class UpgradeInfo {
+            public JSONObject manifest;
+            public List<UpdateInfo> updates;
+        }
+
         private interface OnResponseListener {
-            void onResponse(Object object);
+            void onResponse(UpgradeInfo info);
         }
 
         private interface OnUpgradeListener {
-            void onUpgrade();
+            void onUpgrade(boolean succeed);
         }
+
+        private static class ResponseHandler extends Handler {
+            private OnResponseListener mListener;
+            public ResponseHandler(OnResponseListener listener) {
+                mListener = listener;
+            }
+
+            @Override
+            public void handleMessage(Message msg) {
+                switch (msg.what) {
+                    case 1:
+                        mListener.onResponse((UpgradeInfo) msg.obj);
+                        break;
+                }
+            }
+        }
+
+        private ResponseHandler mResponseHandler;
 
         private Context mContext;
         private ProgressDialog mProgressDlg;
@@ -103,19 +131,18 @@ public class MainFragment extends Fragment {
             mProgressDlg = ProgressDialog.show(mContext, "Small", "Checking for updates...");
             requestUpgradeInfo(Small.getBundleVersions(), new OnResponseListener() {
                 @Override
-                public void onResponse(Object object) {
-                    UpgradeInfo info = (UpgradeInfo) object;
-                    final net.wequick.small.Bundle bundle = Small.getBundle(info.packageName);
+                public void onResponse(UpgradeInfo info) {
                     mProgressDlg.setMessage("Upgrading...");
-                    upgradeBundle(bundle, info.downloadUrl, bundle.getPatchFile(),
+                    upgradeBundles(info,
                             new OnUpgradeListener() {
                                 @Override
-                                public void onUpgrade() {
+                                public void onUpgrade(boolean succeed) {
                                     mProgressDlg.dismiss();
                                     mProgressDlg = null;
-                                    Toast.makeText(mContext,
-                                            "Upgrade Success! Restart and Click `Call lib.utils` to see changes.",
-                                            Toast.LENGTH_SHORT).show();
+                                    String text = succeed ?
+                                            "Upgrade Success! Switch to background and back to foreground to see changes."
+                                            : "Upgrade Failed!";
+                                    Toast.makeText(mContext, text, Toast.LENGTH_SHORT).show();
                                 }
                             });
                 }
@@ -128,13 +155,48 @@ public class MainFragment extends Fragment {
          * @param listener
          */
         private void requestUpgradeInfo(Map versions, OnResponseListener listener) {
-            // Just for example, you can replace this with a real HTTP request.
-            System.out.println(versions);
-            UpgradeInfo info = new UpgradeInfo();
-            info.packageName = "net.wequick.example.small.lib.utils";
-            info.downloadUrl = "http://code.wequick.net/small/upgrade/" +
-                    "libnet_wequick_example_small_lib_utils.so";
-            listener.onResponse(info);
+            System.out.println(versions); // this should be passed as HTTP parameters
+            mResponseHandler = new ResponseHandler(listener);
+            new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        // Example HTTP request to get the upgrade bundles information.
+                        // Json format see http://wequick.github.io/small/upgrade/bundles.json
+                        URL url = new URL("http://wequick.github.io/small/upgrade/bundles.json");
+                        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                        StringBuilder sb = new StringBuilder();
+                        InputStream is = conn.getInputStream();
+                        byte[] buffer = new byte[1024];
+                        int length;
+                        while ((length = is.read(buffer)) != -1) {
+                            sb.append(new String(buffer, 0, length));
+                        }
+
+                        // Parse json
+                        JSONObject jo = new JSONObject(sb.toString());
+                        JSONObject mf = jo.has("manifest") ? jo.getJSONObject("manifest") : null;
+                        JSONArray updates = jo.getJSONArray("updates");
+                        int N = updates.length();
+                        List<UpdateInfo> infos = new ArrayList<UpdateInfo>(N);
+                        for (int i = 0; i < N; i++) {
+                            JSONObject o = updates.getJSONObject(i);
+                            UpdateInfo info = new UpdateInfo();
+                            info.packageName = o.getString("pkg");
+                            info.downloadUrl = o.getString("url");
+                            infos.add(info);
+                        }
+
+                        // Post message
+                        UpgradeInfo ui = new UpgradeInfo();
+                        ui.manifest = mf;
+                        ui.updates = infos;
+                        Message.obtain(mResponseHandler, 1, ui).sendToTarget();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }.start();
         }
 
         private static class DownloadHandler extends Handler {
@@ -147,7 +209,7 @@ public class MainFragment extends Fragment {
             public void handleMessage(Message msg) {
                 switch (msg.what) {
                     case 1:
-                        mListener.onUpgrade();
+                        mListener.onUpgrade((Boolean) msg.obj);
                         break;
                 }
             }
@@ -155,35 +217,50 @@ public class MainFragment extends Fragment {
 
         private DownloadHandler mHandler;
 
-        private void upgradeBundle(final net.wequick.small.Bundle bundle,
-                                   final String urlStr, final File file,
-                                   final OnUpgradeListener listener) {
+        private void upgradeBundles(final UpgradeInfo info,
+                                    final OnUpgradeListener listener) {
             // Just for example, you can do this by OkHttp or something.
             mHandler = new DownloadHandler(listener);
             new Thread() {
                 @Override
                 public void run() {
                     try {
-                        URL url = new URL(urlStr);
-                        HttpURLConnection urlConn = (HttpURLConnection) url.openConnection();
-                        InputStream is = urlConn.getInputStream();
-                        // Save
-                        OutputStream os = new FileOutputStream(file);
-                        byte[] buffer = new byte[1024];
-                        int length;
-                        while ((length = is.read(buffer)) != -1) {
-                            os.write(buffer, 0, length);
+                        // Update manifest
+                        if (info.manifest != null) {
+                            if (!Small.updateManifest(info.manifest, false)) {
+                                Message.obtain(mHandler, 1, false).sendToTarget();
+                                return;
+                            }
                         }
-                        os.flush();
-                        os.close();
-                        is.close();
+                        // Download bundles
+                        List<UpdateInfo> updates = info.updates;
+                        for (UpdateInfo u : updates) {
+                            // Get the patch file for downloading
+                            net.wequick.small.Bundle bundle = Small.getBundle(u.packageName);
+                            File file = bundle.getPatchFile();
 
-                        // While you finish downloading patch file, call this
-                        bundle.upgrade();
+                            // Download
+                            URL url = new URL(u.downloadUrl);
+                            HttpURLConnection urlConn = (HttpURLConnection) url.openConnection();
+                            InputStream is = urlConn.getInputStream();
+                            OutputStream os = new FileOutputStream(file);
+                            byte[] buffer = new byte[1024];
+                            int length;
+                            while ((length = is.read(buffer)) != -1) {
+                                os.write(buffer, 0, length);
+                            }
+                            os.flush();
+                            os.close();
+                            is.close();
 
-                        Message.obtain(mHandler, 1).sendToTarget();
+                            // Upgrade
+                            bundle.upgrade();
+                        }
+
+                        Message.obtain(mHandler, 1, true).sendToTarget();
                     } catch (IOException e) {
                         e.printStackTrace();
+                        Message.obtain(mHandler, 1, false).sendToTarget();
                     }
                 }
             }.start();

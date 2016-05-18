@@ -22,6 +22,9 @@ import org.gradle.api.Project
  */
 abstract class BundlePlugin extends AndroidPlugin {
 
+    protected String mP // the executing gradle project name
+    protected String mT // the executing gradle task name
+
     void apply(Project project) {
         super.apply(project)
     }
@@ -39,6 +42,30 @@ abstract class BundlePlugin extends AndroidPlugin {
     @Override
     protected void configureProject() {
         super.configureProject()
+
+        // Parse gradle task
+        def sp = project.gradle.startParameter
+        def t = sp.taskNames[0]
+        if (t != null) {
+            def p = sp.projectDir
+            def pn = null
+            if (p == null) {
+                if (t.startsWith(':')) {
+                    // gradlew :app.main:assembleRelease
+                    def tArr = t.split(':')
+                    if (tArr.length == 3) { // ['', 'app.main', 'assembleRelease']
+                        pn = tArr[1]
+                        t = tArr[2]
+                    }
+                }
+            } else if (p != project.rootProject.projectDir) {
+                // gradlew -p [project.name] assembleRelease
+                pn = p.name
+            }
+            mP = pn
+            mT = t
+        }
+
         project.afterEvaluate {
             // Copy host signing configs
             if (isBuildingRelease()) {
@@ -76,51 +103,42 @@ abstract class BundlePlugin extends AndroidPlugin {
         return 'debugCompile'
     }
 
-    /** Check if is building a module in release mode */
+    /** Check if is building self in release mode */
     protected boolean isBuildingRelease() {
-        def sp = project.gradle.startParameter
-        def p = sp.projectDir
-        def t = sp.taskNames[0]
-        def pn = null
+        if (mT == null) return false // no tasks
 
-        if (t == null) { // Nothing to do
-            return false
-        }
-
-        if (p == null) {
-            if (t.startsWith(':')) {
-                // gradlew :app.main:assembleRelease
-                def tArr = t.split(':')
-                if (tArr.length == 3) { // ['', 'app.main', 'assembleRelease']
-                    pn = tArr[1]
-                    t = tArr[2]
-                }
-            }
-        } else if (p != project.rootProject.projectDir) {
-            // gradlew -p [project.name] assembleRelease
-            pn = p.name
-        }
-
-        if (pn == null) {
+        if (mP == null) {
             // gradlew buildLibs | buildBundles
             return small.type == PluginType.Library ?
-                    (t == 'buildLib') : (t == 'buildBundle')
+                    (mT == 'buildLib') : (mT == 'buildBundle')
         } else {
-            return (pn == project.name && (t == 'assembleRelease' || t == 'aR'))
+            return (mP == project.name && (mT == 'assembleRelease' || mT == 'aR'))
         }
     }
 
-    /** Check if is building any libs */
+    /** Check if is building any libs (lib.*) */
     protected boolean isBuildingLibs() {
-        def sp = project.gradle.startParameter
-        def p = sp.projectDir
-        def t = sp.taskNames[0]
-        if (p == null || p == project.rootProject.projectDir) {
-            // ./gradlew buildLibs
-            return (t == 'buildLib')
+        if (mT == null) return false // no tasks
+
+        if (mP == null) {
+            // ./gradlew buildLib
+            return (mT == 'buildLib')
         } else {
-            // ./gradlew -p [lib.*] [task]
-            return (p.name.startsWith('lib.') && (t == 'assembleRelease' || t == 'aR'))
+            // ./gradlew -p lib.xx aR | ./gradlew :lib.xx:aR
+            return (mP.startsWith('lib.') && (mT == 'assembleRelease' || mT == 'aR'))
+        }
+    }
+
+    /** Check if is building any apps (app.*) */
+    protected boolean isBuildingApps() {
+        if (mT == null) return false // no tasks
+
+        if (mP == null) {
+            // ./gradlew buildBundle
+            return (mT == 'buildBundle')
+        } else {
+            // ./gradlew -p app.xx aR | ./gradlew :app.xx:aR
+            return (mP.startsWith('app.') && (mT == 'assembleRelease' || mT == 'aR'))
         }
     }
 

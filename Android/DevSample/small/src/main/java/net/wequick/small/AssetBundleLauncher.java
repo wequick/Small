@@ -40,15 +40,18 @@ public abstract class AssetBundleLauncher extends SoBundleLauncher {
 
     private static final String TAG = "AssetBundleLauncher";
 
+    /** The directory under current application cache path, e.g. `small_web' */
     protected abstract String getBasePathName();
 
+    /** The default entrance file in the directory, e.g `index.html' */
     protected abstract String getIndexFileName();
+
+    /** The activity class used to instantiate an activity for show asset file content */
+    protected abstract Class<? extends Activity> getActivityClass();
 
     protected File getBasePath() {
         return FileUtils.getInternalFilesPath(getBasePathName());
     }
-
-    protected abstract Class<? extends Activity> getActivityClass();
 
     @Override
     public void loadBundle(Bundle bundle) {

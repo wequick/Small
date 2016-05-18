@@ -17,6 +17,8 @@
 package net.wequick.small;
 
 import android.app.Activity;
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningAppProcessInfo;
 import android.app.Application;
 import android.app.Instrumentation;
 import android.content.ActivityNotFoundException;
@@ -46,6 +48,8 @@ import net.wequick.small.util.ReflectAccelerator;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -80,9 +84,12 @@ public class ApkBundleLauncher extends SoBundleLauncher {
     private static final String FILE_DEX = "bundle.dex";
 
     private static class LoadedApk {
-        public String assetPath;
-        public int dexElementIndex;
-        public File dexFile;
+        public String packageName;
+        public File packagePath;
+        public String applicationName;
+        public String path;
+        public int abiFlags;
+        public File optDexFile;
         public ActivityInfo[] activities;
     }
 
@@ -133,7 +140,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 Context who, IBinder contextThread, IBinder token, Activity target,
                 Intent intent, int requestCode, android.os.Bundle options) {
             wrapIntent(intent);
-            return ReflectAccelerator.execStartActivityV21(sHostInstrumentation,
+            return ReflectAccelerator.execStartActivity(sHostInstrumentation,
                     who, contextThread, token, target, intent, requestCode, options);
         }
 
@@ -143,7 +150,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 Context who, IBinder contextThread, IBinder token, Activity target,
                 Intent intent, int requestCode) {
             wrapIntent(intent);
-            return ReflectAccelerator.execStartActivityV20(sHostInstrumentation,
+            return ReflectAccelerator.execStartActivity(sHostInstrumentation,
                     who, contextThread, token, target, intent, requestCode);
         }
 
@@ -157,7 +164,49 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
                 applyActivityInfo(activity, ai);
             } while (false);
-            super.callActivityOnCreate(activity, icicle);
+            sHostInstrumentation.callActivityOnCreate(activity, icicle);
+        }
+
+        @Override
+        public void callActivityOnStop(Activity activity) {
+            sHostInstrumentation.callActivityOnStop(activity);
+
+            if (!Small.isUpgrading()) return;
+
+            // If is upgrading, we are going to kill self while application turn into background,
+            // and while we are back to foreground, all the things(code & layout) will be reload.
+            // Don't worry about the data missing in current activity, you can do all the backups
+            // with your activity's `onSaveInstanceState' and `onRestoreInstanceState'.
+            ActivityManager am = (ActivityManager) activity.getSystemService(Context.ACTIVITY_SERVICE);
+            List<RunningAppProcessInfo> processes = am.getRunningAppProcesses();
+            if (processes == null) return;
+
+            String pkg = activity.getApplicationContext().getPackageName();
+            ActivityManager.RunningAppProcessInfo self = null;
+            for (ActivityManager.RunningAppProcessInfo p : processes) {
+                if (p.processName.equals(pkg)) {
+                    self = p;
+                    break;
+                }
+            }
+            if (self == null) return;
+            if (self.importance == RunningAppProcessInfo.IMPORTANCE_FOREGROUND) return;
+
+            final int pid = self.pid;
+            // Seems should delay some time to ensure the activity can be successfully
+            // restarted after the application restart.
+            // FIXME: remove following thread if you find the better place to `killProcess'
+            new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        sleep(300);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    android.os.Process.killProcess(pid);
+                }
+            }.start();
         }
 
         @Override
@@ -169,7 +218,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 if (ai == null) break;
                 inqueueStubActivity(ai, realClazz);
             } while (false);
-            super.callActivityOnDestroy(activity);
+            sHostInstrumentation.callActivityOnDestroy(activity);
         }
 
         private void wrapIntent(Intent intent) {
@@ -337,10 +386,77 @@ public class ApkBundleLauncher extends SoBundleLauncher {
     public void postSetUp() {
         super.postSetUp();
 
+        if (sLoadedApks == null) {
+            Log.e(TAG, "Could not find any APK bundles!");
+            return;
+        }
+
+        Collection<LoadedApk> apks = sLoadedApks.values();
+
         // Merge all the resources in bundles and replace the host one
         Application app = (Application) Small.getContext();
-        ResourcesMerger rm = ResourcesMerger.merge(app.getBaseContext());
-        ReflectAccelerator.setResources(app, rm);
+        Resources res = mergeResources(app.getBaseContext(), apks);
+        ReflectAccelerator.setResources(app, res);
+
+        // Merge all the dex into host's class loader
+        Context context = Small.getContext();
+        ClassLoader cl = context.getClassLoader();
+        int i = 0;
+        int N = apks.size();
+        String[] dexPaths = new String[N];
+        String[] optDexPaths = new String[N];
+        for (LoadedApk apk : apks) {
+            dexPaths[i] = apk.path;
+            optDexPaths[i] = apk.optDexFile.getPath();
+            if (Small.getBundleUpgraded(apk.packageName)) {
+                // If upgraded, delete the opt dex file for recreating
+                if (apk.optDexFile.exists()) apk.optDexFile.delete();
+                Small.setBundleUpgraded(apk.packageName, false);
+            }
+            i++;
+        }
+        ReflectAccelerator.expandDexPathList(cl, dexPaths, optDexPaths);
+
+        // Expand the native library directories if plugin has any JNIs. (#79)
+        List<File> libPathList = new ArrayList<File>();
+        for (LoadedApk apk : apks) {
+            String abiPath = JNIUtils.getExtractABI(apk.abiFlags, Bundle.is64bit());
+            if (abiPath != null) {
+                // Extract the JNIs with specify ABI
+                String libDir = FD_LIBRARY + File.separator + abiPath + File.separator;
+                File libPath = new File(apk.packagePath, libDir);
+                if (!libPath.exists()) {
+                    if (!libPath.mkdirs()) {
+                        Log.e(TAG, "Failed to create libPath: " + libPath);
+                        continue;
+                    }
+                }
+                try {
+                    FileUtils.unZipFolder(new File(apk.path), apk.packagePath, libDir);
+                    libPathList.add(libPath);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        if (libPathList.size() > 0) {
+            ReflectAccelerator.expandNativeLibraryDirectories(cl, libPathList);
+        }
+
+        // Trigger all the bundle application `onCreate' event
+        for (LoadedApk apk : apks) {
+            String bundleApplicationName = apk.applicationName;
+            if (bundleApplicationName == null) continue;
+
+            try {
+                Class applicationClass = Class.forName(bundleApplicationName);
+                Application bundleApplication = Instrumentation.newApplication(
+                        applicationClass, context);
+                sHostInstrumentation.callApplicationOnCreate(bundleApplication);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -362,64 +478,23 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         LoadedApk apk = sLoadedApks.get(packageName);
         if (apk == null) {
             apk = new LoadedApk();
-            apk.assetPath = apkPath;
-            apk.dexElementIndex = 0; // insert to header
+            apk.packageName = packageName;
+            apk.path = apkPath;
+            apk.abiFlags = parser.getABIFlags();
             apk.activities = pluginInfo.activities;
+            if (pluginInfo.applicationInfo != null) {
+                apk.applicationName = pluginInfo.applicationInfo.className;
+            }
 
-            // Add dex element to class loader's pathList
             Context context = Small.getContext();
             File packagePath = context.getFileStreamPath(FD_STORAGE);
             packagePath = new File(packagePath, packageName);
             if (!packagePath.exists()) {
                 packagePath.mkdirs();
             }
-            File optDexFile = new File(packagePath, FILE_DEX);
-
-            // Going to insert dexElement to header, so increase the index of the others
-            for (LoadedApk a : sLoadedApks.values()) a.dexElementIndex++;
-            if (Small.getBundleUpgraded(packageName)) {
-                // If upgraded, delete the opt dex file for recreating
-                if (optDexFile.exists()) optDexFile.delete();
-                Small.setBundleUpgraded(packageName, false);
-            }
-            ReflectAccelerator.expandDexPathList(
-                    context.getClassLoader(), apkPath, optDexFile.getPath());
-
-            // Expand the native library directories if plugin has any JNIs. (#79)
-            int abiFlags = parser.getABIFlags();
-            String abiPath = JNIUtils.getExtractABI(abiFlags, Bundle.is64bit());
-            if (abiPath != null) {
-                String libDir = FD_LIBRARY + File.separator + abiPath + File.separator;
-                File libPath = new File(packagePath, libDir);
-                if (!libPath.exists()) {
-                    libPath.mkdirs();
-                }
-                try {
-                    // Extract the JNIs with specify ABI
-                    FileUtils.unZipFolder(new File(apkPath), packagePath, libDir);
-                    // Add the JNI search path
-                    ReflectAccelerator.expandNativeLibraryDirectories(
-                            context.getClassLoader(), libPath);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            apk.dexFile = optDexFile;
+            apk.packagePath = packagePath;
+            apk.optDexFile = new File(packagePath, FILE_DEX);
             sLoadedApks.put(packageName, apk);
-        }
-
-        // Call bundle application onCreate
-        String bundleApplicationName = pluginInfo.applicationInfo.className;
-        if (bundleApplicationName != null) {
-            try {
-                Class applicationClass = Class.forName(bundleApplicationName);
-                Application bundleApplication = Instrumentation.newApplication(
-                        applicationClass, Small.getContext());
-                sHostInstrumentation.callApplicationOnCreate(bundleApplication);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
         }
 
         if (pluginInfo.activities == null) {
@@ -528,25 +603,26 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         activity.setRequestedOrientation(ai.screenOrientation);
     }
 
-    private static class ResourcesMerger extends Resources {
-        public ResourcesMerger(AssetManager assets,
-                               DisplayMetrics metrics, Configuration config) {
-            super(assets, metrics, config);
+    private static Resources mergeResources(Context context, Collection<LoadedApk> apks) {
+        AssetManager assets = ReflectAccelerator.newAssetManager();
+        String[] paths = new String[apks.size() + 1];
+        paths[0] = context.getPackageResourcePath(); // Add host asset path
+        int i = 1;
+        for (LoadedApk apk : apks) {
+            paths[i++] = apk.path; // Add plugin asset paths
         }
+        ReflectAccelerator.addAssetPaths(assets, paths);
 
-        public static ResourcesMerger merge(Context context) {
-            AssetManager assets = ReflectAccelerator.newAssetManager();
-
-            // Add plugin asset paths
-            for (LoadedApk apk : sLoadedApks.values()){
-                ReflectAccelerator.addAssetPath(assets, apk.assetPath);
-            }
-            // Add host asset path
-            ReflectAccelerator.addAssetPath(assets, context.getPackageResourcePath());
-
-            Resources base = context.getResources();
-            return new ResourcesMerger(assets,
-                    base.getDisplayMetrics(), base.getConfiguration());
+        Resources base = context.getResources();
+        DisplayMetrics metrics = base.getDisplayMetrics();
+        Configuration configuration = base.getConfiguration();
+        Class baseClass = base.getClass();
+        if (baseClass == Resources.class) {
+            return new Resources(assets, metrics, configuration);
+        } else {
+            // Some crazy manufacturers will modify the application resources class.
+            // As Nubia, it use `NubiaResources'. So we had to create a related instance. #135
+            return ReflectAccelerator.newResources(baseClass, assets, metrics, configuration);
         }
     }
 }

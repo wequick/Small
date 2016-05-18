@@ -28,52 +28,60 @@ import android.text.TextUtils;
  * this:</p>
  *
  * <table border="2" width="85%" align="center" frame="hsides" rules="rows">
- *     <colgroup align="left" span="3" />
- *     <colgroup align="left" />
- *     <colgroup align="center" />
+ *      <colgroup align="left" span="3" />
+ *      <colgroup align="left" />
+ *      <colgroup align="center" />
  *
- *     <thead>
- *     <tr><th colspan="3">Method</th> <th>Description</th> <th>Next</th></tr>
- *     </thead>
+ *      <thead>
+ *      <tr><th colspan="3">Method</th> <th>Description</th> <th>Next</th></tr>
+ *      </thead>
  *
- *     <tbody>
- *     <tr><th colspan="3" align="left" border="0">{@link #setUp(Context)}</th>
- *         <td>Called when the <b>Small</b> is setUp by {@link Small#setUp(Context, Small.OnCompleteListener)}.
- *             This is where you should do all of your normal static set up:
- *             initialize the launcher, prepare for resolving bundle.</td>
- *         <td align="center"><code>preloadBundle(Bundle)</code></td>
- *     </tr>
+ *      <tbody>
+ *      <tr><th colspan="3" align="left" border="0">{@link #setUp(Context)}</th>
+ *          <td>Called when the <b>Small</b> is setUp by {@link Small#setUp(Context, Small.OnCompleteListener)}.
+ *              This is where you should do all of your normal static set up:
+ *              initialize the launcher, prepare for resolving bundle.</td>
+ *          <td align="center"><code>preloadBundle(Bundle)</code></td>
+ *      </tr>
  *
- *     <tr><td rowspan="5" style="border-left: none; border-right: none;">&nbsp;&nbsp;&nbsp;&nbsp;</td>
- *         <th colspan="2" align="left" border="0">{@link #preloadBundle(Bundle)}</th>
- *         <td>Called when loading bundles by {@link Bundle#loadLaunchableBundles(Small.OnCompleteListener)}.
- *             This is where you should do all of your normal validations and preparations.</td>
- *         <td align="center"><code>loadBundle(Bundle)</code></td>
- *     </tr>
+ *      <tr><td rowspan="2" style="border-left: none; border-right: none;">&nbsp;&nbsp;&nbsp;&nbsp;</td>
+ *          <th colspan="2" align="left" border="0">{@link #preloadBundle(Bundle)}</th>
+ *          <td>Called when loading bundles by {@link Bundle#loadLaunchableBundles(Small.OnCompleteListener)}.
+ *              This is where you should do all of your normal validations and preparations.</td>
+ *          <td align="center"><code>loadBundle(Bundle)</code></td>
+ *      </tr>
  *
- *     <tr><th colspan="2" align="left" border="0">{@link #loadBundle(Bundle)}</th>
- *         <td>Called when the bundle is becoming resolvable to the launcher.
- *             <p>Followed by <code>preloadBundle(bundle)</code> if the bundle is validated.</td>
- *         <td align="center">nothing</td>
- *     </tr>
+ *      <tr><th colspan="2" align="left" border="0">{@link #loadBundle(Bundle)}</th>
+ *          <td>Called when the bundle is becoming resolvable to the launcher.
+ *              <p>Followed by <code>preloadBundle(bundle)</code> if the bundle is validated.</td>
+ *          <td align="center">postSetUp()</td>
+ *      </tr>
  *
- *     <tr><td rowspan="2" style="border-left: none;">&nbsp;&nbsp;&nbsp;&nbsp;</td>
- *         <th align="left" border="0">{@link #prelaunchBundle(Bundle)}</th>
- *         <td>Called when the launcher will start an activity from the bundle.
- *             This is where you should do all of the intent build up:
- *             resolve the starting activity class, set the query parameters.
- *             <p>Always followed by <code>Small.openUri(uri, context)</code>.</td>
- *         <td align="center"><code>launchBundle(bundle)</code></td>
- *     </tr>
+ *      <tr><th colspan="3" align="left" border="0">{@link #postSetUp()}</th>
+ *          <td>Called when the <b>Small</b> finish setUp by {@link Small#setUp(Context, Small.OnCompleteListener)}.
+ *              This is where you should do all of the initialization of bundle collection:
+ *              add the bundle paths for your resources/code search path.</td>
+ *          <td align="center"><code>nothing</code></td>
+ *      </tr>
  *
- *     <tr><th align="left" border="0">{@link #launchBundle(Bundle, Context)}</th>
- *         <td>Called when the bundle is ready to launch. This is typically means the starting activity's
- *             intent has been prepared.
- *             <p>Followed by <code>prelaunchBundle(bundle)</code>.</td>
- *         <td align="center">nothing</td>
- *     </tr>
- *     </tbody>
- * </table>
+ *      <tr><td rowspan="2" style="border-left: none;">&nbsp;&nbsp;&nbsp;&nbsp;</td>
+ *          <th colspan="2" align="left" border="0">{@link #prelaunchBundle(Bundle)}</th>
+ *          <td>Called when the launcher will start an activity from the bundle.
+ *              This is where you should do all of the intent build up:
+ *              resolve the starting activity class, set the query parameters.
+ *              <p>Always followed by <code>Small.openUri(uri, context)</code>.</td>
+ *          <td align="center"><code>launchBundle(bundle)</code></td>
+ *      </tr>
+ *
+ *      <tr><th colspan="2" align="left" border="0">{@link #launchBundle(Bundle, Context)}</th>
+ *          <td>Called when the bundle is ready to launch. This is typically means the starting activity's
+ *              intent has been prepared.
+ *              <p>Followed by <code>prelaunchBundle(bundle)</code>.</td>
+ *          <td align="center">nothing</td>
+ *      </tr>
+ *
+ *      </tbody>
+ *  </table>
  */
 public abstract class BundleLauncher {
 

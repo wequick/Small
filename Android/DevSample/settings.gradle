@@ -1,17 +1,14 @@
-include ':small',
-        ':app',
-        ':app.main', ':app.home', ':app.detail', ':app.mine',
-        ':web.about',
-        ':lib.utils', ':lib.style', ':lib.afterutils',
-        ':jni_plugin'
+include ':small'
 
-project(':app').projectDir = new File('../Sample/app')
-project(':app.main').projectDir = new File('../Sample/app.main')
-project(':app.home').projectDir = new File('../Sample/app.home')
-project(':app.detail').projectDir = new File('../Sample/app.detail')
-project(':app.mine').projectDir = new File('../Sample/app.mine')
-project(':lib.style').projectDir = new File('../Sample/lib.style')
-project(':lib.utils').projectDir = new File('../Sample/lib.utils')
-project(':lib.afterutils').projectDir = new File('../Sample/lib.afterutils')
-project(':web.about').projectDir = new File('../Sample/web.about')
-project(':jni_plugin').projectDir = new File('../Sample/jni_plugin')
+def externalModules = [
+    ':app',
+    ':app.main', ':app.home', ':app.detail', ':app.mine',
+    ':web.about',
+    ':lib.utils', ':lib.style', ':lib.afterutils',
+    ':jni_plugin'
+] as String[]
+
+include externalModules
+externalModules.each {
+    project(it).projectDir = new File("../Sample/${it.substring(1)}")
+}

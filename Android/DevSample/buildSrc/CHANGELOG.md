@@ -1,3 +1,25 @@
+## 0.8.0 (2016-05-18)
+
+Bugfixes:
+
+  - 修正`app.*`将其依赖的`lib.xx`中的`*.so`文件也打包进去的问题 (#126)
+  - 修正设置了`ndk.abiFilters`的插件在打包时无法正确标记ABI的问题 (#132)
+  - 修正包含`.so`文件且manifest的`<application>`标签没有任何属性的插件打包时无法正确标记ABI的问题 (#131)
+
+## 0.7.0 (2016-05-05)
+
+Features:
+
+  - 插件模块支持依赖本地aar模块
+
+Bugfixes:
+
+  - 修正`lib.*`插件在`buildLib`时漏分离`support-annotations.jar`
+  - 修正`lib.*`插件相互依赖时可能出现的类找不到问题 (#117)
+  - 修正_非强制分离_模式下深层次依赖的R.java未被正确处理的问题 (#81, #114 @peacepassion)
+  - 修正在执行`buildBundle`时，`lib.*`插件可能出现的`找不到Small类`错误
+  - 修正在执行`buildBundle`时，`lib.*`插件可能出现的`transformNative_libsWithSyncJniLibsForRelease`任务异常
+
 ## 0.6.0 (2016-04-21)
 
 Features:

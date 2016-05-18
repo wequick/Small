@@ -32,7 +32,8 @@ import net.wequick.small.webkit.JsHandler;
 import net.wequick.small.webkit.WebView;
 import net.wequick.small.webkit.WebViewClient;
 
-import java.io.File;
+import org.json.JSONObject;
+
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -139,12 +140,20 @@ public final class Small {
         return Bundle.findByName(bundleName);
     }
 
+    public static boolean updateManifest(JSONObject manifest, boolean force) {
+        return Bundle.updateManifest(manifest, force);
+    }
+
     public static void setWebViewClient(WebViewClient client) {
         WebView.setWebViewClient(client);
     }
 
     public static void registerJsHandler(String method, JsHandler handler) {
         WebView.registerJsHandler(method, handler);
+    }
+
+    public static SharedPreferences getSharedPreferences() {
+        return getContext().getSharedPreferences(SHARED_PREFERENCES_SMALL, 0);
     }
 
     public static Map<String, Integer> getBundleVersions() {
@@ -200,6 +209,19 @@ public final class Small {
                 getSharedPreferences(SHARED_PREFERENCES_BUNDLE_UPGRADES, 0);
         if (sp == null) return false;
         return sp.getBoolean(bundleName, false);
+    }
+
+    public static boolean isUpgrading() {
+        SharedPreferences sp = getContext().
+                getSharedPreferences(SHARED_PREFERENCES_BUNDLE_UPGRADES, 0);
+        Map<String, Boolean> flags = (Map<String, Boolean>) sp.getAll();
+        if (flags == null) return false;
+        Iterator<Map.Entry<String, Boolean>> it = flags.entrySet().iterator();
+        while (it.hasNext()) {
+            Boolean flag = it.next().getValue();
+            if (flag != null && flag) return true;
+        }
+        return false;
     }
 
     public static void openUri(String uriString, Context context) {

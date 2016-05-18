@@ -19,7 +19,30 @@ class LibraryPlugin extends AppPlugin {
     protected void configureProject() {
         super.configureProject()
 
-        if (!isBuildingRelease()) return
+        if (!isBuildingRelease()) {
+            project.afterEvaluate {
+                // Cause `isBuildingRelease()' return false, at this time, super's
+                // `resolveReleaseDependencies' will not be triggered.
+                // To avoid the `Small' class not found, provided the small jar here.
+                RootExtension rootExt = project.rootProject.small
+                def smallJar = project.fileTree(
+                        dir: rootExt.preBaseJarDir, include: [SMALL_JAR_PATTERN])
+                project.dependencies.add('provided', smallJar)
+
+                if (isBuildingApps()) {
+                    // Dependently built by `buildBundle' or `:app.xx:assembleRelease'.
+                    // To avoid transformNative_libsWithSyncJniLibsForRelease task error, skip it.
+                    // FIXME: we'd better figure out why the task failed and fix it
+                    project.preBuild.doLast {
+                        def syncJniTaskName = 'transformNative_libsWithSyncJniLibsForRelease'
+                        if (!project.hasProperty(syncJniTaskName)) return
+                        def syncJniTask = project.tasks[syncJniTaskName]
+                        syncJniTask.onlyIf { false }
+                    }
+                }
+            }
+            return
+        }
 
         mBakBuildFile = new File(project.buildFile.parentFile, "${project.buildFile.name}~")
 
@@ -59,8 +82,8 @@ class LibraryPlugin extends AppPlugin {
 
         // Add library dependencies for `buildLib', fix issue #65
         project.afterEvaluate {
-            compileLibs.each {
-                project.preBuild.dependsOn "${it.dependencyProject.path}:buildLib"
+            mDependentLibProjects.each {
+                project.preBuild.dependsOn "${it.path}:buildLib"
             }
         }
     }
