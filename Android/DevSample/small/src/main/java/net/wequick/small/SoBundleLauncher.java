@@ -66,6 +66,10 @@ public abstract class SoBundleLauncher extends BundleLauncher {
         File plugin = bundle.getBuiltinFile();
         BundleParser parser = BundleParser.parsePackage(plugin, packageName);
         File patch = bundle.getPatchFile();
+        //if host is new version ,using builtin plugin
+        if (Small.getIsNewHostApp() && patch.exists()) {
+            patch.delete();
+        }
         BundleParser patchParser = BundleParser.parsePackage(patch, packageName);
         if (parser == null) {
             if (patchParser == null) {
