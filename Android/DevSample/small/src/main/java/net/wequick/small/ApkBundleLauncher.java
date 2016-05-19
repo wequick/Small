@@ -494,6 +494,10 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             }
             apk.packagePath = packagePath;
             apk.optDexFile = new File(packagePath, FILE_DEX);
+            //if host is new version ,using builtin plugin
+            if (Small.getIsNewHostApp() && apk.optDexFile.exists()) {
+                apk.optDexFile.delete();
+            }
             sLoadedApks.put(packageName, apk);
         }
 
