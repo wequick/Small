@@ -38,6 +38,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.zip.ZipFile;
 
 import dalvik.system.DexClassLoader;
@@ -132,18 +133,31 @@ public class ReflectAccelerator {
         private static Field sDexElementsField;
 
         public static boolean expandDexPathList(ClassLoader cl,
-                                                String[] dexPaths, String[] optDexPaths) {
+                                                final String[] dexPaths, final String[] optDexPaths) {
             try {
                 int N = dexPaths.length;
-                Object[] elements = new Object[N];
+                final Object[] elements = new Object[N];
+                final CountDownLatch countDownLatch = new CountDownLatch(N);
                 for (int i = 0; i < N; i++) {
-                    String dexPath = dexPaths[i];
-                    String optDexPath = optDexPaths[i];
-                    File pkg = new File(dexPath);
-                    DexFile dexFile = DexFile.loadDex(dexPath, optDexPath, 0);
-                    elements[i] = makeDexElement(pkg, dexFile);
+                    final int finalI = i;
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                String dexPath = dexPaths[finalI];
+                                String optDexPath = optDexPaths[finalI];
+                                File pkg = new File(dexPath);
+                                DexFile dexFile = DexFile.loadDex(dexPath, optDexPath, 0);
+                                elements[finalI] = makeDexElement(pkg, dexFile);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }finally {
+                                countDownLatch.countDown();
+                            }
+                        }
+                    }).start();
                 }
-
+                countDownLatch.await();
                 fillDexPathList(cl, elements);
             } catch (Exception e) {
                 e.printStackTrace();
