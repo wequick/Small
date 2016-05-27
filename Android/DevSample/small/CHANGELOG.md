@@ -1,3 +1,9 @@
+## 1.0.0-beta2 (2016-05-19)
+
+Bugfixes:
+
+  - 修正small包误编译进appcompat/R.class导致的无法运行问题
+
 ## 1.0.0-beta1 (2016-05-18)
 
 Features:

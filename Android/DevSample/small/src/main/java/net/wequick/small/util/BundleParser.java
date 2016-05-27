@@ -203,7 +203,6 @@ public class BundleParser {
             }
 
             sa.recycle();
-            collectCertificates();
             return true;
         } catch (XmlPullParserException e) {
             e.printStackTrace();
