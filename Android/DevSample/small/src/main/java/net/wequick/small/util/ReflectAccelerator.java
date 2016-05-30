@@ -67,7 +67,7 @@ public class ReflectAccelerator {
         private static Field sPathClassLoader_libraryPathElements_field;
 
         public static boolean expandDexPathList(ClassLoader cl,
-                                                String[] dexPaths, String[] optDexPaths) {
+                                                String[] dexPaths, DexFile[] dexFiles) {
             try {
             /*
              * see https://android.googlesource.com/platform/libcore/+/android-2.3_r1/dalvik/src/main/java/dalvik/system/DexClassLoader.java
@@ -89,14 +89,11 @@ public class ReflectAccelerator {
                 Object[] files = new Object[N];
                 Object[] paths = new Object[N];
                 Object[] zips = new Object[N];
-                Object[] dexFiles = new Object[N];
                 for (int i = 0; i < N; i++) {
                     String path = dexPaths[i];
-                    String optPath = optDexPaths[i];
                     files[i] = new File(path);
                     paths[i] = path;
                     zips[i] = new ZipFile(path);
-                    dexFiles[i] = DexFile.loadDex(path, optPath, 0);
                 }
 
                 expandArray(cl, sDexClassLoader_mFiles_field, files, true);
@@ -132,15 +129,14 @@ public class ReflectAccelerator {
         private static Field sDexElementsField;
 
         public static boolean expandDexPathList(ClassLoader cl,
-                                                String[] dexPaths, String[] optDexPaths) {
+                                                String[] dexPaths, DexFile[] dexFiles) {
             try {
                 int N = dexPaths.length;
                 Object[] elements = new Object[N];
                 for (int i = 0; i < N; i++) {
                     String dexPath = dexPaths[i];
-                    String optDexPath = optDexPaths[i];
                     File pkg = new File(dexPath);
-                    DexFile dexFile = DexFile.loadDex(dexPath, optDexPath, 0);
+                    DexFile dexFile = dexFiles[i];
                     elements[i] = makeDexElement(pkg, dexFile);
                 }
 
@@ -413,11 +409,11 @@ public class ReflectAccelerator {
         return null;
     }
 
-    public static boolean expandDexPathList(ClassLoader cl, String[] dexPaths, String[] optDexPaths) {
+    public static boolean expandDexPathList(ClassLoader cl, String[] dexPaths, DexFile[] dexFiles) {
         if (Build.VERSION.SDK_INT < 14) {
-            return V9_13.expandDexPathList(cl, dexPaths, optDexPaths);
+            return V9_13.expandDexPathList(cl, dexPaths, dexFiles);
         } else {
-            return V14_.expandDexPathList(cl, dexPaths, optDexPaths);
+            return V14_.expandDexPathList(cl, dexPaths, dexFiles);
         }
     }
 

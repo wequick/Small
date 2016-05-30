@@ -46,6 +46,7 @@ import net.wequick.small.util.JNIUtils;
 import net.wequick.small.util.ReflectAccelerator;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -55,6 +56,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
+import dalvik.system.DexFile;
 
 /**
  * This class launch the plugin activity by it's class name.
@@ -88,8 +91,9 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         public File packagePath;
         public String applicationName;
         public String path;
-        public int abiFlags;
+        public DexFile dexFile;
         public File optDexFile;
+        public File libraryPath;
         public ActivityInfo[] activities;
     }
 
@@ -404,10 +408,10 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         int i = 0;
         int N = apks.size();
         String[] dexPaths = new String[N];
-        String[] optDexPaths = new String[N];
+        DexFile[] dexFiles = new DexFile[N];
         for (LoadedApk apk : apks) {
             dexPaths[i] = apk.path;
-            optDexPaths[i] = apk.optDexFile.getPath();
+            dexFiles[i] = apk.dexFile;
             if (Small.getBundleUpgraded(apk.packageName)) {
                 // If upgraded, delete the opt dex file for recreating
                 if (apk.optDexFile.exists()) apk.optDexFile.delete();
@@ -415,28 +419,13 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             }
             i++;
         }
-        ReflectAccelerator.expandDexPathList(cl, dexPaths, optDexPaths);
+        ReflectAccelerator.expandDexPathList(cl, dexPaths, dexFiles);
 
         // Expand the native library directories if plugin has any JNIs. (#79)
         List<File> libPathList = new ArrayList<File>();
         for (LoadedApk apk : apks) {
-            String abiPath = JNIUtils.getExtractABI(apk.abiFlags, Bundle.is64bit());
-            if (abiPath != null) {
-                // Extract the JNIs with specify ABI
-                String libDir = FD_LIBRARY + File.separator + abiPath + File.separator;
-                File libPath = new File(apk.packagePath, libDir);
-                if (!libPath.exists()) {
-                    if (!libPath.mkdirs()) {
-                        Log.e(TAG, "Failed to create libPath: " + libPath);
-                        continue;
-                    }
-                }
-                try {
-                    FileUtils.unZipFolder(new File(apk.path), apk.packagePath, libDir);
-                    libPathList.add(libPath);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+            if (apk.libraryPath != null) {
+                libPathList.add(apk.libraryPath);
             }
         }
         if (libPathList.size() > 0) {
@@ -480,7 +469,6 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             apk = new LoadedApk();
             apk.packageName = packageName;
             apk.path = apkPath;
-            apk.abiFlags = parser.getABIFlags();
             apk.activities = pluginInfo.activities;
             if (pluginInfo.applicationInfo != null) {
                 apk.applicationName = pluginInfo.applicationInfo.className;
@@ -494,6 +482,31 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             }
             apk.packagePath = packagePath;
             apk.optDexFile = new File(packagePath, FILE_DEX);
+
+            // Load dex
+            try {
+                apk.dexFile = DexFile.loadDex(apkPath, apk.optDexFile.getPath(), 0);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            // Extract native libraries with specify ABI
+            int abiFlags = parser.getABIFlags();
+            String abiPath = JNIUtils.getExtractABI(abiFlags, Bundle.is64bit());
+            if (abiPath != null) {
+                String libDir = FD_LIBRARY + File.separator + abiPath + File.separator;
+                File libPath = new File(apk.packagePath, libDir);
+                if (!libPath.exists()) {
+                    if (!libPath.mkdirs()) {
+                        throw new RuntimeException("Failed to create libPath: " + libPath);
+                    }
+                }
+                try {
+                    FileUtils.unZipFolder(new File(apk.path), apk.packagePath, libDir);
+                    apk.libraryPath = libPath;
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
             sLoadedApks.put(packageName, apk);
         }
 

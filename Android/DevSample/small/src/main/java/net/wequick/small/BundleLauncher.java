@@ -129,9 +129,9 @@ public abstract class BundleLauncher {
     }
 
     /**
-     * Called after {@link #preloadBundle(Bundle)} succeed. This is where most initialization
-     * should go: resolve the bundle activities or asset files,
-     * prepare the main entrance the bundle to start.
+     * Called after {@link #preloadBundle(Bundle)} succeed. This is where most I/O
+     * should go: parse the bundle file and resolve the bundle activities or asset files,
+     * prepare the main entrance of the bundle to start.
      *
      * @param bundle the loading bundle
      */
