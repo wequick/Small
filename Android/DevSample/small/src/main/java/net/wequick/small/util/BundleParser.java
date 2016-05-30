@@ -65,7 +65,7 @@ public class BundleParser {
                     0x01010000, 0x01010001, 0x01010003
             };
             public static int AndroidManifestApplication_theme = 0;
-            public static int AndroidManifestApplication_label = 1; // for ABIs
+            public static int AndroidManifestApplication_label = 1; // for ABIs (Depreciated)
             public static int AndroidManifestApplication_name = 2;
             // activity
             public static int[] AndroidManifestActivity = {
@@ -102,6 +102,7 @@ public class BundleParser {
     private Resources res;
     private ConcurrentHashMap<String, List<IntentFilter>> mIntentFilters;
     private int mABIFlags;
+    private boolean mNonResources;
 
     public BundleParser(File sourceFile, String packageName) {
         mArchiveSourcePath = sourceFile.getPath();
@@ -122,6 +123,8 @@ public class BundleParser {
         boolean assetError = true;
         try {
             assmgr = ReflectAccelerator.newAssetManager();
+            if (assmgr == null) return false;
+
             int cookie = ReflectAccelerator.addAssetPath(assmgr, mArchiveSourcePath);
             if(cookie != 0) {
                 parser = assmgr.openXmlResourceParser(cookie, "AndroidManifest.xml");
@@ -153,6 +156,21 @@ public class BundleParser {
 
             // <manifest ...
             mPackageInfo.packageName = parser.getAttributeValue(null, "package").intern();
+
+            // After gradle-small 0.9.0, we roll out
+            // `The Small exclusive flags`
+            //  F    F    F    F    F    F    F    F
+            // 1111 1111 1111 1111 1111 1111 1111 1111
+            // ^^^^ ^^^^ ^^^^ ^^^^ ^^^^
+            //       ABI Flags (20)
+            //                          ^
+            //                 nonResources Flag (1)
+            //                           ^^^ ^^^^ ^^^^
+            //                     platformBuildVersionCode (11) => MAX=0x7FF=4095
+            int flags = parser.getAttributeIntValue(null, "platformBuildVersionCode", 0);
+            mABIFlags = (flags & 0xFFFFF000) >> 12;
+            mNonResources = (flags & 0x800) != 0;
+
             TypedArray sa = res.obtainAttributes(attrs,
                     R.styleable.AndroidManifest);
             mPackageInfo.versionCode = sa.getInteger(
@@ -185,13 +203,17 @@ public class BundleParser {
                         app.className = null;
                     }
 
-                    // Get the label value which used as ABI flags
-                    TypedValue label = new TypedValue();
-                    if (sa.getValue(R.styleable.AndroidManifestApplication_label, label)) {
-                        if (label.type == TypedValue.TYPE_STRING) {
-                            mABIFlags = Integer.parseInt(label.string.toString());
-                        } else {
-                            mABIFlags = label.data;
+                    // Get the label value which used as ABI flags.
+                    // This is depreciated, we read it from the `platformBuildVersionCode` instead.
+                    // TODO: Remove this if the gradle-small 0.9.0 or above being widely used.
+                    if (mABIFlags == 0) {
+                        TypedValue label = new TypedValue();
+                        if (sa.getValue(R.styleable.AndroidManifestApplication_label, label)) {
+                            if (label.type == TypedValue.TYPE_STRING) {
+                                mABIFlags = Integer.parseInt(label.string.toString());
+                            } else {
+                                mABIFlags = label.data;
+                            }
                         }
                     }
 
@@ -555,5 +577,14 @@ public class BundleParser {
 
     public int getABIFlags() {
         return mABIFlags;
+    }
+
+    /**
+     * This method tells whether the bundle has `resources.arsc` entry, note that
+     * it doesn't make sense until your bundle was built by `gradle-small` 0.9.0 or above.
+     * @return <tt>true</tt> if doesn't have any resources
+     */
+    public boolean isNonResources() {
+        return mNonResources;
     }
 }

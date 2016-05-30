@@ -50,6 +50,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -94,6 +95,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         public DexFile dexFile;
         public File optDexFile;
         public File libraryPath;
+        public boolean nonResources; /** no resources.arsc */
         public ActivityInfo[] activities;
     }
 
@@ -421,7 +423,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         }
         ReflectAccelerator.expandDexPathList(cl, dexPaths, dexFiles);
 
-        // Expand the native library directories if plugin has any JNIs. (#79)
+        // Expand the native library directories for host class loader if plugin has any JNIs. (#79)
         List<File> libPathList = new ArrayList<File>();
         for (LoadedApk apk : apks) {
             if (apk.libraryPath != null) {
@@ -469,6 +471,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             apk = new LoadedApk();
             apk.packageName = packageName;
             apk.path = apkPath;
+            apk.nonResources = parser.isNonResources();
             apk.activities = pluginInfo.activities;
             if (pluginInfo.applicationInfo != null) {
                 apk.applicationName = pluginInfo.applicationInfo.className;
@@ -619,10 +622,14 @@ public class ApkBundleLauncher extends SoBundleLauncher {
     private static Resources mergeResources(Context context, Collection<LoadedApk> apks) {
         AssetManager assets = ReflectAccelerator.newAssetManager();
         String[] paths = new String[apks.size() + 1];
-        paths[0] = context.getPackageResourcePath(); // Add host asset path
+        paths[0] = context.getPackageResourcePath(); // add host asset path
         int i = 1;
         for (LoadedApk apk : apks) {
-            paths[i++] = apk.path; // Add plugin asset paths
+            if (apk.nonResources) continue; // ignores the empty entry to fix #62
+            paths[i++] = apk.path; // add plugin asset path
+        }
+        if (i != paths.length) {
+            paths = Arrays.copyOf(paths, i);
         }
         ReflectAccelerator.addAssetPaths(assets, paths);
 
