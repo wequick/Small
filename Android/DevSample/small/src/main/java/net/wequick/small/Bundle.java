@@ -208,7 +208,7 @@ public class Bundle {
         editor.apply();
     }
 
-    protected static boolean is64bit() {
+    public static boolean is64bit() {
         return sIs64bit;
     }
 

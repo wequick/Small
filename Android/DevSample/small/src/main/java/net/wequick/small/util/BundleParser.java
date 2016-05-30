@@ -14,6 +14,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
 
+import net.wequick.small.Bundle;
 import net.wequick.small.Small;
 
 import org.xmlpull.v1.XmlPullParserException;
@@ -27,7 +28,6 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
@@ -101,8 +101,8 @@ public class BundleParser {
     private XmlResourceParser parser;
     private Resources res;
     private ConcurrentHashMap<String, List<IntentFilter>> mIntentFilters;
-    private int mABIFlags;
     private boolean mNonResources;
+    private String mLibDir;
 
     public BundleParser(File sourceFile, String packageName) {
         mArchiveSourcePath = sourceFile.getPath();
@@ -168,7 +168,7 @@ public class BundleParser {
             //                           ^^^ ^^^^ ^^^^
             //                     platformBuildVersionCode (11) => MAX=0x7FF=4095
             int flags = parser.getAttributeIntValue(null, "platformBuildVersionCode", 0);
-            mABIFlags = (flags & 0xFFFFF000) >> 12;
+            int abiFlags = (flags & 0xFFFFF000) >> 12;
             mNonResources = (flags & 0x800) != 0;
 
             TypedArray sa = res.obtainAttributes(attrs,
@@ -206,13 +206,13 @@ public class BundleParser {
                     // Get the label value which used as ABI flags.
                     // This is depreciated, we read it from the `platformBuildVersionCode` instead.
                     // TODO: Remove this if the gradle-small 0.9.0 or above being widely used.
-                    if (mABIFlags == 0) {
+                    if (abiFlags == 0) {
                         TypedValue label = new TypedValue();
                         if (sa.getValue(R.styleable.AndroidManifestApplication_label, label)) {
                             if (label.type == TypedValue.TYPE_STRING) {
-                                mABIFlags = Integer.parseInt(label.string.toString());
+                                abiFlags = Integer.parseInt(label.string.toString());
                             } else {
-                                mABIFlags = label.data;
+                                abiFlags = label.data;
                             }
                         }
                     }
@@ -221,6 +221,13 @@ public class BundleParser {
                             R.styleable.AndroidManifestApplication_theme, 0);
                     mPackageInfo.applicationInfo = app;
                     break;
+                }
+            }
+
+            if (abiFlags != 0) {
+                String abi = JNIUtils.getExtractABI(abiFlags, Bundle.is64bit());
+                if (abi != null) {
+                    mLibDir = "lib/" + abi + "/";
                 }
             }
 
@@ -341,23 +348,30 @@ public class BundleParser {
 
             Certificate[] certs = null;
 
-
             Enumeration entries = jarFile.entries();
             while (entries.hasMoreElements()) {
                 JarEntry je = (JarEntry)entries.nextElement();
                 if (je.isDirectory()) continue;
-                if (je.getName().startsWith("META-INF/")) continue;
+
+                String name = je.getName();
+                if (name.startsWith("META-INF/")) continue;
+
+                if (mLibDir != null && name.startsWith("lib/") && !name.startsWith(mLibDir)) {
+                    // Ignore unused ABIs
+                    continue;
+                }
+
                 Certificate[] localCerts = loadCertificates(jarFile, je,
                         readBuffer);
                 if (false) {
-                    Log.i(TAG, "File " + mArchiveSourcePath + " entry " + je.getName()
+                    Log.i(TAG, "File " + mArchiveSourcePath + " entry " + name
                             + ": certs=" + certs + " ("
                             + (certs != null ? certs.length : 0) + ")");
                 }
                 if (localCerts == null) {
                     Log.e(TAG, "Package " + mPackageName
                             + " has no certificates at entry "
-                            + je.getName() + "; ignoring!");
+                            + name + "; ignoring!");
                     jarFile.close();
                     return false;
                 } else if (certs == null) {
@@ -376,7 +390,7 @@ public class BundleParser {
                         if (!found || certs.length != localCerts.length) {
                             Log.e(TAG, "Package " + mPackageName
                                     + " has mismatched certificates at entry "
-                                    + je.getName() + "; ignoring!");
+                                    + name + "; ignoring!");
                             jarFile.close();
                             return false;
                         }
@@ -575,8 +589,8 @@ public class BundleParser {
         return mIntentFilters;
     }
 
-    public int getABIFlags() {
-        return mABIFlags;
+    public String getLibraryDirectory() {
+        return mLibDir;
     }
 
     /**

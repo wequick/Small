@@ -42,7 +42,6 @@ import android.view.Window;
 import net.wequick.small.internal.InstrumentationInternal;
 import net.wequick.small.util.BundleParser;
 import net.wequick.small.util.FileUtils;
-import net.wequick.small.util.JNIUtils;
 import net.wequick.small.util.ReflectAccelerator;
 
 import java.io.File;
@@ -84,7 +83,6 @@ public class ApkBundleLauncher extends SoBundleLauncher {
     private static final String STUB_ACTIVITY_TRANSLUCENT = STUB_ACTIVITY_PREFIX + '1';
     private static final String TAG = "ApkBundleLauncher";
     private static final String FD_STORAGE = "storage";
-    private static final String FD_LIBRARY = "lib";
     private static final String FILE_DEX = "bundle.dex";
 
     private static class LoadedApk {
@@ -493,10 +491,8 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 throw new RuntimeException(e);
             }
             // Extract native libraries with specify ABI
-            int abiFlags = parser.getABIFlags();
-            String abiPath = JNIUtils.getExtractABI(abiFlags, Bundle.is64bit());
-            if (abiPath != null) {
-                String libDir = FD_LIBRARY + File.separator + abiPath + File.separator;
+            String libDir = parser.getLibraryDirectory();
+            if (libDir != null) {
                 File libPath = new File(apk.packagePath, libDir);
                 if (!libPath.exists()) {
                     if (!libPath.mkdirs()) {
