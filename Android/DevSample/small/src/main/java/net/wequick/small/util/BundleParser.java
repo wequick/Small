@@ -1,6 +1,8 @@
 package net.wequick.small.util;
 
+import android.content.Context;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
@@ -105,9 +107,14 @@ public class BundleParser {
     private boolean mNonResources;
     private String mLibDir;
 
+    private Context mContext;
+    private SharedPreferences mCrcs;
+
     public BundleParser(File sourceFile, String packageName) {
         mArchiveSourcePath = sourceFile.getPath();
         mPackageName = packageName;
+        mContext = Small.getContext();
+        mCrcs = mContext.getSharedPreferences("small.crc." + packageName, 0);
     }
 
     public static BundleParser parsePackage(File sourceFile, String packageName) {
@@ -142,7 +149,7 @@ public class BundleParser {
             return false;
         }
 
-        res = new Resources(assmgr, Small.getContext().getResources().getDisplayMetrics(), null);
+        res = new Resources(assmgr, mContext.getResources().getDisplayMetrics(), null);
         return parsePackage(res, parser);
     }
 
@@ -345,6 +352,7 @@ public class BundleParser {
         }
 
         byte[][] hostCerts = Small.getHostCertificates();
+        SharedPreferences.Editor crcEditor = mCrcs.edit();
 
         try {
             JarFile jarFile = new JarFile(mArchiveSourcePath);
@@ -359,6 +367,13 @@ public class BundleParser {
 
                 if (mLibDir != null && name.startsWith("lib/") && !name.startsWith(mLibDir)) {
                     // Ignore unused ABIs
+                    continue;
+                }
+
+                // Verify CRC first
+                long crc = je.getCrc();
+                long savedCrc = mCrcs.getLong(name, 0);
+                if (crc == savedCrc) {
                     continue;
                 }
 
@@ -391,8 +406,11 @@ public class BundleParser {
                         }
                     }
                 }
+
+                crcEditor.putLong(name, crc);
             }
 
+            crcEditor.apply();
             jarFile.close();
 
             synchronized (this.getClass()) {
