@@ -84,14 +84,13 @@ public abstract class SoBundleLauncher extends BundleLauncher {
         bundle.setParser(parser);
 
         // Verify signatures
-        parser.collectCertificates();
-        PackageInfo pluginInfo = parser.getPackageInfo();
-        if (!SignUtils.verifyPlugin(pluginInfo)) {
+        if (!parser.verifyCertificates()) {
             bundle.setEnabled(false);
             return true; // Got it, but disabled
         }
 
         // Record version code for upgrade
+        PackageInfo pluginInfo = parser.getPackageInfo();
         bundle.setVersionCode(pluginInfo.versionCode);
 
         return true;

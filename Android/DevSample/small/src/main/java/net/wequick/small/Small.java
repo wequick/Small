@@ -25,6 +25,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.net.Uri;
 
 import net.wequick.small.util.ApplicationUtils;
@@ -67,6 +68,8 @@ public final class Small {
     private static boolean sIsNewHostApp; // first launched or upgraded
     private static int sWebActivityTheme;
 
+    private static byte[][] sHostCertificates;
+
     public interface OnCompleteListener {
         void onComplete();
     }
@@ -85,6 +88,10 @@ public final class Small {
 
     public static boolean getIsNewHostApp() {
         return sIsNewHostApp;
+    }
+
+    public static byte[][] getHostCertificates() {
+        return sHostCertificates;
     }
 
     public static void preSetUp(Application context) {
@@ -113,6 +120,21 @@ public final class Small {
             setHostVersionCode(currHostVersion);
         } else {
             sIsNewHostApp = false;
+        }
+
+        // Collect host certificates
+        try {
+            Signature[] ss = pm.getPackageInfo(Small.getContext().getPackageName(),
+                    PackageManager.GET_SIGNATURES).signatures;
+            if (ss != null) {
+                int N = ss.length;
+                sHostCertificates = new byte[N][];
+                for (int i = 0; i < N; i++) {
+                    sHostCertificates[i] = ss[i].toByteArray();
+                }
+            }
+        } catch (PackageManager.NameNotFoundException ignored) {
+
         }
 
         // Check if application is started after unexpected exit (killed in background etc.)

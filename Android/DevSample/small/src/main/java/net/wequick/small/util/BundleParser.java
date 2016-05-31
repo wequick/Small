@@ -27,6 +27,7 @@ import java.lang.ref.WeakReference;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -328,7 +329,7 @@ public class BundleParser {
         return false;
     }
 
-    public boolean collectCertificates() {
+    public boolean verifyCertificates() {
         WeakReference<byte[]> readBufferRef;
         byte[] readBuffer = null;
         synchronized (this.getClass()) {
@@ -343,10 +344,10 @@ public class BundleParser {
             }
         }
 
+        byte[][] hostCerts = Small.getHostCertificates();
+
         try {
             JarFile jarFile = new JarFile(mArchiveSourcePath);
-
-            Certificate[] certs = null;
 
             Enumeration entries = jarFile.entries();
             while (entries.hasMoreElements()) {
@@ -363,31 +364,25 @@ public class BundleParser {
 
                 Certificate[] localCerts = loadCertificates(jarFile, je,
                         readBuffer);
-                if (false) {
-                    Log.i(TAG, "File " + mArchiveSourcePath + " entry " + name
-                            + ": certs=" + certs + " ("
-                            + (certs != null ? certs.length : 0) + ")");
-                }
+
                 if (localCerts == null) {
                     Log.e(TAG, "Package " + mPackageName
                             + " has no certificates at entry "
                             + name + "; ignoring!");
                     jarFile.close();
                     return false;
-                } else if (certs == null) {
-                    certs = localCerts;
                 } else {
                     // Ensure all certificates match.
-                    for (int i=0; i<certs.length; i++) {
+                    for (int i=0; i<hostCerts.length; i++) {
                         boolean found = false;
                         for (int j=0; j<localCerts.length; j++) {
-                            if (certs[i] != null &&
-                                    certs[i].equals(localCerts[j])) {
+                            if (hostCerts[i] != null &&
+                                    Arrays.equals(hostCerts[i], localCerts[j].getEncoded())) {
                                 found = true;
                                 break;
                             }
                         }
-                        if (!found || certs.length != localCerts.length) {
+                        if (!found || hostCerts.length != localCerts.length) {
                             Log.e(TAG, "Package " + mPackageName
                                     + " has mismatched certificates at entry "
                                     + name + "; ignoring!");
@@ -402,19 +397,6 @@ public class BundleParser {
 
             synchronized (this.getClass()) {
                 mReadBuffer = readBufferRef;
-            }
-
-            if (certs != null && certs.length > 0) {
-                final int N = certs.length;
-                mPackageInfo.signatures = new Signature[certs.length];
-                for (int i=0; i<N; i++) {
-                    mPackageInfo.signatures[i] = new Signature(
-                            certs[i].getEncoded());
-                }
-            } else {
-                Log.e(TAG, "Package " + mPackageName
-                        + " has no certificates; ignoring!");
-                return false;
             }
         } catch (CertificateEncodingException e) {
             Log.w(TAG, "Exception reading " + mArchiveSourcePath, e);
