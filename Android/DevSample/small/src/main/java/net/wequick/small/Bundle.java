@@ -43,6 +43,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This class consists exclusively of methods that operate on apk plugin.
@@ -631,6 +634,8 @@ public class Bundle {
         }
     }
 
+    private static final int LOADING_TIMEOUT_MINUTES = 5;
+
     private static void loadBundles(List<Bundle> bundles) {
         sPreloadBundles = bundles;
 
@@ -639,10 +644,36 @@ public class Bundle {
             bundle.prepareForLaunch();
         }
 
+        // Handle I/O
+        if (sIOActions != null) {
+            ExecutorService executor = Executors.newFixedThreadPool(sIOActions.size());
+            for (Runnable action : sIOActions) {
+                executor.execute(action);
+            }
+            executor.shutdown();
+            try {
+                if (!executor.awaitTermination(LOADING_TIMEOUT_MINUTES, TimeUnit.MINUTES)) {
+                    throw new RuntimeException("Failed to load bundles! (TIMEOUT > "
+                            + LOADING_TIMEOUT_MINUTES + "minutes)");
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
         // Notify `postSetUp' to all launchers
         for (BundleLauncher launcher : sBundleLaunchers) {
             launcher.postSetUp();
         }
+    }
+
+    private static List<Runnable> sIOActions;
+
+    protected static void postIO(Runnable action) {
+        if (sIOActions == null) {
+            sIOActions = new ArrayList<Runnable>();
+        }
+        sIOActions.add(action);
     }
 
     protected static void postInitWebViewMessage(String url) {

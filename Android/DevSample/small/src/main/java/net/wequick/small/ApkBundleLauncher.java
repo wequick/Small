@@ -485,26 +485,39 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             apk.optDexFile = new File(packagePath, FILE_DEX);
 
             // Load dex
-            try {
-                apk.dexFile = DexFile.loadDex(apkPath, apk.optDexFile.getPath(), 0);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            // Extract native libraries with specify ABI
-            String libDir = parser.getLibraryDirectory();
-            if (libDir != null) {
-                File libPath = new File(apk.packagePath, libDir);
-                if (!libPath.exists()) {
-                    if (!libPath.mkdirs()) {
-                        throw new RuntimeException("Failed to create libPath: " + libPath);
+            final LoadedApk fApk = apk;
+            Bundle.postIO(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        fApk.dexFile = DexFile.loadDex(fApk.path, fApk.optDexFile.getPath(), 0);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
                     }
                 }
-                try {
-                    FileUtils.unZipFolder(new File(apk.path), apk.packagePath, libDir);
-                    apk.libraryPath = libPath;
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
+            });
+
+            // Extract native libraries with specify ABI
+            final String libDir = parser.getLibraryDirectory();
+            if (libDir != null) {
+                Bundle.postIO(new Runnable() {
+                    @Override
+                    public void run() {
+                        File libPath = new File(fApk.packagePath, libDir);
+                        if (!libPath.exists()) {
+                            if (!libPath.mkdirs()) {
+                                throw new RuntimeException("Failed to create libPath: " + libPath);
+                            }
+                        }
+                        try {
+                            FileUtils.unZipFolder(new File(fApk.path), fApk.packagePath, libDir);
+                            fApk.libraryPath = libPath;
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                });
+
             }
             sLoadedApks.put(packageName, apk);
         }
