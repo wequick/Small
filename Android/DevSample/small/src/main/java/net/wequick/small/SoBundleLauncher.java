@@ -72,6 +72,7 @@ public abstract class SoBundleLauncher extends BundleLauncher {
                 return false;
             } else {
                 parser = patchParser; // use patch
+                plugin = patch;
             }
         } else if (patchParser != null) {
             if (patchParser.getPackageInfo().versionCode <= parser.getPackageInfo().versionCode) {
@@ -79,14 +80,21 @@ public abstract class SoBundleLauncher extends BundleLauncher {
                 patch.delete();
             } else {
                 parser = patchParser; // use patch
+                plugin = patch;
             }
         }
         bundle.setParser(parser);
 
-        // Verify signatures
-        if (!parser.verifyCertificates()) {
-            bundle.setEnabled(false);
-            return true; // Got it, but disabled
+        // If the plugin has not been modified
+        long lastModified = plugin.lastModified();
+        long savedLastModified = Small.getBundleLastModified(packageName);
+        if (savedLastModified != lastModified) {
+            // Verify signatures
+            if (!parser.verifyCertificates(this)) {
+                bundle.setEnabled(false);
+                return true; // Got it, but disabled
+            }
+            Small.setBundleLastModified(packageName, lastModified);
         }
 
         // Record version code for upgrade
