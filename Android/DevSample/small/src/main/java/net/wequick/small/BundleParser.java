@@ -1,4 +1,4 @@
-package net.wequick.small.util;
+package net.wequick.small;
 
 import android.content.Context;
 import android.content.IntentFilter;
@@ -15,9 +15,8 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
 
-import net.wequick.small.Bundle;
-import net.wequick.small.BundleExtractor;
-import net.wequick.small.Small;
+import net.wequick.small.util.JNIUtils;
+import net.wequick.small.util.ReflectAccelerator;
 
 import org.xmlpull.v1.XmlPullParserException;
 

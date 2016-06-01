@@ -18,8 +18,6 @@ package net.wequick.small;
 import android.content.pm.PackageInfo;
 import android.util.Log;
 
-import net.wequick.small.util.BundleParser;
-
 import java.io.File;
 
 /**

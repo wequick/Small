@@ -23,7 +23,6 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
 
-import net.wequick.small.util.BundleParser;
 import net.wequick.small.util.FileUtils;
 import net.wequick.small.webkit.WebViewPool;
 

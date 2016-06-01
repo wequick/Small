@@ -40,7 +40,6 @@ import android.util.Log;
 import android.view.Window;
 
 import net.wequick.small.internal.InstrumentationInternal;
-import net.wequick.small.util.BundleParser;
 import net.wequick.small.util.ReflectAccelerator;
 
 import java.io.File;
