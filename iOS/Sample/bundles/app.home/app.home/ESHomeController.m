@@ -75,30 +75,33 @@
     NSURL *url = [NSURL URLWithString:urlString];
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:30];
     [request addValue:@"gzip" forHTTPHeaderField:@"Accept-Encoding"];
+    
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        NSURLResponse *response;
-        NSError *error = nil;
-        NSData *data = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
-        if (error == nil) {
-            do {
-                if (![data writeToFile:bundle.patchFile atomically:NO]) {
-                    error = [NSError errorWithDomain:@"UpgradeDomain" code:1 userInfo:@{NSLocalizedDescriptionKey: @"Failed to save download plugin!"}];
-                    break;
-                }
-                // While patch file is ready, call this.
-                if (![bundle upgrade]) {
-                    error = [NSError errorWithDomain:@"UpgradeDomain" code:2 userInfo:@{NSLocalizedDescriptionKey: @"Failed to upgrade bundle!"}];
-                }
-            } while (NO);
-        }
-        if (error != nil) {
-            complection(error);
-            return;
-        }
-        NSLog(@"download patch: %@", bundle.patchFile);
-        dispatch_sync(dispatch_get_main_queue(), ^{
-            complection(error);
-        });
+        NSURLSessionDataTask *task = [[NSURLSession sharedSession] dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+            if (error == nil) {
+                do {
+                    if (![data writeToFile:bundle.patchFile atomically:NO]) {
+                        error = [NSError errorWithDomain:@"UpgradeDomain" code:1 userInfo:@{NSLocalizedDescriptionKey: @"Failed to save download plugin!"}];
+                        break;
+                    }
+                    // While patch file is ready, call this.
+                    if (![bundle upgrade]) {
+                        error = [NSError errorWithDomain:@"UpgradeDomain" code:2 userInfo:@{NSLocalizedDescriptionKey: @"Failed to upgrade bundle!"}];
+                    }
+                } while (NO);
+            }
+            if (error != nil) {
+                complection(error);
+                return;
+            }
+            NSLog(@"download patch: %@", bundle.patchFile);
+            dispatch_sync(dispatch_get_main_queue(), ^{
+                complection(error);
+            });
+        }];
+        
+        [task resume];
+        
     });
 }
 
