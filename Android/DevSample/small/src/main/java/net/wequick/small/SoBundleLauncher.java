@@ -90,7 +90,7 @@ public abstract class SoBundleLauncher extends BundleLauncher {
         long savedLastModified = Small.getBundleLastModified(packageName);
         if (savedLastModified != lastModified) {
             // Verify signatures
-            if (!parser.verifyCertificates(this)) {
+            if (!parser.verifyCertificates()) {
                 bundle.setEnabled(false);
                 return true; // Got it, but disabled
             }
