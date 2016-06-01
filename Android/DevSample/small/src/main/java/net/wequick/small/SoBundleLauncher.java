@@ -19,7 +19,6 @@ import android.content.pm.PackageInfo;
 import android.util.Log;
 
 import net.wequick.small.util.BundleParser;
-import net.wequick.small.util.SignUtils;
 
 import java.io.File;
 
@@ -37,7 +36,7 @@ import java.io.File;
  *     <li>{@link WebBundleLauncher} resolve the native web bundle</li>
  * </ul>
  */
-public abstract class SoBundleLauncher extends BundleLauncher {
+public abstract class SoBundleLauncher extends BundleLauncher implements BundleExtractor {
 
     private static final String TAG = "SoBundle";
 
@@ -61,6 +60,10 @@ public abstract class SoBundleLauncher extends BundleLauncher {
             }
         }
         if (!supporting) return false;
+
+        // Initialize extract path
+        File extractPath = getExtractPath(bundle);
+        bundle.setExtractPath(extractPath);
 
         // Parse builtin if exists
         File plugin = bundle.getBuiltinFile();
@@ -90,7 +93,7 @@ public abstract class SoBundleLauncher extends BundleLauncher {
         long savedLastModified = Small.getBundleLastModified(packageName);
         if (savedLastModified != lastModified) {
             // Verify signatures
-            if (!parser.verifyCertificates()) {
+            if (!parser.verifyAndExtract(bundle, this)) {
                 bundle.setEnabled(false);
                 return true; // Got it, but disabled
             }
@@ -102,5 +105,15 @@ public abstract class SoBundleLauncher extends BundleLauncher {
         bundle.setVersionCode(pluginInfo.versionCode);
 
         return true;
+    }
+
+    @Override
+    public File getExtractPath(Bundle bundle) {
+        return null;
+    }
+
+    @Override
+    public File getExtractFile(Bundle bundle, String entryName) {
+        return null;
     }
 }

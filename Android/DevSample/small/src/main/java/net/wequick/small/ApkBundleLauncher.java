@@ -41,7 +41,6 @@ import android.view.Window;
 
 import net.wequick.small.internal.InstrumentationInternal;
 import net.wequick.small.util.BundleParser;
-import net.wequick.small.util.FileUtils;
 import net.wequick.small.util.ReflectAccelerator;
 
 import java.io.File;
@@ -454,6 +453,20 @@ public class ApkBundleLauncher extends SoBundleLauncher {
     }
 
     @Override
+    public File getExtractPath(Bundle bundle) {
+        Context context = Small.getContext();
+        File packagePath = context.getFileStreamPath(FD_STORAGE);
+        return new File(packagePath, bundle.getPackageName());
+    }
+
+    @Override
+    public File getExtractFile(Bundle bundle, String entryName) {
+        if (!entryName.endsWith(".so")) return null;
+
+        return new File(bundle.getExtractPath(), entryName);
+    }
+
+    @Override
     public void loadBundle(Bundle bundle) {
         String packageName = bundle.getPackageName();
 
@@ -498,26 +511,9 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             });
 
             // Extract native libraries with specify ABI
-            final String libDir = parser.getLibraryDirectory();
+            String libDir = parser.getLibraryDirectory();
             if (libDir != null) {
-                Bundle.postIO(new Runnable() {
-                    @Override
-                    public void run() {
-                        File libPath = new File(fApk.packagePath, libDir);
-                        if (!libPath.exists()) {
-                            if (!libPath.mkdirs()) {
-                                throw new RuntimeException("Failed to create libPath: " + libPath);
-                            }
-                        }
-                        try {
-                            FileUtils.unZipFolder(new File(fApk.path), fApk.packagePath, libDir);
-                            fApk.libraryPath = libPath;
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                });
-
+                apk.libraryPath = new File(apk.packagePath, libDir);
             }
             sLoadedApks.put(packageName, apk);
         }

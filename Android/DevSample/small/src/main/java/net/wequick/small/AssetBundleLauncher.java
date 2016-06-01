@@ -21,7 +21,6 @@ import android.content.Intent;
 import android.util.Log;
 
 import net.wequick.small.util.FileUtils;
-import net.wequick.small.util.SignUtils;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -54,47 +53,23 @@ public abstract class AssetBundleLauncher extends SoBundleLauncher {
     }
 
     @Override
+    public File getExtractPath(Bundle bundle) {
+        return new File(getBasePath(), bundle.getPackageName());
+    }
+
+    @Override
+    public File getExtractFile(Bundle bundle, String entryName) {
+        if (entryName.startsWith("AndroidManifest") || entryName.startsWith("META-INF/")) {
+            return null;
+        }
+        return new File(bundle.getExtractPath(), entryName);
+    }
+
+    @Override
     public void loadBundle(Bundle bundle) {
         String packageName = bundle.getPackageName();
-        File plugin = bundle.getBuiltinFile();
-
-        // Unzip the built-in plugin
         File unzipDir = new File(getBasePath(), packageName);
-        long soLastModified = plugin.lastModified();
-        boolean needsUnzip;
-        if (!unzipDir.exists()) {
-            unzipDir.mkdir();
-            needsUnzip = true;
-        } else {
-            long lastModified = Small.getBundleLastModified(packageName);
-            needsUnzip = (soLastModified > lastModified);
-        }
-        if (needsUnzip) {
-            try {
-                FileUtils.unZipFolder(plugin, unzipDir);
-            } catch (Exception e) {
-                Log.e(TAG, "Failed to unzip plugin: " + plugin);
-                return;
-            }
-            Small.setBundleLastModified(packageName, soLastModified);
-        }
-        // Check if contains index page
         File indexFile = new File(unzipDir, getIndexFileName());
-        if (!indexFile.exists()) {
-            Log.e(TAG, "Missing " + indexFile.getName() + " for bundle " + packageName);
-            return;
-        }
-
-        // Overlay patch bundle
-        File patchPlugin = bundle.getPatchFile();
-        if (patchPlugin.exists() && SignUtils.verifyPlugin(patchPlugin)) {
-            try {
-                FileUtils.unZipFolder(plugin, unzipDir);
-                patchPlugin.delete();
-            } catch (Exception ignored) {
-                Log.e(TAG, "Failed to overlay patch for bundle " + packageName);
-            }
-        }
 
         // Prepare index url
         String uri = indexFile.toURI().toString();

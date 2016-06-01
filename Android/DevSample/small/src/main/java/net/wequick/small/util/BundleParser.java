@@ -6,7 +6,6 @@ import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
-import android.content.pm.Signature;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
@@ -17,6 +16,7 @@ import android.util.Log;
 import android.util.TypedValue;
 
 import net.wequick.small.Bundle;
+import net.wequick.small.BundleExtractor;
 import net.wequick.small.Small;
 
 import org.xmlpull.v1.XmlPullParserException;
@@ -25,6 +25,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.RandomAccessFile;
 import java.lang.ref.WeakReference;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
@@ -35,6 +36,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.zip.ZipFile;
 
 /**
  * This class consists exclusively of methods that operate on external bundle.
@@ -109,6 +111,7 @@ public class BundleParser {
 
     private Context mContext;
     private SharedPreferences mCrcs;
+    private ZipFile mZipFile;
 
     public BundleParser(File sourceFile, String packageName) {
         mArchiveSourcePath = sourceFile.getPath();
@@ -336,7 +339,7 @@ public class BundleParser {
         return false;
     }
 
-    public boolean verifyCertificates() {
+    public boolean verifyAndExtract(Bundle bundle, BundleExtractor extractor) {
         WeakReference<byte[]> readBufferRef;
         byte[] readBuffer = null;
         synchronized (this.getClass()) {
@@ -407,6 +410,15 @@ public class BundleParser {
                     }
                 }
 
+                // Extract file if needed
+                File extractFile = extractor.getExtractFile(bundle, name);
+                if (extractFile != null) {
+                    if (mZipFile == null) {
+                        mZipFile = new ZipFile(mArchiveSourcePath);
+                    }
+                    extractFile(mZipFile, je, extractFile);
+                }
+
                 crcEditor.putLong(name, crc);
             }
 
@@ -427,6 +439,34 @@ public class BundleParser {
             return false;
         }
         return true;
+    }
+
+    private void extractFile(final ZipFile zipFile, final JarEntry je, final File extractFile) {
+        Bundle.postIO(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    File dir = extractFile.getParentFile();
+                    if (!dir.exists()) {
+                        dir.mkdirs();
+                    }
+                    if (!extractFile.exists()) {
+                        if (!extractFile.createNewFile()) {
+                            throw new RuntimeException("Failed to create file: " + extractFile);
+                        }
+                    }
+                    InputStream is = zipFile.getInputStream(je);
+                    RandomAccessFile out = new RandomAccessFile(extractFile, "rw");
+                    byte[] buffer = new byte[8192];
+                    while (is.read(buffer, 0, buffer.length) != -1) {
+                        out.write(buffer);
+                    }
+                    out.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
 

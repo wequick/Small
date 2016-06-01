@@ -104,6 +104,7 @@ public class Bundle {
 
     private File mBuiltinFile = null;
     private File mPatchFile = null;
+    private File mExtractPath;
 
     private boolean launchable = true;
     private boolean enabled = true;
@@ -538,6 +539,14 @@ public class Bundle {
         return mPatchFile;
     }
 
+    protected File getExtractPath() {
+        return mExtractPath;
+    }
+
+    protected void setExtractPath(File path) {
+        this.mExtractPath = path;
+    }
+
     protected String getType() {
         return type;
     }
@@ -669,7 +678,7 @@ public class Bundle {
 
     private static List<Runnable> sIOActions;
 
-    protected static void postIO(Runnable action) {
+    public static void postIO(Runnable action) {
         if (sIOActions == null) {
             sIOActions = new ArrayList<Runnable>();
         }

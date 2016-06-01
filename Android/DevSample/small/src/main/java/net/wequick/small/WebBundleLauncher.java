@@ -17,18 +17,9 @@
 package net.wequick.small;
 
 import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.util.Log;
 
-import net.wequick.small.util.FileUtils;
-import net.wequick.small.util.SignUtils;
 import net.wequick.small.webkit.WebActivity;
 import net.wequick.small.webkit.WebViewPool;
-
-import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
 
 /**
  * This class launch the plugin html file with an internal {@link WebActivity}.
@@ -68,20 +59,5 @@ public class WebBundleLauncher extends AssetBundleLauncher {
     @Override
     protected Class<? extends Activity> getActivityClass() {
         return WebActivity.class;
-    }
-
-    @Override
-    public void loadBundle(Bundle bundle) {
-        super.loadBundle(bundle);
-
-        URL url = bundle.getURL();
-        if (url == null) return;
-
-        // Preload content
-        if (Bundle.isLoadingAsync()) {
-            Bundle.postInitWebViewMessage(url.toString());
-        } else {
-            WebViewPool.getInstance().alloc(url.toString());
-        }
     }
 }
