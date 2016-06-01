@@ -84,7 +84,6 @@ public class Bundle {
 
     // Thread & Handler
     private static final int MSG_COMPLETE = 1;
-    private static final int MSG_INIT_WEBVIEW = 100;
     private static LoadBundleHandler sHandler;
     private static LoadBundleThread sThread;
 
@@ -677,15 +676,11 @@ public class Bundle {
 
     private static List<Runnable> sIOActions;
 
-    public static void postIO(Runnable action) {
+    protected static void postIO(Runnable action) {
         if (sIOActions == null) {
             sIOActions = new ArrayList<Runnable>();
         }
         sIOActions.add(action);
-    }
-
-    protected static void postInitWebViewMessage(String url) {
-        sHandler.obtainMessage(MSG_INIT_WEBVIEW, url).sendToTarget();
     }
 
     private static class LoadBundleHandler extends Handler {
@@ -704,10 +699,6 @@ public class Bundle {
                     mListener = null;
                     sThread = null;
                     sHandler = null;
-                    break;
-                case MSG_INIT_WEBVIEW:
-                    String url = (String) msg.obj;
-                    WebViewPool.getInstance().alloc(url);
                     break;
             }
         }
