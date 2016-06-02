@@ -662,22 +662,6 @@ public class ArscEditor extends AssetEditor {
         pasteLaterData(pos)
     }
 
-    /** Convert utf-16 to utf-8 */
-    private static def getUtf16String(name) {
-        int len = name.length / 2
-        def buffer = new char[len]
-        int i = 0;
-        for (int j = 0; j < len; j+=2) {
-            char c = (char)name[j]
-            if (c == 0) {
-                buffer[i] = '\0'
-                break
-            }
-            buffer[i++] = c
-        }
-        return String.copyValueOf(buffer, 0, i)
-    }
-
     private static def getConfigName(c) {
         def s = ''
 //        switch (c.screenType.density) {

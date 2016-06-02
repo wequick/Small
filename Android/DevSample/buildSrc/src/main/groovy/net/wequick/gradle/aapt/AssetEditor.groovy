@@ -15,8 +15,6 @@
  */
 package net.wequick.gradle.aapt
 
-import java.nio.ByteBuffer
-
 /**
  * Class to edit aapt-generated asset file
  */
@@ -66,6 +64,10 @@ public class AssetEditor extends CppHexEditor {
         writeByte(v.res0)
         writeByte(v.dataType)
         writeInt(v.data)
+    }
+
+    protected def skipChunk(c) {
+        skip(c.size - CHUNK_HEADER_SIZE)
     }
 
     /**
@@ -182,38 +184,74 @@ public class AssetEditor extends CppHexEditor {
 //        s.header = [type: ResType.RES_STRING_POOL_TYPE, headerSize: 0x1C, size: size]
 //
 //    }
+
+    /** Convert utf-16 to utf-8 */
+    protected static def getUtf16String(name) {
+        int len16 = name.size()
+        int len = len16 / 2
+        def buffer = new char[len]
+        int i = 0;
+        for (int j = 0; j < len16; j+=2) {
+            char c = (char)name[j]
+            if (c == 0) {
+                buffer[i] = '\0'
+                break
+            }
+            buffer[i++] = c
+        }
+        return String.copyValueOf(buffer, 0, i)
+    }
+
     /**
      * see https://github.com/android/platform_frameworks_base/blob/d59921149bb5948ffbcb9a9e832e9ac1538e05a0/libs/androidfw/ResourceTypes.cpp
      * @param isUtf8
      * @return
      */
     private Map decodeLength(isUtf8) {
-        if (!isUtf8) {
-            throw new UnsupportedEncodingException("UTF-16 is unsupported now.")
-        }
-        // *u16len = decodeLength(&u8str); ResourceTypes.cpp#722, seems to unused here
-        def bytes = []
-        short hb = readByte()
-        bytes.add(hb)
-        if (hb & 0x80) {
-            bytes.add(readByte())
-        }
+        if (isUtf8) {
+            // *u16len = decodeLength(&u8str); @ResourceTypes.cpp#722, seems to unused here
+            def bytes = []
+            short hb = readByte()
+            bytes.add(hb)
+            if (hb & 0x80) {
+                bytes.add(readByte())
+            }
 
-        // size_t u8len = decodeLength(&u8str); ResourceTypes.cpp#723, the exact length
-        hb = readByte()
-        bytes.add(hb)
-        if (hb & 0x80) {
-            short lb = readByte()
-            bytes.add(lb)
-            hb = ((hb & 0x7F) << 8) | (lb & 0xff)
-        }
+            // size_t u8len = decodeLength(&u8str); @ResourceTypes.cpp#723, the exact length
+            hb = readByte()
+            bytes.add(hb)
+            if (hb & 0x80) {
+                short lb = readByte()
+                bytes.add(lb)
+                hb = ((hb & 0x7F) << 8) | (lb & 0xff)
+            }
 
-        def N = bytes.size()
-        def data = new byte[N]
-        for (int i = 0; i < N; i++) {
-            data[i] = (byte)bytes[i]
+            def N = bytes.size()
+            def data = new byte[N]
+            for (int i = 0; i < N; i++) {
+                data[i] = (byte)bytes[i]
+            }
+            return [data: data, value: hb]
+        } else {
+            // *u16len = decodeLength(&str); @ResourceTypes.cpp#705
+            def bytes = []
+            def buffer = readBytes(2)
+            bytes.addAll(buffer)
+            int hb = getShort(buffer)
+            if (hb & 0x8000) {
+                buffer = readBytes(2)
+                bytes.addAll(buffer)
+                int lb = getShort(buffer)
+                hb = ((hb & 0x7FFF) << 16) | (lb & 0xFFFF)
+            }
+
+            def N = bytes.size()
+            def data = new byte[N]
+            for (int i = 0; i < N; i++) {
+                data[i] = (byte)bytes[i]
+            }
+            return [data: data, value: (hb << 1)]
         }
-        return [data: data, value: hb]
     }
     /** Filter ResStringPool with specific string indexes */
     protected static def filterStringPool(sp, ids) {
@@ -257,10 +295,18 @@ public class AssetEditor extends CppHexEditor {
                 "${pool.stringCount} entries and ${pool.styleCount} styles " +
                 "using ${pool.header.size} bytes:"
         pool.strings.eachWithIndex { v, i ->
-            println "String #$i: ${new String(v)}"
+            if (pool.isUtf8) {
+                println "String #$i: ${new String(v)}"
+            } else {
+                println "String #$i: ${getUtf16String(v)}"
+            }
         }
         pool.styles.eachWithIndex { v, i ->
-            println "Style #$i: ${new String(v)}"
+            if (pool.isUtf8) {
+                println "Style #$i: ${new String(v)}"
+            } else {
+                println "Style #$i: ${getUtf16String(v)}"
+            }
         }
     }
 }

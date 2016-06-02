@@ -76,6 +76,10 @@ public class CppHexEditor {
 
     protected short readShort() {
         def buffer = readBytes(2)
+        return getShort(buffer)
+    }
+
+    protected short getShort(byte[] buffer) {
         ByteBuffer bb = ByteBuffer.wrap(buffer)
         bb.order(ByteOrder.LITTLE_ENDIAN)
         return bb.getShort()
