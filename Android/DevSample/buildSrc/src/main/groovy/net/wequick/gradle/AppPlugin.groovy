@@ -20,6 +20,7 @@ import net.wequick.gradle.aapt.Aapt
 import net.wequick.gradle.aapt.SymbolParser
 import net.wequick.gradle.util.JNIUtils
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.artifacts.ResolvedDependency
 
 class AppPlugin extends BundlePlugin {
@@ -135,6 +136,90 @@ class AppPlugin extends BundlePlugin {
                 def symbolsPath = project.processReleaseResources.textSymbolOutputDir.path
                 project.android.aaptOptions.additionalParameters '--output-text-symbols',
                         symbolsPath
+            }
+        }
+    }
+
+    @Override
+    protected void configureDebugVariant(Object variant) {
+        super.configureDebugVariant(variant)
+
+        if (pluginType != PluginType.App) return
+
+        // If an app.A dependent by lib.B and both of them declare application@name in their
+        // manifests, the `processManifest` task will raise a conflict error. To avoid this,
+        // modify the lib.B manifest to remove the attributes before app.A `processManifest`
+        // and restore it after the task finished.
+        Task processDebugManifest = project.tasks["process${variant.name.capitalize()}Manifest"]
+        processDebugManifest.doFirst {
+            def libs = it.libraries
+            def libManifests = []
+            libs.each {
+                if (it.name.contains(':lib.')) {
+                    libManifests.add(it.manifest)
+                }
+            }
+            def filteredManifests = []
+            libManifests.each { File manifest ->
+                def sb = new StringBuilder()
+                def enteredApplicationNode = false
+                def needsFilter = true
+                def filtered = false
+                manifest.eachLine { line ->
+                    if (!needsFilter && !filtered) return
+
+                    while (true) { // fake loop for less `if ... else' statement
+                        if (!needsFilter) break
+
+                        def i = line.indexOf('<application')
+                        if (i < 0) {
+                            if (!enteredApplicationNode) break
+
+                            if (line.indexOf('>') > 0) needsFilter = false
+
+                            // filter `android:name'
+                            if (line.indexOf('android:name') > 0) {
+                                filtered = true
+                                if (needsFilter) return
+
+                                line = '>'
+                            }
+                            break
+                        }
+
+                        def j = line.indexOf('<!--')
+                        if (j > 0 && j < i) break // ignores the comment line
+
+                        if (line.indexOf('>') > 0) { // <application /> or <application .. > in one line
+                            needsFilter = false
+                            def k = line.indexOf('android:name="')
+                            if (k > 0) {
+                                filtered = true
+                                def k_ = line.indexOf('"', k + 15) // bypass 'android:name='
+                                line = line.substring(0, k) + line.substring(k_)
+                            }
+                            break
+                        }
+
+                        enteredApplicationNode = true // mark this for next line
+                        break
+                    }
+
+                    sb.append(line).append(System.lineSeparator())
+                }
+
+                if (filtered) {
+                    def backupManifest = new File(manifest.parentFile, "${manifest.name}~")
+                    manifest.renameTo(backupManifest)
+                    manifest.write(sb.toString(), 'utf-8')
+                    filteredManifests.add(overwrite: manifest, backup: backupManifest)
+                }
+            }
+            ext.filteredManifests = filteredManifests
+        }
+        processDebugManifest.doLast {
+            ext.filteredManifests.each {
+                it.backup.renameTo(it.overwrite)
             }
         }
     }
@@ -626,6 +711,23 @@ class AppPlugin extends BundlePlugin {
             small.retainedAars = userLibAars
         }
 
+        // If an app.A dependent by lib.B and both of them declare application@name in their
+        // manifests, the `processManifest` task will raise an conflict error.
+        // Cause the release mode doesn't need to merge the manifest of lib.*, simply split
+        // out the manifest dependencies from them.
+        small.processManifest.doFirst {
+            if (pluginType != PluginType.App) return
+
+            def libs = it.libraries
+            def smallLibs = []
+            libs.each {
+                if (it.name.contains(':lib.')) {
+                    smallLibs.add(it)
+                }
+            }
+            libs.removeAll(smallLibs)
+            it.libraries = libs
+        }
         // Hook process-manifest task to remove the `android:icon' and `android:label' attribute
         // which declared in the plugin `AndroidManifest.xml' application node. (for #11)
         // To support plugin JNI, we overwrite the `android:label' attribute with the ABIs flag

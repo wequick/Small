@@ -25,7 +25,10 @@ class AndroidPlugin extends BasePlugin {
             if (!project.android.hasProperty('applicationVariants')) return
 
             project.android.applicationVariants.all { variant ->
-                if (variant.buildType.name != 'release') return
+                if (variant.buildType.name != 'release') {
+                    configureDebugVariant(variant)
+                    return
+                }
 
                 // While release variant created, everything of `Android Plugin' should be ready
                 // and then we can do some extensions with it
@@ -33,6 +36,8 @@ class AndroidPlugin extends BasePlugin {
             }
         }
     }
+
+    protected void configureDebugVariant(variant) { }
 
     protected void configureReleaseVariant(variant) {
         // Init default output file (*.apk)
