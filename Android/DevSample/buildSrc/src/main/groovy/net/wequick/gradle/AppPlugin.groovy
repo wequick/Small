@@ -95,10 +95,6 @@ class AppPlugin extends BundlePlugin {
         RootExtension rootExt = project.rootProject.small
 
         // Pre-split shared libraries at release mode
-        //  - host, appcompat and etc.
-        def baseJars = project.fileTree(dir: rootExt.preBaseJarDir, include: ['*.jar'])
-        project.dependencies.add('provided', baseJars)
-        //  - lib.*
         def libJarNames = []
         mDependentLibProjects.each {
             libJarNames += getJarName(it)
