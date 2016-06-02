@@ -666,11 +666,22 @@ public class Bundle {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            sIOActions = null;
         }
 
         // Notify `postSetUp' to all launchers
         for (BundleLauncher launcher : sBundleLaunchers) {
             launcher.postSetUp();
+        }
+
+        // Free all unused temporary variables
+        for (Bundle bundle : bundles) {
+            if (bundle.parser != null) {
+                bundle.parser.close();
+                bundle.parser = null;
+            }
+            bundle.mBuiltinFile = null;
+            bundle.mExtractPath = null;
         }
     }
 

@@ -640,4 +640,15 @@ public class BundleParser {
     public boolean isNonResources() {
         return mNonResources;
     }
+
+    protected void close() {
+        if (mZipFile != null) {
+            try {
+                mZipFile.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        mReadBuffer = null;
+    }
 }
