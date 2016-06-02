@@ -486,15 +486,8 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             if (pluginInfo.applicationInfo != null) {
                 apk.applicationName = pluginInfo.applicationInfo.className;
             }
-
-            Context context = Small.getContext();
-            File packagePath = context.getFileStreamPath(FD_STORAGE);
-            packagePath = new File(packagePath, packageName);
-            if (!packagePath.exists()) {
-                packagePath.mkdirs();
-            }
-            apk.packagePath = packagePath;
-            apk.optDexFile = new File(packagePath, FILE_DEX);
+            apk.packagePath = bundle.getExtractPath();
+            apk.optDexFile = new File(apk.packagePath, FILE_DEX);
 
             // Load dex
             final LoadedApk fApk = apk;
@@ -502,6 +495,9 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 @Override
                 public void run() {
                     try {
+                        if (!fApk.packagePath.exists()) {
+                            fApk.packagePath.mkdirs();
+                        }
                         fApk.dexFile = DexFile.loadDex(fApk.path, fApk.optDexFile.getPath(), 0);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
