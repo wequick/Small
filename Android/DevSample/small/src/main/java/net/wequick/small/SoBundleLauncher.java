@@ -59,11 +59,11 @@ public abstract class SoBundleLauncher extends BundleLauncher implements BundleE
         }
         if (!supporting) return false;
 
-        // Initialize extract path
+        // Initialize the extract path
         File extractPath = getExtractPath(bundle);
         bundle.setExtractPath(extractPath);
 
-        // Parse builtin if exists
+        // Select the bundle entry-point, `built-in' or `patch'
         File plugin = bundle.getBuiltinFile();
         BundleParser parser = BundleParser.parsePackage(plugin, packageName);
         File patch = bundle.getPatchFile();
@@ -86,11 +86,11 @@ public abstract class SoBundleLauncher extends BundleLauncher implements BundleE
         }
         bundle.setParser(parser);
 
-        // If the plugin has not been modified
+        // Check if the plugin has not been modified
         long lastModified = plugin.lastModified();
         long savedLastModified = Small.getBundleLastModified(packageName);
         if (savedLastModified != lastModified) {
-            // Verify signatures
+            // If modified, verify (and extract) each file entry for the bundle
             if (!parser.verifyAndExtract(bundle, this)) {
                 bundle.setEnabled(false);
                 return true; // Got it, but disabled
