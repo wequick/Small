@@ -495,9 +495,6 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 @Override
                 public void run() {
                     try {
-                        if (!fApk.packagePath.exists()) {
-                            fApk.packagePath.mkdirs();
-                        }
                         fApk.dexFile = DexFile.loadDex(fApk.path, fApk.optDexFile.getPath(), 0);
                     } catch (IOException e) {
                         throw new RuntimeException(e);

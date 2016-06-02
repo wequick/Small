@@ -61,7 +61,12 @@ public abstract class SoBundleLauncher extends BundleLauncher implements BundleE
 
         // Initialize the extract path
         File extractPath = getExtractPath(bundle);
-        bundle.setExtractPath(extractPath);
+        if (extractPath != null) {
+            if (!extractPath.exists()) {
+                extractPath.mkdirs();
+            }
+            bundle.setExtractPath(extractPath);
+        }
 
         // Select the bundle entry-point, `built-in' or `patch'
         File plugin = bundle.getBuiltinFile();
