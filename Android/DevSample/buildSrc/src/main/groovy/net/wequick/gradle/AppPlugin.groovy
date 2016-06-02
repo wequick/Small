@@ -112,6 +112,8 @@ class AppPlugin extends BundlePlugin {
         compile.exclude group: 'com.android.support', module: 'support-annotations'
         rootExt.preLinkJarDir.listFiles().each { file ->
             if (!file.name.endsWith('D.txt')) return
+            if (file.name.startsWith(project.name)) return
+
             file.eachLine { line ->
                 def module = line.split(':')
                 compile.exclude group: module[0], module: module[1]
