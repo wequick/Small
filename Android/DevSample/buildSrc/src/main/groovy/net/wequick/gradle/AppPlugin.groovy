@@ -24,9 +24,9 @@ import org.gradle.api.artifacts.ResolvedDependency
 
 class AppPlugin extends BundlePlugin {
 
-    private static def sPackageIds = [:] as LinkedHashMap<String, Integer>
     private static final int UNSET_TYPEID = 99
     private static final int UNSET_ENTRYID = -1
+    protected static def sPackageIds = [:] as LinkedHashMap<String, Integer>
 
     protected Set<Project> mDependentLibProjects
 

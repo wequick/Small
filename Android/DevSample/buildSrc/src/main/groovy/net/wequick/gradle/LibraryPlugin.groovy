@@ -8,6 +8,7 @@ class LibraryPlugin extends AppPlugin {
 
     void apply(Project project) {
         super.apply(project)
+        mBakBuildFile = new File(project.buildFile.parentFile, "${project.buildFile.name}~")
     }
 
     @Override
@@ -43,8 +44,6 @@ class LibraryPlugin extends AppPlugin {
             }
             return
         }
-
-        mBakBuildFile = new File(project.buildFile.parentFile, "${project.buildFile.name}~")
 
         project.beforeEvaluate {
             // Change android plugin from `lib' to `application' dynamically
@@ -107,7 +106,6 @@ class LibraryPlugin extends AppPlugin {
     protected void tidyUp() {
         super.tidyUp()
         // Restore library module's android plugin to `com.android.library'
-        if (mBakBuildFile == null) return
         if (mBakBuildFile.exists()) {
             project.buildFile.delete()
             mBakBuildFile.renameTo(project.buildFile)
