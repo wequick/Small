@@ -63,6 +63,13 @@ public class Aapt {
         resetAllXmlPackageId(mAssetDir, pp, idMaps)
     }
 
+    def writeSmallFlags(int flags) {
+        if (flags == 0) return false
+
+        def e = new AXmlEditor(new File(mAssetDir, 'AndroidManifest.xml'))
+        return e.setSmallFlags(flags)
+    }
+
     /**
      * Reset resource package id for assets
      * @param pp new package id

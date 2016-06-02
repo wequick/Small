@@ -26,6 +26,75 @@ public class AXmlEditor extends AssetEditor {
         super(file)
     }
 
+    // To support plugin JNI, we carry the ABIs flag to extract the exactly JNIs
+    // under the supported ABI at runtime. (#87, #79)
+    //
+    // In addition, we find that if `addAssetPath` with an non-resources apk to `AssetManager`,
+    // Small will crash on the asset manager's `getPooledString` method under android M. (#62)
+    // So we also carry a flag to specify whether the plugin apk has resources.
+    //
+    // The above flag will be merged into an integer and write to `platformBuildVersion`
+    def setSmallFlags(int flags) {
+        def xml = readChunkHeader()
+        if (xml.type != ResType.RES_XML_TYPE) return
+
+        def sp = readStringPool()
+        byte[] targetBytes = [ // platformBuildVersionCode
+                'p',0,'l',0,'a',0,'t',0,'f',0,'o',0,'r',0,'m',0,'B',0,'u',0,'i',0,'l',0,'d',0,
+                'V',0,'e',0,'r',0,'s',0,'i',0,'o',0,'n',0,'C',0,'o',0,'d',0,'e',0 ]
+        int targetIndex = -1
+        int N = sp.stringCount
+        for (int i = 0; i < N; i++) {
+            def bytes = sp.strings[i]
+            if (Arrays.equals(bytes, targetBytes)) {
+                targetIndex = i
+                break
+            }
+        }
+        if (targetIndex == -1) return
+
+        while (tellp() < xml.size) {
+            def chunk = readChunkHeader()
+            if (chunk.type != ResType.RES_XML_START_ELEMENT_TYPE) {
+                skipChunk(chunk)
+                continue
+            }
+
+            // The first element: <manifest ...
+            def node = readNode()
+            for (int i = 0; i < node.attributeCount; i++) {
+                skip(4)
+                int nameIndex = readInt()
+                if (nameIndex == targetIndex) { // platformBuildVersionCode
+                    skip(8)
+                    int versionCode = readInt()
+                    seek(tellp() - 4)
+
+                    // The flag bits are:
+                    //  F    F    F    F    F    F    F    F
+                    // 1111 1111 1111 1111 1111 1111 1111 1111
+                    // ^^^^ ^^^^ ^^^^ ^^^^ ^^^^
+                    //       ABI Flags (20)
+                    //                          ^
+                    //                 nonResources Flag (1)
+                    //                           ^^^ ^^^^ ^^^^
+                    //                     platformBuildVersionCode (11) => MAX=0x7FF=4095
+                    int newFlag = (flags << 11) | versionCode
+                    writeInt(newFlag)
+                    close()
+                    return true
+                } else {
+                    skip(12)
+                }
+            }
+
+            break
+        }
+
+        close()
+        return false
+    }
+
     def setPackageId(int pp, Map idMaps) {
         def xml = readChunkHeader()
         if (xml.type != ResType.RES_XML_TYPE) return

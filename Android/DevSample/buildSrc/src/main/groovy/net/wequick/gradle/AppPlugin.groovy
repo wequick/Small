@@ -730,15 +730,16 @@ class AppPlugin extends BundlePlugin {
         }
         // Hook process-manifest task to remove the `android:icon' and `android:label' attribute
         // which declared in the plugin `AndroidManifest.xml' application node. (for #11)
-        // To support plugin JNI, we overwrite the `android:label' attribute with the ABIs flag
-        // so that we can exactly extract the JNIs under the supported ABI at runtime. (#87, #79)
         small.processManifest.doLast {
             File manifestFile = it.manifestOutputFile
             def sb = new StringBuilder()
             def enteredApplicationNode = false
             def needsFilter = true
-            int flag = getABIFlag()
-            def abiAttr = flag != 0 ? "android:label=\"$flag\"" : null
+            def filterKeys = [
+                'android:icon', 'android:label',
+                'android:allowBackup', 'android:supportsRtl'
+            ]
+
             // We don't use XmlParser but simply parse each line cause this should be faster
             manifestFile.eachLine { line ->
                 while (true) { // fake loop for less `if ... else' statement
@@ -750,8 +751,15 @@ class AppPlugin extends BundlePlugin {
 
                         if (line.indexOf('>') > 0) needsFilter = false
 
-                        // filter `android:icon' and `android:label'
-                        if (line.indexOf('android:icon') > 0 || line.indexOf('android:label') > 0) {
+                        // filter unused keys
+                        def filtered = false
+                        filterKeys.each {
+                            if (line.indexOf(it) > 0) {
+                                filtered = true
+                                return
+                            }
+                        }
+                        if (filtered) {
                             if (needsFilter) return
 
                             line = '>'
@@ -764,19 +772,10 @@ class AppPlugin extends BundlePlugin {
 
                     if (line.indexOf('>') > 0) { // <application /> or <application .. > in one line
                         needsFilter = false
-                        if (abiAttr != null) {
-                            // Insert ABI attribute
-                            i += 12 // '<application'.length()
-                            line = "${line.substring(0, i)} $abiAttr${line.substring(i)}"
-                        }
                         break
                     }
 
                     enteredApplicationNode = true // mark this for next line
-                    if (abiAttr != null) {
-                        // Insert ABI attribute
-                        line = "$line $abiAttr"
-                    }
                     break
                 }
 
@@ -811,6 +810,13 @@ class AppPlugin extends BundlePlugin {
                         small.retainedStyleables)
 
                 Log.success "[${project.name}] slice asset package and reset package id..."
+
+                int noResourcesFlag = (small.retainedTypes.size() == 0) ? 1 : 0
+                int abiFlag = getABIFlag()
+                int flags = (abiFlag << 1) | noResourcesFlag
+                if (aapt.writeSmallFlags(flags)) {
+                    Log.success "[${project.name}] add flags: ${Integer.toBinaryString(flags)}..."
+                }
 
                 String pkg = small.packageName
                 // Overwrite the aapt-generated R.java with full edition
