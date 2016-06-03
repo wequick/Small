@@ -461,8 +461,9 @@ public class BundleParser {
                     InputStream is = zipFile.getInputStream(je);
                     RandomAccessFile out = new RandomAccessFile(extractFile, "rw");
                     byte[] buffer = new byte[8192];
-                    while (is.read(buffer, 0, buffer.length) != -1) {
-                        out.write(buffer);
+                    int count;
+                    while ((count=is.read(buffer, 0, buffer.length)) != -1) {
+                        out.write(buffer,0,count);
                     }
                     out.close();
                 } catch (IOException e) {
