@@ -17,11 +17,12 @@ package net.wequick.gradle
 
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.tasks.compile.JavaCompile
 
 public class AppExtension extends BundleExtension {
 
     /** Task of java compiler */
-    Task javac
+    JavaCompile javac
 
     /** Task of dex */
     Task dex
@@ -75,8 +76,8 @@ public class AppExtension extends BundleExtension {
     LinkedHashMap<String, String> idStrMaps
     ArrayList retainedTypes
     ArrayList retainedStyleables
-    Map vendorTypes
-    Map vendorStyleables
+    Map<String, List> vendorTypes
+    Map<String, List> vendorStyleables
 
     /** List of all resource types */
     ArrayList allTypes

@@ -82,7 +82,7 @@ class AssetPlugin extends BundlePlugin {
             }
             def cf = android.defaultConfig
             def baseAsset = new File(android.getSdkDirectory(),
-                    "platforms/android-${cf.targetSdkVersion.mApiLevel}/android.jar")
+                    "platforms/android-${cf.targetSdkVersion.getApiLevel()}/android.jar")
             aapt.manifest(project, [packageName: cf.applicationId,
                                     versionName: cf.versionName, versionCode: cf.versionCode,
                                     aaptExe: aaptExe, baseAsset: baseAsset.path]

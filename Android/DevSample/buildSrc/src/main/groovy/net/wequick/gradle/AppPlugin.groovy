@@ -16,6 +16,9 @@
 package net.wequick.gradle
 
 import com.android.build.gradle.api.BaseVariant
+import com.android.build.gradle.tasks.MergeManifests
+import com.android.build.gradle.tasks.ProcessAndroidResources
+
 import groovy.io.FileType
 import net.wequick.gradle.aapt.Aapt
 import net.wequick.gradle.aapt.SymbolParser
@@ -23,6 +26,7 @@ import net.wequick.gradle.util.JNIUtils
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.tasks.compile.JavaCompile
 
 class AppPlugin extends BundlePlugin {
 
@@ -94,8 +98,6 @@ class AppPlugin extends BundlePlugin {
     }
 
     protected void resolveReleaseDependencies() {
-        RootExtension rootExt = project.rootProject.small
-
         // Pre-split shared libraries at release mode
         def libJarNames = []
         mDependentLibProjects.each {
@@ -104,7 +106,7 @@ class AppPlugin extends BundlePlugin {
         if (libJarNames.size() > 0) {
             // Collect the jars with absolute file path, fix issue #65
             def libJars = project.files(libJarNames.collect{
-                new File(rootExt.preLibsJarDir, it).path
+                new File(rootSmall.preLibsJarDir, it).path
             })
             project.dependencies.add('provided', libJars)
         }
@@ -112,7 +114,7 @@ class AppPlugin extends BundlePlugin {
         // Pre-split all the jar dependencies (deep level)
         def compile = project.configurations.compile
         compile.exclude group: 'com.android.support', module: 'support-annotations'
-        rootExt.preLinkJarDir.listFiles().each { file ->
+        rootSmall.preLinkJarDir.listFiles().each { file ->
             if (!file.name.endsWith('D.txt')) return
             if (file.name.startsWith(project.name)) return
 
@@ -152,7 +154,7 @@ class AppPlugin extends BundlePlugin {
         // modify the lib.B manifest to remove the attributes before app.A `processManifest`
         // and restore it after the task finished.
         Task processDebugManifest = project.tasks["process${variant.name.capitalize()}Manifest"]
-        processDebugManifest.doFirst {
+        processDebugManifest.doFirst { MergeManifests it ->
             def libs = it.libraries
             def libManifests = []
             libs.each {
@@ -231,21 +233,21 @@ class AppPlugin extends BundlePlugin {
 
         // Fill extensions
         def variantName = variant.name.capitalize()
-        def newDexTaskName = 'transformClassesWithDexFor' + variantName
+        def newDexTaskName = "transformClassesWithDexFor$variantName"
         def dexTask = project.hasProperty(newDexTaskName) ? project.tasks[newDexTaskName] : variant.dex
         File mergerDir = variant.mergeResources.incrementalFolder
 
         small.with {
             javac = variant.javaCompile
             dex = dexTask
-            processManifest = project.tasks['process' + variantName + 'Manifest']
+            processManifest = project.tasks["process${variantName}Manifest"]
 
             packageName = variant.applicationId
             packagePath = packageName.replaceAll('\\.', '/')
             classesDir = javac.destinationDir
             bkClassesDir = new File(classesDir.parentFile, "${classesDir.name}~")
 
-            aapt = project.tasks['process' + variantName + 'Resources']
+            aapt = (ProcessAndroidResources) project.tasks["process${variantName}Resources"]
             apFile = aapt.packageOutputFile
 
             File symbolDir = aapt.textSymbolOutputDir
@@ -327,14 +329,12 @@ class AppPlugin extends BundlePlugin {
         def idsFile = small.symbolFile
         if (!idsFile.exists()) return
 
-        RootExtension rootExt = project.rootProject.small
-
         // Check if has any vendor aars
         def firstLevelVendorAars = [] as Set<Map>
         def transitiveVendorAars = [] as Set<Map>
         collectVendorAars(firstLevelVendorAars, transitiveVendorAars)
         if (firstLevelVendorAars.size() > 0) {
-            if (rootExt.strictSplitResources) {
+            if (rootSmall.strictSplitResources) {
                 def err = new StringBuilder('In strict mode, we do not allow vendor aars, ')
                 err.append('please declare them in host build.gradle:\n')
                 firstLevelVendorAars.each {
@@ -353,7 +353,7 @@ class AppPlugin extends BundlePlugin {
 
         // Prepare id maps (bundle resource id -> library resource id)
         def libEntries = [:]
-        rootExt.preIdsDir.listFiles().each {
+        rootSmall.preIdsDir.listFiles().each {
             if (it.name.endsWith('R.txt') && !it.name.startsWith(project.name)) {
                 libEntries += SymbolParser.getResourceEntries(it)
             }
@@ -679,13 +679,27 @@ class AppPlugin extends BundlePlugin {
     }
 
     protected void hookVariantTask() {
-        RootExtension rootExt = project.rootProject.small
+        collectDependentAars()
 
-        // Hook preBuild task to resolve dependent AARs
+        hookProcessManifest(small.processManifest)
+
+        hookAapt(small.aapt)
+
+        hookJavac(small.javac)
+
+        hookDex(small.dex)
+
+        // Hook clean task to unset package id
+        project.clean.doLast {
+            sPackageIds.remove(project.name)
+        }
+    }
+
+    /** Hook preBuild task to resolve dependent AARs */
+    private def collectDependentAars() {
         project.preBuild.doFirst {
-            // Collect dependent AARs
             def smallLibAars = new HashSet() // the aars compiled in host or lib.*
-            rootExt.preLinkAarDir.listFiles().each { file ->
+            rootSmall.preLinkAarDir.listFiles().each { file ->
                 if (!file.name.endsWith('D.txt')) return
                 if (file.name.startsWith(project.name)) return
 
@@ -711,12 +725,14 @@ class AppPlugin extends BundlePlugin {
             small.splitAars = smallLibAars
             small.retainedAars = userLibAars
         }
+    }
 
+    private def hookProcessManifest(Task processManifest) {
         // If an app.A dependent by lib.B and both of them declare application@name in their
         // manifests, the `processManifest` task will raise an conflict error.
         // Cause the release mode doesn't need to merge the manifest of lib.*, simply split
         // out the manifest dependencies from them.
-        small.processManifest.doFirst {
+        processManifest.doFirst { MergeManifests it ->
             if (pluginType != PluginType.App) return
 
             def libs = it.libraries
@@ -731,14 +747,14 @@ class AppPlugin extends BundlePlugin {
         }
         // Hook process-manifest task to remove the `android:icon' and `android:label' attribute
         // which declared in the plugin `AndroidManifest.xml' application node. (for #11)
-        small.processManifest.doLast {
+        processManifest.doLast { MergeManifests it ->
             File manifestFile = it.manifestOutputFile
             def sb = new StringBuilder()
             def enteredApplicationNode = false
             def needsFilter = true
             def filterKeys = [
-                'android:icon', 'android:label',
-                'android:allowBackup', 'android:supportsRtl'
+                    'android:icon', 'android:label',
+                    'android:allowBackup', 'android:supportsRtl'
             ]
 
             // We don't use XmlParser but simply parse each line cause this should be faster
@@ -784,9 +800,13 @@ class AppPlugin extends BundlePlugin {
             }
             manifestFile.write(sb.toString(), 'utf-8')
         }
+    }
 
-        // Hook aapt task to slice asset package and resolve library resource ids
-        small.aapt.doLast {
+    /**
+     * Hook aapt task to slice asset package and resolve library resource ids
+     */
+    private def hookAapt(ProcessAndroidResources aaptTask) {
+        aaptTask.doLast { ProcessAndroidResources it ->
             // Unpack resources.ap_
             File apFile = it.packageOutputFile
             File unzipApDir = new File(apFile.parentFile, 'ap_unzip')
@@ -857,14 +877,18 @@ class AppPlugin extends BundlePlugin {
             // Repack resources.ap_
             project.ant.zip(baseDir: unzipApDir, destFile: apFile)
         }
+    }
 
-        // Hook javac task to split libraries' R.class
-        small.javac.doFirst { t ->
+    /**
+     * Hook javac task to split libraries' R.class
+     */
+    private def hookJavac(Task javac) {
+        javac.doFirst { JavaCompile it ->
             // Dynamically provided jars
-            def baseJars = project.fileTree(dir: rootExt.preBaseJarDir, include: ['*.jar'])
-            t.classpath += baseJars
+            def baseJars = project.fileTree(dir: rootSmall.preBaseJarDir, include: ['*.jar'])
+            it.classpath += baseJars
         }
-        small.javac.doLast {
+        javac.doLast { JavaCompile it ->
             if (!small.splitRJavaFile.exists()) return
 
             File classesDir = it.destinationDir
@@ -884,9 +908,13 @@ class AppPlugin extends BundlePlugin {
 
             Log.success "[${project.name}] split R.class..."
         }
+    }
 
-        // Hook dex task to split all aar classes.jar
-        small.dex.doFirst {
+    /**
+     * Hook dex task to split all aar classes.jar
+     */
+    def hookDex(Task dex) {
+        dex.doFirst {
             small.bkAarDir.mkdir()
             small.splitAars.each {
                 // TODO: Resolve the version conflict
@@ -898,11 +926,6 @@ class AppPlugin extends BundlePlugin {
                 }
             }
             Log.success "[${project.name}] split aar classes..."
-        }
-
-        // Hook clean task to unset package id
-        project.clean.doLast {
-            sPackageIds.remove(project.name)
         }
     }
 

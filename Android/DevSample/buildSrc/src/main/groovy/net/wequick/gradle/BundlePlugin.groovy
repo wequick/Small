@@ -37,7 +37,7 @@ abstract class BundlePlugin extends AndroidPlugin {
 
     @Override
     protected BundleExtension getSmall() {
-        return super.getSmall()
+        return project.small
     }
 
     @Override
