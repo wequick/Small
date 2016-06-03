@@ -225,6 +225,10 @@ public class BundleParser {
                                 abiFlags = label.data;
                             }
                         }
+                        if (abiFlags != 0) {
+                            throw new RuntimeException("Please recompile " + mPackageName
+                                    + " use gradle-small 0.9.0 or above");
+                        }
                     }
 
                     app.theme = sa.getResourceId(
