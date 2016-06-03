@@ -4,9 +4,29 @@
 //--------------------------------------------------------------------------------------------------
 apply plugin: 'groovy'
 
+repositories {
+    jcenter()
+}
+
+configurations {
+    provided
+}
+
+sourceSets {
+    main {
+        compileClasspath += configurations.provided
+    }
+}
+
 dependencies {
     compile gradleApi()
     compile localGroovy()
+    if (gradle.startParameter.projectDir == project.projectDir) {
+        // gradlew -p buildSrc xx
+        provided 'com.android.tools.build:gradle:2.0.0'
+    } else {
+        compile 'com.android.tools.build:gradle:2.0.0'
+    }
 }
 
 apply plugin: 'maven'

@@ -1,5 +1,6 @@
 package net.wequick.gradle
 
+import com.android.build.gradle.api.BaseVariant
 import org.gradle.api.Project
 
 class HostPlugin extends AndroidPlugin {
@@ -14,18 +15,18 @@ class HostPlugin extends AndroidPlugin {
         
         project.afterEvaluate {
             // Configure libs dir
-            def jniDirs = project.android.sourceSets.main.jniLibs.srcDirs
+            def jniDirs = android.sourceSets.main.jniLibs.srcDirs
             if (jniDirs == null) {
-                project.android.sourceSets.main.jniLibs.srcDirs = [SMALL_LIBS]
+                android.sourceSets.main.jniLibs.srcDirs = [SMALL_LIBS]
             } else {
-                project.android.sourceSets.main.jniLibs.srcDirs += SMALL_LIBS
+                android.sourceSets.main.jniLibs.srcDirs += SMALL_LIBS
             }
             // If contains release signing config, all bundles will be signed with it,
             // copy the config to debug type to ensure the signature-validating works
             // while launching application from IDE.
-            def releaseSigningConfig = project.android.buildTypes.release.signingConfig
+            def releaseSigningConfig = android.buildTypes.release.signingConfig
             if (releaseSigningConfig != null) {
-                project.android.buildTypes.debug.signingConfig = releaseSigningConfig
+                android.buildTypes.debug.signingConfig = releaseSigningConfig
             }
         }
     }
@@ -49,7 +50,7 @@ class HostPlugin extends AndroidPlugin {
     }
 
     @Override
-    protected void configureReleaseVariant(Object variant) {
+    protected void configureReleaseVariant(BaseVariant variant) {
         super.configureReleaseVariant(variant)
 
         if (small.jar != null) return // Handle once for multi flavors
