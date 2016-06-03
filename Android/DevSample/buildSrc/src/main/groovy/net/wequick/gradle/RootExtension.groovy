@@ -15,12 +15,11 @@
  */
 package net.wequick.gradle
 
+import net.wequick.gradle.util.FullRevision
 import org.gradle.api.Project
 
 public class RootExtension extends BaseExtension {
 
-    private static final String PLUGIN_GROUP = 'net.wequick.tools.build'
-    private static final String PLUGIN_MODULE = 'gradle-small'
     private static final String FD_BUILD_SMALL = 'build-small'
     private static final String FD_PRE_JAR = 'small-pre-jar'
     private static final String FD_PRE_AP = 'small-pre-ap'
@@ -31,11 +30,18 @@ public class RootExtension extends BaseExtension {
     private static final String FD_JAR = 'jar'
     private static final String FD_AAR = 'aar'
 
+    /** The minimum small aar version required */
+    private static final String REQUIRED_AAR_VERSION = '1.0.0'
+    private static final FullRevision REQUIRED_AAR_REVISION = FullRevision.parseRevision(REQUIRED_AAR_VERSION)
+
     /** 
      * Version of aar net.wequick.small:small
      * default to `gradle-small' plugin version 
      */
     String aarVersion
+
+    /** The parsed revision of `aarVersion' */
+    private FullRevision aarRevision
 
     /**
      * Strict mode, <tt>true</tt> if keep only resources in bundle's res directory.
@@ -85,12 +91,6 @@ public class RootExtension extends BaseExtension {
         def preLinkDir = new File(interDir, FD_PRE_LINK)
         preLinkJarDir = new File(preLinkDir, FD_JAR)
         preLinkAarDir = new File(preLinkDir, FD_AAR)
-
-        def pluginModule = project.buildscript.configurations.classpath.
-                resolvedConfiguration.firstLevelModuleDependencies.find {
-            it.moduleGroup == PLUGIN_GROUP && it.moduleName == PLUGIN_MODULE
-        }
-        if (pluginModule != null) aarVersion = pluginModule.moduleVersion
     }
 
     public File getPreBuildDir() {
@@ -119,5 +119,28 @@ public class RootExtension extends BaseExtension {
 
     public File getPreLinkAarDir() {
         return preLinkAarDir
+    }
+
+    public String getAarVersion() {
+        if (aarVersion == null) {
+            throw new RuntimeException(
+                    'Please specify Small aar version in your root build.gradle:\n' +
+                            "small {\n    aarVersion = '[the_version]'\n}")
+        }
+
+        if (aarRevision == null) {
+            synchronized (this.class) {
+                if (aarRevision == null) {
+                    aarRevision = FullRevision.parseRevision(aarVersion)
+                }
+            }
+        }
+        if (aarRevision < REQUIRED_AAR_REVISION) {
+            throw new RuntimeException(
+                    "Small aar version $REQUIRED_AAR_VERSION is required. Current version is $aarVersion"
+            )
+        }
+
+        return aarVersion
     }
 }
