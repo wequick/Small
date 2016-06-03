@@ -4,9 +4,24 @@
 //--------------------------------------------------------------------------------------------------
 apply plugin: 'groovy'
 
+repositories {
+    jcenter()
+}
+
+configurations {
+    provided
+}
+
+sourceSets {
+    main {
+        compileClasspath += configurations.provided
+    }
+}
+
 dependencies {
     compile gradleApi()
     compile localGroovy()
+    provided 'com.android.tools.build:gradle:2.0.0'
 }
 
 apply plugin: 'maven'

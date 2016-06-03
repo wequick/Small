@@ -1,5 +1,6 @@
 package net.wequick.gradle
 
+import com.android.build.gradle.api.BaseVariant
 import org.gradle.api.Project
 
 class HostPlugin extends AndroidPlugin {
@@ -49,7 +50,7 @@ class HostPlugin extends AndroidPlugin {
     }
 
     @Override
-    protected void configureReleaseVariant(Object variant) {
+    protected void configureReleaseVariant(BaseVariant variant) {
         super.configureReleaseVariant(variant)
 
         if (small.jar != null) return // Handle once for multi flavors

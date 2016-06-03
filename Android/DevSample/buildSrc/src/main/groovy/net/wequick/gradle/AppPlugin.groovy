@@ -15,6 +15,7 @@
  */
 package net.wequick.gradle
 
+import com.android.build.gradle.api.BaseVariant
 import groovy.io.FileType
 import net.wequick.gradle.aapt.Aapt
 import net.wequick.gradle.aapt.SymbolParser
@@ -80,7 +81,7 @@ class AppPlugin extends BundlePlugin {
             initPackageId()
             resolveReleaseDependencies()
 
-            project.android.dexOptions {
+            android.dexOptions {
                 preDexLibraries = false // !important, this makes classes.dex splitable
             }
         }
@@ -129,19 +130,19 @@ class AppPlugin extends BundlePlugin {
         if (appcompat == null) {
             // Pre-split classes and resources.
             project.rootProject.small.preApDir.listFiles().each {
-                project.android.aaptOptions.additionalParameters '-I', it.path
+                android.aaptOptions.additionalParameters '-I', it.path
             }
             // Ensure generating text symbols - R.txt
             project.preBuild.doLast {
                 def symbolsPath = project.processReleaseResources.textSymbolOutputDir.path
-                project.android.aaptOptions.additionalParameters '--output-text-symbols',
+                android.aaptOptions.additionalParameters '--output-text-symbols',
                         symbolsPath
             }
         }
     }
 
     @Override
-    protected void configureDebugVariant(Object variant) {
+    protected void configureDebugVariant(BaseVariant variant) {
         super.configureDebugVariant(variant)
 
         if (pluginType != PluginType.App) return
@@ -225,7 +226,7 @@ class AppPlugin extends BundlePlugin {
     }
 
     @Override
-    protected void configureReleaseVariant(variant) {
+    protected void configureReleaseVariant(BaseVariant variant) {
         super.configureReleaseVariant(variant)
 
         // Fill extensions
@@ -653,7 +654,7 @@ class AppPlugin extends BundlePlugin {
     protected int getABIFlag() {
         def abis = []
 
-        def jniDirs = project.android.sourceSets.main.jniLibs.srcDirs
+        def jniDirs = android.sourceSets.main.jniLibs.srcDirs
         if (jniDirs == null) jniDirs = []
         // Collect ABIs from AARs
         small.explodeAarDirs.each { dir ->
@@ -661,7 +662,7 @@ class AppPlugin extends BundlePlugin {
             if (!jniDir.exists()) return
             jniDirs.add(jniDir)
         }
-        def filters = project.android.defaultConfig.ndkConfig.abiFilters
+        def filters = android.defaultConfig.ndkConfig.abiFilters
         jniDirs.each { dir ->
             dir.listFiles().each { File d ->
                 if (d.isFile()) return
@@ -800,7 +801,7 @@ class AppPlugin extends BundlePlugin {
                     new File(it.textSymbolOutputDir, 'R.txt') : null
             File sourceOutputDir = it.sourceOutputDir
             File rJavaFile = new File(sourceOutputDir, "${small.packagePath}/R.java")
-            def rev = project.android.buildToolsRevision
+            def rev = android.buildToolsRevision
             Aapt aapt = new Aapt(unzipApDir, rJavaFile, symbolFile, rev)
             if (small.retainedTypes != null) {
                 aapt.filterResources(small.retainedTypes)

@@ -1,5 +1,6 @@
 package net.wequick.gradle
 
+import com.android.build.gradle.api.BaseVariant
 import org.gradle.api.Project
 
 class AndroidPlugin extends BasePlugin {
@@ -17,14 +18,18 @@ class AndroidPlugin extends BasePlugin {
         return (AndroidExtension) project.small
     }
 
+    protected com.android.build.gradle.BaseExtension getAndroid() {
+        return project.android
+    }
+
     @Override
     protected void configureProject() {
         super.configureProject()
 
         project.afterEvaluate {
-            if (!project.android.hasProperty('applicationVariants')) return
+            if (!android.hasProperty('applicationVariants')) return
 
-            project.android.applicationVariants.all { variant ->
+            android.applicationVariants.all { BaseVariant variant ->
                 if (variant.buildType.name != 'release') {
                     configureDebugVariant(variant)
                     return
@@ -37,9 +42,9 @@ class AndroidPlugin extends BasePlugin {
         }
     }
 
-    protected void configureDebugVariant(variant) { }
+    protected void configureDebugVariant(BaseVariant variant) { }
 
-    protected void configureReleaseVariant(variant) {
+    protected void configureReleaseVariant(BaseVariant variant) {
         // Init default output file (*.apk)
         small.outputFile = variant.outputs[0].outputFile
         small.explodeAarDirs = project.tasks.findAll {

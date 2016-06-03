@@ -62,8 +62,8 @@ class LibraryPlugin extends AppPlugin {
         }
         project.afterEvaluate {
             // Set application id
-            def manifest = new XmlParser().parse(project.android.sourceSets.main.manifestFile)
-            project.android.defaultConfig.applicationId = manifest.@package
+            def manifest = new XmlParser().parse(android.sourceSets.main.manifestFile)
+            android.defaultConfig.applicationId = manifest.@package
         }
     }
 
