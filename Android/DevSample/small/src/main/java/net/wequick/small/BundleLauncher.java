@@ -95,7 +95,7 @@ public abstract class BundleLauncher {
 
     /**
      * Called when Small is finish setUp by {@link Small#setUp}. This is where most completion
-     * should go: do something with the loaded bundles.
+     * should go: do something with the loaded bundles, free the memory of temporary variables.
      */
     public void postSetUp() { }
 

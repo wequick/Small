@@ -92,7 +92,6 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         public File optDexFile;
         public File libraryPath;
         public boolean nonResources; /** no resources.arsc */
-        public ActivityInfo[] activities;
     }
 
     private static ConcurrentHashMap<String, LoadedApk> sLoadedApks;
@@ -444,6 +443,9 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 e.printStackTrace();
             }
         }
+
+        // Free temporary variables
+        sLoadedApks = null;
     }
 
     @Override
@@ -482,7 +484,6 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             apk.packageName = packageName;
             apk.path = apkPath;
             apk.nonResources = parser.isNonResources();
-            apk.activities = pluginInfo.activities;
             if (pluginInfo.applicationInfo != null) {
                 apk.applicationName = pluginInfo.applicationInfo.className;
             }
