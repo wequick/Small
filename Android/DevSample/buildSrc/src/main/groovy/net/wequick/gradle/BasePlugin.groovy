@@ -79,13 +79,10 @@ public abstract class BasePlugin implements Plugin<Project> {
         // Automatic add `small' dependency
         if (smallCompileType != null) {
             project.afterEvaluate {
-                RootPlugin rootPlugin = (RootPlugin) project.rootProject.plugins.
-                        withType(RootPlugin.class)[0]
-                RootExtension rootExt = rootPlugin.small
-                if (rootExt.hasSmallProject) {
+                if (rootSmall.hasSmallProject) {
                     project.dependencies.add(smallCompileType, project.project(':small'))
                 } else {
-                    def version = rootExt.aarVersion
+                    def version = rootSmall.aarVersion
                     project.dependencies.add(smallCompileType, "${SMALL_AAR_PREFIX}$version")
                 }
             }
@@ -98,6 +95,10 @@ public abstract class BasePlugin implements Plugin<Project> {
         return (T) project.small
     }
 
+    protected RootExtension getRootSmall() {
+        return project.rootProject.small
+    }
+
     protected PluginType getPluginType() { return PluginType.Unknown }
 
     /** Restore state for DEBUG mode */
@@ -107,11 +108,9 @@ public abstract class BasePlugin implements Plugin<Project> {
 
     protected abstract Class<? extends BaseExtension> getExtensionClass()
 
-    // Following functions for printing colourful text
-    protected void printInfo(String text) {
-
-    }
-
+    /**
+     * This class consists exclusively of static methods for printing colourful text
+     */
     public final class Log {
 
         protected static StyledTextOutput out

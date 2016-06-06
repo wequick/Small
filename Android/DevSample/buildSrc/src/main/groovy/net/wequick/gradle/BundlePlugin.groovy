@@ -15,6 +15,7 @@
  */
 package net.wequick.gradle
 
+import com.android.build.gradle.api.BaseVariant
 import org.gradle.api.Project
 
 /**
@@ -36,7 +37,7 @@ abstract class BundlePlugin extends AndroidPlugin {
 
     @Override
     protected BundleExtension getSmall() {
-        return super.getSmall()
+        return project.small
     }
 
     @Override
@@ -72,13 +73,13 @@ abstract class BundlePlugin extends AndroidPlugin {
                 Project hostProject = project.rootProject.findProject('app')
                 def cs = hostProject.android.signingConfigs
                 def signingConfig = (cs.hasProperty('release')) ? cs.release : cs.debug
-                project.android.buildTypes.release.signingConfig = signingConfig
+                android.buildTypes.release.signingConfig = signingConfig
             }
         }
     }
 
     @Override
-    protected void configureReleaseVariant(variant) {
+    protected void configureReleaseVariant(BaseVariant variant) {
         super.configureReleaseVariant(variant)
 
         // Set output file (*.so)

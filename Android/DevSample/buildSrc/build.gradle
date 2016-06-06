@@ -21,7 +21,12 @@ sourceSets {
 dependencies {
     compile gradleApi()
     compile localGroovy()
-    provided 'com.android.tools.build:gradle:2.0.0'
+    if (gradle.startParameter.projectDir == project.projectDir) {
+        // gradlew -p buildSrc xx
+        provided 'com.android.tools.build:gradle:2.0.0'
+    } else {
+        compile 'com.android.tools.build:gradle:2.0.0'
+    }
 }
 
 apply plugin: 'maven'

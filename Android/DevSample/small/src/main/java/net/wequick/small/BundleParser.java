@@ -2,7 +2,6 @@ package net.wequick.small;
 
 import android.content.Context;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
@@ -13,6 +12,7 @@ import android.content.res.XmlResourceParser;
 import android.os.PatternMatcher;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.SparseIntArray;
 import android.util.TypedValue;
 
 import net.wequick.small.util.JNIUtils;
@@ -109,14 +109,12 @@ public class BundleParser {
     private String mLibDir;
 
     private Context mContext;
-    private SharedPreferences mCrcs;
     private ZipFile mZipFile;
 
     public BundleParser(File sourceFile, String packageName) {
         mArchiveSourcePath = sourceFile.getPath();
         mPackageName = packageName;
         mContext = Small.getContext();
-        mCrcs = mContext.getSharedPreferences("small.crc." + packageName, 0);
     }
 
     public static BundleParser parsePackage(File sourceFile, String packageName) {
@@ -358,7 +356,7 @@ public class BundleParser {
         }
 
         byte[][] hostCerts = Small.getHostCertificates();
-        SharedPreferences.Editor crcEditor = mCrcs.edit();
+        CrcVerifier crcVerifier = new CrcVerifier(mContext, bundle.getPackageName(), hostCerts);
 
         try {
             JarFile jarFile = new JarFile(mArchiveSourcePath);
@@ -377,12 +375,13 @@ public class BundleParser {
                 }
 
                 // Verify CRC first
-                long crc = je.getCrc();
-                long savedCrc = mCrcs.getLong(name, 0);
-                if (crc == savedCrc) {
+                int hash = name.hashCode();
+                int crc = crcVerifier.getObscuredCrc(je.getCrc());
+                if (crcVerifier.verifyCrc(hash, crc)) {
                     continue;
                 }
 
+                // Verify certificates
                 Certificate[] localCerts = loadCertificates(jarFile, je,
                         readBuffer);
 
@@ -390,6 +389,7 @@ public class BundleParser {
                     Log.e(TAG, "Package " + mPackageName
                             + " has no certificates at entry "
                             + name + "; ignoring!");
+                    crcVerifier.close();
                     jarFile.close();
                     return false;
                 } else {
@@ -407,6 +407,7 @@ public class BundleParser {
                             Log.e(TAG, "Package " + mPackageName
                                     + " has mismatched certificates at entry "
                                     + name + "; ignoring!");
+                            crcVerifier.close();
                             jarFile.close();
                             return false;
                         }
@@ -419,13 +420,14 @@ public class BundleParser {
                     if (mZipFile == null) {
                         mZipFile = new ZipFile(mArchiveSourcePath);
                     }
-                    extractFile(mZipFile, je, extractFile);
+                    postExtractFile(mZipFile, je, extractFile);
                 }
 
-                crcEditor.putLong(name, crc);
+                // Record the new crc
+                crcVerifier.recordCrc(hash, crc);
             }
 
-            crcEditor.apply();
+            postSaveCrcs(crcVerifier);
             jarFile.close();
 
             synchronized (this.getClass()) {
@@ -444,7 +446,16 @@ public class BundleParser {
         return true;
     }
 
-    private void extractFile(final ZipFile zipFile, final JarEntry je, final File extractFile) {
+    private void postSaveCrcs(final CrcVerifier crcVerifier) {
+        Bundle.postIO(new Runnable() {
+            @Override
+            public void run() {
+                crcVerifier.saveCrcs();
+            }
+        });
+    }
+
+    private void postExtractFile(final ZipFile zipFile, final JarEntry je, final File extractFile) {
         Bundle.postIO(new Runnable() {
             @Override
             public void run() {
@@ -461,8 +472,9 @@ public class BundleParser {
                     InputStream is = zipFile.getInputStream(je);
                     RandomAccessFile out = new RandomAccessFile(extractFile, "rw");
                     byte[] buffer = new byte[8192];
-                    while (is.read(buffer, 0, buffer.length) != -1) {
-                        out.write(buffer);
+                    int len;
+                    while ((len = is.read(buffer, 0, buffer.length)) != -1) {
+                        out.write(buffer, 0, len);
                     }
                     out.close();
                 } catch (IOException e) {
@@ -654,5 +666,176 @@ public class BundleParser {
             }
         }
         mReadBuffer = null;
+    }
+
+    /**
+     * Class to verify and save the crc of each bundle entry.
+     * The SCRC (Small CRC) file format:
+     * +--------------+
+     * | Magic Number | 5343 5243
+     * | Entry Count  |
+     * | Entry #1     | each entry follows hash(int) and crc(int)
+     * | Entry ...    |
+     * | Entry #N     |
+     * +--------------+
+     */
+    private static final class CrcVerifier {
+
+        private static final String CRC_EXTENSION = ".scrc";
+        private static final byte[] MAGIC_NUMBER = new byte[]{ 0x53, 0x43, 0x52, 0x43 }; // SCRC
+        private static final int HEADER_SIZE = 8;
+        private static final int ENTRY_SIZE = 8;
+        private static final int CRC_OFFSET = 4;
+
+        private RandomAccessFile mCrcFile;
+        private int mSavedCrcCount;
+        private SparseIntArray mSavedCrcs;
+        private SparseIntArray mSavedCrcIndexes;
+        private SparseIntArray mVerifiedCrcs;
+        private SparseIntArray mUpdatedCrcs;
+        private SparseIntArray mInsertedCrcs;
+        private SparseIntArray mDeletedCrcIndexes;
+        private int mObscureOffset;
+
+        CrcVerifier(Context context, String packageName, byte[][] certs) {
+            try {
+                File crcPath = context.getFileStreamPath(CRC_EXTENSION);
+                if (!crcPath.exists()) {
+                    crcPath.mkdir();
+                }
+                File crcFile = new File(crcPath, packageName + CRC_EXTENSION);
+                boolean exists = crcFile.exists();
+                if (!exists) {
+                    crcFile.createNewFile();
+                }
+
+                // Initialize certs
+                mObscureOffset = Arrays.hashCode(certs[0]);
+
+                // Parse the file
+                mCrcFile = new RandomAccessFile(crcFile, "rw");
+                if (exists) {
+                    byte[] magic = new byte[MAGIC_NUMBER.length];
+                    mCrcFile.read(magic);
+                    if (!Arrays.equals(magic, MAGIC_NUMBER)) {
+                        return;
+                    }
+
+                    mSavedCrcCount = mCrcFile.readInt();
+                    if (mSavedCrcCount == 0) return;
+
+                    mSavedCrcs = new SparseIntArray(mSavedCrcCount);
+                    mSavedCrcIndexes = new SparseIntArray(mSavedCrcCount);
+                    mDeletedCrcIndexes = new SparseIntArray(mSavedCrcCount);
+                    for (int i = 0; i < mSavedCrcCount; i++) {
+                        int hash = mCrcFile.readInt();
+                        int crc = mCrcFile.readInt();
+                        mSavedCrcs.put(hash, crc);
+                        mSavedCrcIndexes.put(hash, i);
+                        mDeletedCrcIndexes.put(hash, i);
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private boolean verifyCrc(int hash, int crc) {
+            int savedCrc = (mSavedCrcs == null) ? 0 : mSavedCrcs.get(hash);
+            // Record the current crc
+            if (mVerifiedCrcs == null) {
+                mVerifiedCrcs = new SparseIntArray();
+            }
+            mVerifiedCrcs.put(hash, crc);
+            return (savedCrc == crc);
+        }
+
+        private void recordCrc(int hash, int crc) {
+            int savedIndex = -1;
+            if (mSavedCrcIndexes != null) {
+                savedIndex = mSavedCrcIndexes.get(hash, -1);
+            }
+            if (savedIndex >= 0) {
+                // If we had saved, update it
+                if (mUpdatedCrcs == null) {
+                    mUpdatedCrcs = new SparseIntArray();
+                }
+                mUpdatedCrcs.put(savedIndex, crc);
+            } else {
+                // Otherwise, insert a new one
+                if (mInsertedCrcs == null) {
+                    mInsertedCrcs = new SparseIntArray();
+                }
+                mInsertedCrcs.put(hash, crc);
+            }
+        }
+
+        private void saveCrcs() {
+            if (mVerifiedCrcs == null) return;
+
+            try {
+                int i;
+                int N = mVerifiedCrcs.size();
+                if (mSavedCrcs == null || mSavedCrcs.size() > N) {
+                    // If first created or something deleted, we should rewrite all the data
+                    if (mSavedCrcs == null) {
+                        mCrcFile.seek(0);
+                        mCrcFile.write(MAGIC_NUMBER);
+                    } else {
+                        mCrcFile.seek(MAGIC_NUMBER.length);
+                    }
+                    mCrcFile.writeInt(N);
+                    for (i = 0; i < N; i++) {
+                        mCrcFile.writeInt(mVerifiedCrcs.keyAt(i));
+                        mCrcFile.writeInt(mVerifiedCrcs.valueAt(i));
+                    }
+                    mCrcFile.setLength(HEADER_SIZE + N * ENTRY_SIZE);
+                } else {
+                    // Otherwise, we can update the crc in specify offset faster
+                    if (mUpdatedCrcs != null) {
+                        N = mUpdatedCrcs.size();
+                        for (i = 0; i < N; i++) {
+                            int offset = mUpdatedCrcs.keyAt(i);
+                            int crc = mUpdatedCrcs.valueAt(i);
+                            mCrcFile.seek(HEADER_SIZE + offset * ENTRY_SIZE + CRC_OFFSET);
+                            mCrcFile.writeInt(crc);
+                        }
+                    }
+                    if (mInsertedCrcs != null) {
+                        N = mInsertedCrcs.size();
+                        mCrcFile.seek(MAGIC_NUMBER.length);
+                        mCrcFile.writeInt(mSavedCrcCount + N); // update the entry size
+
+                        long len = mCrcFile.length();
+                        mCrcFile.seek(len);
+                        long addedSize = 0;
+                        for (i = 0; i < N; i++) {
+                            mCrcFile.writeInt(mInsertedCrcs.keyAt(i));
+                            mCrcFile.writeInt(mInsertedCrcs.valueAt(i));
+                            addedSize += ENTRY_SIZE;
+                        }
+                        mCrcFile.setLength(len + addedSize);
+                    }
+                }
+
+                mCrcFile.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private void close() {
+            if (mCrcFile != null) {
+                try {
+                    mCrcFile.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        private int getObscuredCrc(long crc) {
+            return (int)((crc & 0xFFFFFFFFL) + mObscureOffset);
+        }
     }
 }

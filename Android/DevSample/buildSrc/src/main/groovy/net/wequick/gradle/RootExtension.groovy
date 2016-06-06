@@ -15,8 +15,8 @@
  */
 package net.wequick.gradle
 
-import com.android.repository.Revision
 import org.gradle.api.Project
+import org.gradle.util.VersionNumber
 
 public class RootExtension extends BaseExtension {
 
@@ -32,7 +32,7 @@ public class RootExtension extends BaseExtension {
 
     /** The minimum small aar version required */
     private static final String REQUIRED_AAR_VERSION = '1.0.0'
-    private static final Revision REQUIRED_AAR_REVISION = Revision.parseRevision(REQUIRED_AAR_VERSION)
+    private static final VersionNumber REQUIRED_AAR_REVISION = VersionNumber.parse(REQUIRED_AAR_VERSION)
 
     /** 
      * Version of aar net.wequick.small:small
@@ -41,7 +41,7 @@ public class RootExtension extends BaseExtension {
     String aarVersion
 
     /** The parsed revision of `aarVersion' */
-    private Revision aarRevision
+    private VersionNumber aarRevision
 
     /**
      * Strict mode, <tt>true</tt> if keep only resources in bundle's res directory.
@@ -131,7 +131,7 @@ public class RootExtension extends BaseExtension {
         if (aarRevision == null) {
             synchronized (this.class) {
                 if (aarRevision == null) {
-                    aarRevision = Revision.parseRevision(aarVersion)
+                    aarRevision = VersionNumber.parse(aarVersion)
                 }
             }
         }

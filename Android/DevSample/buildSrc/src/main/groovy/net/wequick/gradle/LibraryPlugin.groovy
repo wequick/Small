@@ -1,5 +1,6 @@
 package net.wequick.gradle
 
+import com.android.build.gradle.api.BaseVariant
 import org.gradle.api.Project
 
 class LibraryPlugin extends AppPlugin {
@@ -25,9 +26,8 @@ class LibraryPlugin extends AppPlugin {
                 // Cause `isBuildingRelease()' return false, at this time, super's
                 // `resolveReleaseDependencies' will not be triggered.
                 // To avoid the `Small' class not found, provided the small jar here.
-                RootExtension rootExt = project.rootProject.small
                 def smallJar = project.fileTree(
-                        dir: rootExt.preBaseJarDir, include: [SMALL_JAR_PATTERN])
+                        dir: rootSmall.preBaseJarDir, include: [SMALL_JAR_PATTERN])
                 project.dependencies.add('provided', smallJar)
 
                 if (isBuildingApps()) {
@@ -88,16 +88,15 @@ class LibraryPlugin extends AppPlugin {
     }
 
     @Override
-    protected void configureReleaseVariant(variant) {
+    protected void configureReleaseVariant(BaseVariant variant) {
         super.configureReleaseVariant(variant)
 
         small.jar = project.jarReleaseClasses
 
         // Generate jar file to root pre-jar directory
         variant.assemble.doLast {
-            RootExtension rootExt = project.rootProject.small
             def jarName = getJarName(project)
-            def jarFile = new File(rootExt.preLibsJarDir, jarName)
+            def jarFile = new File(rootSmall.preLibsJarDir, jarName)
             project.ant.jar(baseDir: small.javac.destinationDir, destFile: jarFile)
         }
     }
