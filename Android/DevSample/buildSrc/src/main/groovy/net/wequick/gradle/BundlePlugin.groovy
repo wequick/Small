@@ -16,6 +16,7 @@
 package net.wequick.gradle
 
 import com.android.build.gradle.api.BaseVariant
+import com.android.build.gradle.internal.dsl.BuildType
 import org.gradle.api.Project
 
 /**
@@ -68,12 +69,23 @@ abstract class BundlePlugin extends AndroidPlugin {
         }
 
         project.afterEvaluate {
-            // Copy host signing configs
             if (isBuildingRelease()) {
+                BuildType buildType = android.buildTypes.find { it.name == 'release' }
+
                 Project hostProject = project.rootProject.findProject('app')
-                def cs = hostProject.android.signingConfigs
-                def signingConfig = (cs.hasProperty('release')) ? cs.release : cs.debug
-                android.buildTypes.release.signingConfig = signingConfig
+                com.android.build.gradle.BaseExtension hostAndroid = hostProject.android
+                def hostDebugBuildType = hostAndroid.buildTypes.find { it.name == 'debug' }
+                def hostReleaseBuildType = hostAndroid.buildTypes.find { it.name == 'release' }
+
+                // Copy host signing configs
+                def sc = hostReleaseBuildType.signingConfig ?: hostDebugBuildType.signingConfig
+                buildType.setSigningConfig(sc)
+
+                // Enable minify if the command line defined `-Dbundle.minify=true'
+                def minify = System.properties['bundle.minify']
+                if (minify != null) {
+                    buildType.setMinifyEnabled(minify == 'true')
+                }
             }
         }
     }

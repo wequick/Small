@@ -1,6 +1,11 @@
 package net.wequick.gradle
 
+import com.android.build.api.transform.Format
 import com.android.build.gradle.api.BaseVariant
+import com.android.build.gradle.internal.pipeline.IntermediateFolderUtils
+import com.android.build.gradle.internal.pipeline.TransformTask
+import com.android.build.gradle.internal.transforms.ProGuardTransform
+import org.apache.commons.io.FileUtils
 import org.gradle.api.Project
 
 class LibraryPlugin extends AppPlugin {
@@ -88,6 +93,15 @@ class LibraryPlugin extends AppPlugin {
     }
 
     @Override
+    protected void configureProguard(BaseVariant variant, TransformTask proguard, ProGuardTransform pt) {
+        super.configureProguard(variant, proguard, pt)
+
+        // The `lib.*' modules are referenced by any `app.*' modules,
+        // so keep all the public methods for them.
+        pt.keep("class ${variant.applicationId}.** { public *; }")
+    }
+
+    @Override
     protected void configureReleaseVariant(BaseVariant variant) {
         super.configureReleaseVariant(variant)
 
@@ -97,7 +111,11 @@ class LibraryPlugin extends AppPlugin {
         variant.assemble.doLast {
             def jarName = getJarName(project)
             def jarFile = new File(rootSmall.preLibsJarDir, jarName)
-            project.ant.jar(baseDir: small.javac.destinationDir, destFile: jarFile)
+            if (mMinifyJar != null) {
+                FileUtils.copyFile(mMinifyJar, jarFile)
+            } else {
+                project.ant.jar(baseDir: small.javac.destinationDir, destFile: jarFile)
+            }
         }
     }
 

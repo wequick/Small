@@ -24,9 +24,6 @@ public class AppExtension extends BundleExtension {
     /** Task of java compiler */
     JavaCompile javac
 
-    /** Task of dex */
-    Task dex
-
     /** Task of merge manifest */
     Task processManifest
 
@@ -47,9 +44,6 @@ public class AppExtension extends BundleExtension {
 
     /** Directory of all exploded aar */
     File aarDir
-
-    /** Directory of split exploded aar */
-    File bkAarDir
 
     /** File of resources.ap_ */
     File apFile
@@ -91,7 +85,6 @@ public class AppExtension extends BundleExtension {
         File interDir = new File(project.buildDir, FD_INTERMEDIATES)
 
         aarDir = new File(interDir, 'exploded-aar')
-        bkAarDir = new File(interDir, 'exploded-aar~')
         publicSymbolFile = new File(project.projectDir, 'public.txt')
     }
 }

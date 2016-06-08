@@ -15,12 +15,17 @@
  */
 package net.wequick.gradle
 
+import com.android.build.api.transform.Format
 import com.android.build.gradle.api.BaseVariant
+import com.android.build.gradle.internal.pipeline.IntermediateFolderUtils
+import com.android.build.gradle.internal.pipeline.TransformTask
+import com.android.build.gradle.internal.transforms.ProGuardTransform
 import com.android.build.gradle.tasks.MergeManifests
 import com.android.build.gradle.tasks.ProcessAndroidResources
 import groovy.io.FileType
 import net.wequick.gradle.aapt.Aapt
 import net.wequick.gradle.aapt.SymbolParser
+import net.wequick.gradle.transform.StripAarTransform
 import net.wequick.gradle.util.JNIUtils
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -34,6 +39,8 @@ class AppPlugin extends BundlePlugin {
     protected static def sPackageIds = [:] as LinkedHashMap<String, Integer>
 
     protected Set<Project> mDependentLibProjects
+    protected Set<File> mLibraryJars
+    protected File mMinifyJar
 
     void apply(Project project) {
         super.apply(project)
@@ -81,12 +88,11 @@ class AppPlugin extends BundlePlugin {
         if (!isBuildingRelease()) return
 
         project.afterEvaluate {
+            // Add custom transformation to split shared libraries
+            android.registerTransform(new StripAarTransform())
+
             initPackageId()
             resolveReleaseDependencies()
-
-            android.dexOptions {
-                preDexLibraries = false // !important, this makes classes.dex splitable
-            }
         }
     }
 
@@ -96,20 +102,31 @@ class AppPlugin extends BundlePlugin {
         return "$group-${project.version}.jar"
     }
 
-    protected void resolveReleaseDependencies() {
-        // Pre-split shared libraries at release mode
-        def libJarNames = []
+    protected Set<File> getLibraryJars() {
+        if (mLibraryJars != null) return mLibraryJars
+
+        mLibraryJars = new LinkedHashSet<File>()
+
+        // Collect the jars in `build-small/intermediates/small-pre-jar/base'
+        def baseJars = project.fileTree(dir: rootSmall.preBaseJarDir, include: ['*.jar'])
+        mLibraryJars.addAll(baseJars.files)
+
+        // Collect the jars of `compile project(lib.*)' with absolute file path, fix issue #65
+        Set<String> libJarNames = []
         mDependentLibProjects.each {
             libJarNames += getJarName(it)
         }
         if (libJarNames.size() > 0) {
-            // Collect the jars with absolute file path, fix issue #65
             def libJars = project.files(libJarNames.collect{
                 new File(rootSmall.preLibsJarDir, it).path
             })
-            project.dependencies.add('provided', libJars)
+            mLibraryJars.addAll(libJars.files)
         }
 
+        return mLibraryJars
+    }
+
+    protected void resolveReleaseDependencies() {
         // Pre-split all the jar dependencies (deep level)
         def compile = project.configurations.compile
         compile.exclude group: 'com.android.support', module: 'support-annotations'
@@ -232,13 +249,10 @@ class AppPlugin extends BundlePlugin {
 
         // Fill extensions
         def variantName = variant.name.capitalize()
-        def newDexTaskName = "transformClassesWithDexFor$variantName"
-        def dexTask = project.hasProperty(newDexTaskName) ? project.tasks[newDexTaskName] : variant.dex
         File mergerDir = variant.mergeResources.incrementalFolder
 
         small.with {
             javac = variant.javaCompile
-            dex = dexTask
             processManifest = project.tasks["process${variantName}Manifest"]
 
             packageName = variant.applicationId
@@ -260,7 +274,66 @@ class AppPlugin extends BundlePlugin {
             mergerXml = new File(mergerDir, 'merger.xml')
         }
 
-        hookVariantTask()
+        hookVariantTask(variant)
+    }
+
+    @Override
+    protected void configureProguard(BaseVariant variant, TransformTask proguard, ProGuardTransform pt) {
+        super.configureProguard(variant, proguard, pt)
+
+        // Keep R.*
+        // FIXME: the `configuration' field is protected, may be depreciated
+        pt.configuration.keepAttributes = ['InnerClasses']
+        pt.keep("class ${variant.applicationId}.R")
+        pt.keep("class ${variant.applicationId}.R\$* { <fields>; }")
+
+        // Add reference libraries
+        proguard.doFirst {
+            getLibraryJars().each {
+                // FIXME: the `libraryJar' method is protected, may be depreciated
+                pt.libraryJar(it)
+            }
+        }
+        // Split R.class
+        proguard.doLast {
+            Log.success("[$project.name] Strip aar classes...")
+
+            if (small.splitRJavaFile == null) return
+
+            def minifyJar = IntermediateFolderUtils.getContentLocation(
+                    proguard.streamOutputFolder, 'main', pt.outputTypes, pt.scopes, Format.JAR)
+            if (!minifyJar.exists()) return
+
+            mMinifyJar = minifyJar // record for `LibraryPlugin'
+
+            // Unpack the minify jar to split the R.class
+            File unzipDir = new File(minifyJar.parentFile, 'main')
+            project.copy {
+                from project.zipTree(minifyJar)
+                into unzipDir
+            }
+
+            def javac = small.javac
+            File pkgDir = new File(unzipDir, small.packagePath)
+
+            // Delete the original generated R$xx.class
+            pkgDir.listFiles().each { f ->
+                if (f.name.startsWith('R$')) {
+                    f.delete()
+                }
+            }
+
+            // Re-compile the split R.java to R.class
+            project.ant.javac(srcdir: small.splitRJavaFile.parentFile,
+                    source: javac.sourceCompatibility,
+                    target: javac.targetCompatibility,
+                    destdir: pkgDir)
+
+            // Repack the minify jar
+            project.ant.zip(baseDir: unzipDir, destFile: minifyJar)
+
+            Log.success "[${project.name}] split R.class..."
+        }
     }
 
     /** Collect the vendor aars (has resources) compiling in current bundle */
@@ -677,16 +750,14 @@ class AppPlugin extends BundlePlugin {
         return JNIUtils.getABIFlag(abis)
     }
 
-    protected void hookVariantTask() {
+    protected void hookVariantTask(BaseVariant variant) {
         collectDependentAars()
 
         hookProcessManifest(small.processManifest)
 
         hookAapt(small.aapt)
 
-        hookJavac(small.javac)
-
-        hookDex(small.dex)
+        hookJavac(small.javac, variant.buildType.minifyEnabled)
 
         // Hook clean task to unset package id
         project.clean.doLast {
@@ -881,13 +952,13 @@ class AppPlugin extends BundlePlugin {
     /**
      * Hook javac task to split libraries' R.class
      */
-    private def hookJavac(Task javac) {
+    private def hookJavac(Task javac, boolean minifyEnabled) {
         javac.doFirst { JavaCompile it ->
             // Dynamically provided jars
-            def baseJars = project.fileTree(dir: rootSmall.preBaseJarDir, include: ['*.jar'])
-            it.classpath += baseJars
+            it.classpath += project.files(getLibraryJars())
         }
         javac.doLast { JavaCompile it ->
+            if (minifyEnabled) return // process later in proguard task
             if (!small.splitRJavaFile.exists()) return
 
             File classesDir = it.destinationDir
@@ -906,34 +977,6 @@ class AppPlugin extends BundlePlugin {
                     destdir: classesDir)
 
             Log.success "[${project.name}] split R.class..."
-        }
-    }
-
-    /**
-     * Hook dex task to split all aar classes.jar
-     */
-    def hookDex(Task dex) {
-        dex.doFirst {
-            small.bkAarDir.mkdir()
-            small.splitAars.each {
-                // TODO: Resolve the version conflict
-                String path = "${it.group}/${it.name}" // /${it.version}
-                File dir = new File(small.aarDir, path)
-                if (dir.exists()) {
-                    File todir = new File(small.bkAarDir, path)
-                    project.ant.move(file: dir, tofile: todir)
-                }
-            }
-            Log.success "[${project.name}] split aar classes..."
-        }
-    }
-
-    @Override
-    protected void tidyUp() {
-        super.tidyUp()
-        if (small.bkAarDir.exists()) {
-            project.ant.move(file: small.bkAarDir, tofile: small.aarDir)
-            small.bkAarDir.delete()
         }
     }
 
