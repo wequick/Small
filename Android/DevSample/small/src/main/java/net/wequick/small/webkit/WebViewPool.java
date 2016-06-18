@@ -16,10 +16,7 @@
 
 package net.wequick.small.webkit;
 
-import android.app.Activity;
-import android.content.Context;
 import android.util.Log;
-import android.view.ViewGroup;
 
 import net.wequick.small.Small;
 
@@ -48,51 +45,24 @@ public final class WebViewPool {
 
     private static ArrayList<WebViewSpec> mWebViewSpecs;
 
-    public static Context getContext(String url) {
-        if (mWebViewSpecs == null) {
-            return null;
-        }
+    private static WebViewSpec findSpecByUrl(String url) {
         for (WebViewSpec spec : mWebViewSpecs) {
-            if (spec.getUrl().equals(url)) {
-                return spec.getActivity();
-            }
+            String specUrl = spec.getUrl();
+            if (specUrl == null) continue;
+            if (specUrl.equals(url)) return spec;
         }
         return null;
-    }
-
-    public static Activity getContext(android.webkit.WebView wv) {
-        if (mWebViewSpecs == null) {
-            return null;
-        }
-        for (WebViewSpec spec : mWebViewSpecs) {
-            if (spec.webView.equals(wv)) {
-                return spec.getActivity();
-            }
-        }
-        return null;
-    }
-
-    public void bindActivity(Activity activity, String url) {
-        if (mWebViewSpecs == null) {
-            return;
-        }
-        for (WebViewSpec spec : mWebViewSpecs) {
-            if (spec.getUrl().equals(url)) {
-                spec.setActivity(activity);
-            }
-        }
     }
 
     public WebView get(String url) {
         if (mWebViewSpecs == null) {
             return alloc(url);
         }
-        for (WebViewSpec spec : mWebViewSpecs) {
-            if (spec.getUrl().equals(url)) {
-                return spec.getWebView();
-            }
-        }
-        return null;
+
+        WebViewSpec spec = findSpecByUrl(url);
+        if (spec == null) return null;
+
+        return spec.getWebView();
     }
 
     public WebView create(String url) {
@@ -144,7 +114,10 @@ public final class WebViewPool {
         WebViewSpec spec = null;
         for (int i=0; i<mWebViewSpecs.size(); i++) {
             WebViewSpec aSpec = mWebViewSpecs.get(i);
-            if (aSpec.getUrl().equals(url)) {
+            String specUrl = aSpec.getUrl();
+            if (specUrl == null) continue;
+
+            if (specUrl.equals(url)) {
                 index = i;
                 spec = aSpec;
                 break;
@@ -183,7 +156,6 @@ public final class WebViewPool {
 
     private final class WebViewSpec {
         private ArrayList<String> urls;
-        private ArrayList<Activity> activities;
         private WebView webView;
         public WebViewSpec(String url, WebView webView) {
             this.webView = webView;
@@ -200,25 +172,7 @@ public final class WebViewPool {
             int size = this.urls.size();
             int lastIndex = size - 1;
             this.urls.remove(lastIndex);
-            ViewGroup parent = (ViewGroup) this.webView.getParent();
-            parent.removeView(this.webView);
-            this.activities.remove(lastIndex);
-            Activity activity = this.activities.get(lastIndex - 1);
-            activity.setContentView(this.webView);
-
             this.webView.loadUrl(this.getUrl());
-        }
-
-        public Activity getActivity() {
-            if (activities == null)
-                return null;
-            return activities.get(activities.size() - 1);
-        }
-        public void setActivity(Activity activity) {
-            if (activities == null) {
-                activities = new ArrayList<Activity>(POOL_GROWTH);
-            }
-            activities.add(activity);
         }
 
         public String getUrl() {
@@ -234,19 +188,11 @@ public final class WebViewPool {
         }
 
         public WebView getWebView() {
-            Activity activity = this.getActivity();
-            if (activity != null) {
-                ViewGroup parent = (ViewGroup) this.webView.getParent();
-                if (parent != null) {
-                    parent.removeView(this.webView);
-                }
-            }
             return this.webView;
         }
 
         public void release() {
             this.urls = null;
-            this.activities = null;
             this.webView = null;
         }
     }

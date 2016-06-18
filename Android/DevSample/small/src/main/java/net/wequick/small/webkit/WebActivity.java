@@ -28,6 +28,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
@@ -104,8 +105,6 @@ public class WebActivity extends AppCompatActivity {
         wrapper.addView(webView, 0, layoutParams);
         setContentView(wrapper);
         wrapper.setGravity(Gravity.CENTER);
-
-        WebViewPool.getInstance().bindActivity(this, url);
 
         setTitle(webView.getTitle());
         mWebView = webView;
@@ -271,6 +270,11 @@ public class WebActivity extends AppCompatActivity {
     }
 
     public void finish(String ret) {
+        // Detach the web view
+        ViewGroup parent = (ViewGroup) mWebView.getParent();
+        parent.removeView(mWebView);
+
+        // Set result and finish
         Intent intent = new Intent();
         intent.putExtra(Small.EXTRAS_KEY_RET, ret);
         setResult(RESULT_OK, intent);

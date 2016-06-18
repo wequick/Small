@@ -63,7 +63,7 @@ public final class Small {
     private static final String SHARED_PREFERENCES_BUNDLE_MODIFIES = "small.app-modifies";
     private static final String SHARED_PREFERENCES_BUNDLE_UPGRADES = "small.app-upgrades";
 
-    private static Context sContext = null;
+    private static Application sContext = null;
     private static String sBaseUri = ""; // base url of uri
     private static boolean sIsNewHostApp; // first launched or upgraded
     private static int sWebActivityTheme;
@@ -74,7 +74,7 @@ public final class Small {
         void onComplete();
     }
 
-    public static Context getContext() {
+    public static Application getContext() {
         return sContext;
     }
 

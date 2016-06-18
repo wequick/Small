@@ -24,6 +24,7 @@ import android.net.Uri;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.view.View;
 import android.webkit.ConsoleMessage;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
@@ -209,6 +210,11 @@ public class WebView extends android.webkit.WebView {
         loadJs("Small._c['" + functionId + "']=null;");
     }
 
+    private WebActivity getActivity() {
+        View parent = (View) this.getParent();
+        return (WebActivity) parent.getContext();
+    }
+
     private void initSettings() {
         WebSettings webSettings = this.getSettings();
         webSettings.setJavaScriptEnabled(true);
@@ -221,7 +227,7 @@ public class WebView extends android.webkit.WebView {
                 // Call if html title is set
                 super.onReceivedTitle(view, title);
                 mTitle = title;
-                WebActivity activity = (WebActivity) WebViewPool.getContext(view);
+                WebActivity activity = ((WebView) view).getActivity();
                 if (activity != null) {
                     activity.setTitle(title);
                 }
@@ -232,7 +238,7 @@ public class WebView extends android.webkit.WebView {
             @Override
             public boolean onJsAlert(android.webkit.WebView view, String url, String message,
                                      final android.webkit.JsResult result) {
-                Context context = WebViewPool.getContext(view);
+                Context context = ((WebView) view).getActivity();
                 if (context == null) return false;
 
                 AlertDialog.Builder dlg = new AlertDialog.Builder(context);
@@ -261,7 +267,7 @@ public class WebView extends android.webkit.WebView {
             @Override
             public boolean onJsConfirm(android.webkit.WebView view, String url, String message,
                                        final android.webkit.JsResult result) {
-                Context context = WebViewPool.getContext(view);
+                Context context = ((WebView) view).getActivity();
                 AlertDialog.Builder dlg = new AlertDialog.Builder(context);
                 dlg.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
@@ -303,8 +309,10 @@ public class WebView extends android.webkit.WebView {
                     String host = uri.getHost();
                     String ret = uri.getQueryParameter(SMALL_QUERY_KEY_RET);
                     if (host.equals(SMALL_HOST_POP)) {
-                        WebActivity activity = (WebActivity) WebViewPool.getContext(WebView.this);
-                        activity.finish(ret);
+                        WebActivity activity = WebView.this.getActivity();
+                        if (activity != null) {
+                            activity.finish(ret);
+                        }
                     } else if (host.equals(SMALL_HOST_EXEC)) {
                         if (mOnResultListener != null) {
                             mOnResultListener.onResult(ret);
@@ -325,8 +333,10 @@ public class WebView extends android.webkit.WebView {
                     public void onResult(String ret) {
                         if (ret.equals("false")) return;
 
-                        WebActivity activity = (WebActivity) WebViewPool.getContext(WebView.this);
-                        activity.finish(ret);
+                        WebActivity activity = WebView.this.getActivity();
+                        if (activity != null) {
+                            activity.finish(ret);
+                        }
                     }
                 });
             }
@@ -357,7 +367,8 @@ public class WebView extends android.webkit.WebView {
                         int anchorY = Integer.parseInt(uri.getHost());
                         view.scrollTo(0, anchorY);
                     } else {
-                        Small.openUri(uri, WebViewPool.getContext(view));
+                        Context context = ((WebView) view).getActivity();
+                        Small.openUri(uri, context);
                     }
                     return true;
                 }
@@ -374,8 +385,9 @@ public class WebView extends android.webkit.WebView {
                     mInjected = false;
                 }
                 if (sWebViewClient != null && url.equals(mLoadingUrl)) {
-                    sWebViewClient.onPageStarted(WebViewPool.getContext(view),
-                            (WebView) view, url, favicon);
+                    WebView wv = (WebView) view;
+                    Context context = wv.getActivity();
+                    sWebViewClient.onPageStarted(context, wv, url, favicon);
                 }
             }
 
@@ -409,8 +421,9 @@ public class WebView extends android.webkit.WebView {
                 }
 
                 if (sWebViewClient != null && url.equals(mLoadingUrl)) {
-                    sWebViewClient.onPageFinished(WebViewPool.getContext(view),
-                            (WebView) view, url);
+                    WebView wv = (WebView) view;
+                    Context context = wv.getActivity();
+                    sWebViewClient.onPageFinished(context, wv, url);
                 }
             }
 
@@ -420,8 +433,9 @@ public class WebView extends android.webkit.WebView {
                 super.onReceivedError(view, errorCode, description, failingUrl);
                 Log.e("Web", "error: " + description);
                 if (sWebViewClient != null && failingUrl.equals(mLoadingUrl)) {
-                    sWebViewClient.onReceivedError(WebViewPool.getContext(view),
-                            (WebView) view, errorCode, description, failingUrl);
+                    WebView wv = (WebView) view;
+                    Context context = wv.getActivity();
+                    sWebViewClient.onReceivedError(context, wv, errorCode, description, failingUrl);
                 }
             }
         });
@@ -430,7 +444,7 @@ public class WebView extends android.webkit.WebView {
     private void initMetas() {
         if (mMetaContents != null) return;
 
-        final WebActivity activity = (WebActivity) WebViewPool.getContext(WebView.this);
+        final WebActivity activity = WebView.this.getActivity();
         // Get metas for action bar button
         execJavascript(SMALL_GET_METAS_JS, new OnResultListener() {
             @Override
@@ -528,7 +542,7 @@ public class WebView extends android.webkit.WebView {
                 }
             }
 
-            Context context = WebViewPool.getContext(WebView.this);
+            Context context = WebView.this.getActivity();
             if (internalInvoke(context, method, parameters, callbackFunctionId)) return;
 
             // User custom events

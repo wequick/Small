@@ -24,7 +24,6 @@ import android.os.Handler;
 import android.os.Message;
 
 import net.wequick.small.util.FileUtils;
-import net.wequick.small.webkit.WebViewPool;
 
 import org.json.JSONArray;
 import org.json.JSONException;

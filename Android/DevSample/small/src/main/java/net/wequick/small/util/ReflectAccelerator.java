@@ -31,6 +31,7 @@ import android.os.IBinder;
 import android.util.DisplayMetrics;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
@@ -68,6 +69,7 @@ public class ReflectAccelerator {
 
         public static boolean expandDexPathList(ClassLoader cl,
                                                 String[] dexPaths, DexFile[] dexFiles) {
+            ZipFile[] zips = null;
             try {
             /*
              * see https://android.googlesource.com/platform/libcore/+/android-2.3_r1/dalvik/src/main/java/dalvik/system/DexClassLoader.java
@@ -88,7 +90,7 @@ public class ReflectAccelerator {
                 int N = dexPaths.length;
                 Object[] files = new Object[N];
                 Object[] paths = new Object[N];
-                Object[] zips = new Object[N];
+                zips = new ZipFile[N];
                 for (int i = 0; i < N; i++) {
                     String path = dexPaths[i];
                     files[i] = new File(path);
@@ -101,6 +103,16 @@ public class ReflectAccelerator {
                 expandArray(cl, sDexClassLoader_mZips_field, zips, true);
                 expandArray(cl, sDexClassLoader_mDexs_field, dexFiles, true);
             } catch (Exception e) {
+                e.printStackTrace();
+                if (zips != null) {
+                    for (ZipFile zipFile : zips) {
+                        try {
+                            zipFile.close();
+                        } catch (IOException e1) {
+                            e1.printStackTrace();
+                        }
+                    }
+                }
                 return false;
             }
             return true;
@@ -175,8 +187,18 @@ public class ReflectAccelerator {
                 case 3:
                     if (types[1].equals(ZipFile.class)) {
                         // Element(File apk, ZipFile zip, DexFile dex)
-                        ZipFile zip = new ZipFile(pkg);
-                        return sDexElementConstructor.newInstance(pkg, zip, dexFile);
+                        ZipFile zip;
+                        try {
+                            zip = new ZipFile(pkg);
+                        } catch (IOException e) {
+                            throw e;
+                        }
+                        try {
+                            return sDexElementConstructor.newInstance(pkg, zip, dexFile);
+                        } catch (Exception e) {
+                            zip.close();
+                            throw e;
+                        }
                     } else {
                         // Element(File apk, File zip, DexFile dex)
                         return sDexElementConstructor.newInstance(pkg, pkg, dexFile);

@@ -36,60 +36,6 @@ import java.util.zip.ZipInputStream;
 public final class FileUtils {
     private static final String DOWNLOAD_PATH = "small_patch";
 
-    public interface OnProgressListener {
-        void onProgress(int length);
-    }
-
-    public static void unZipFolder(File zipFile, File outPath) throws Exception {
-        unZipFolder(zipFile, outPath, null);
-    }
-
-    public static void unZipFolder(File zipFile, File outPath, String filterDir) throws Exception {
-        unZipFolder(new FileInputStream(zipFile), outPath, filterDir, null);
-    }
-
-    public static void unZipFolder(InputStream inStream,
-                                   File outPath,
-                                   String filterDir,
-                                   OnProgressListener listener) throws Exception {
-        ZipInputStream inZip = new ZipInputStream(inStream);
-        ZipEntry zipEntry;
-        while ((zipEntry = inZip.getNextEntry()) != null) {
-            String szName = zipEntry.getName();
-            if (filterDir != null && !szName.startsWith(filterDir)) continue;
-
-            if (szName.startsWith("META-INF")) continue;
-
-            if (zipEntry.isDirectory()) {
-                // get the folder name of the widget
-                szName = szName.substring(0, szName.length() - 1);
-                File folder = new File(outPath, szName);
-                folder.mkdirs();
-            } else {
-                File file = new File(outPath, szName);
-                if (!file.createNewFile()) {
-                    System.err.println("Failed to create file: " + file);
-                    return;
-                }
-                // get the output stream of the file
-                FileOutputStream out = new FileOutputStream(file);
-                int len;
-                byte[] buffer = new byte[1024];
-                // read (len) bytes into buffer
-                while ((len = inZip.read(buffer)) != -1) {
-                    // write (len) byte from buffer at the position 0
-                    out.write(buffer, 0, len);
-                    out.flush();
-                    if (listener != null) {
-                        listener.onProgress(len);
-                    }
-                }
-                out.close();
-            }
-        }
-        inZip.close();
-    }
-
     public static File getInternalFilesPath(String dir) {
         File file = Small.getContext().getDir(dir, Context.MODE_PRIVATE);
         if (!file.exists()) {

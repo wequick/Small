@@ -22,6 +22,7 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
@@ -459,6 +460,7 @@ public class BundleParser {
         Bundle.postIO(new Runnable() {
             @Override
             public void run() {
+                RandomAccessFile out = null;
                 try {
                     File dir = extractFile.getParentFile();
                     if (!dir.exists()) {
@@ -470,15 +472,22 @@ public class BundleParser {
                         }
                     }
                     InputStream is = zipFile.getInputStream(je);
-                    RandomAccessFile out = new RandomAccessFile(extractFile, "rw");
+                    out = new RandomAccessFile(extractFile, "rw");
                     byte[] buffer = new byte[8192];
                     int len;
                     while ((len = is.read(buffer, 0, buffer.length)) != -1) {
                         out.write(buffer, 0, len);
                     }
-                    out.close();
                 } catch (IOException e) {
                     e.printStackTrace();
+                } finally {
+                    if (out != null) {
+                        try {
+                            out.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
             }
         });
