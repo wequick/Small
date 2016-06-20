@@ -327,7 +327,7 @@ class AppPlugin extends BundlePlugin {
             project.ant.javac(srcdir: small.splitRJavaFile.parentFile,
                     source: javac.sourceCompatibility,
                     target: javac.targetCompatibility,
-                    destdir: pkgDir)
+                    destdir: unzipDir)
 
             // Repack the minify jar
             project.ant.zip(baseDir: unzipDir, destFile: minifyJar)
