@@ -4,7 +4,7 @@ def externalModules = [
     ':app',
     ':app.main', ':app.home', ':app.detail', ':app.mine',
     ':web.about',
-    ':lib.utils', ':lib.style', ':lib.afterutils',
+    ':lib.utils', ':lib.style', ':lib.afterutils', ':lib.analytics',
     ':jni_plugin'
 ] as String[]
 

@@ -18,7 +18,46 @@ android {
     }
 }
 
+configurations {
+    aarProvided
+}
+
 dependencies {
     compile 'com.android.support:appcompat-v7:23.2.1'
-    compile 'com.android.support:support-v4:23.2.1'
+    provided 'com.android.support:support-v4:23.2.1'
+}
+
+afterEvaluate {
+    File aarDir = new File(project.buildDir, 'intermediates/exploded-aar')
+    Set<ResolvedDependency> aars = getAllDependencies(project.configurations.aarProvided)
+    project.tasks.withType(JavaCompile).each {
+        it.doFirst { JavaCompile javac ->
+            def jars = []
+            aars.each {
+                def dir = new File(aarDir, "${it.moduleGroup}/${it.moduleName}/${it.moduleVersion}")
+                jars += new File(dir, 'jars/classes.jar')
+            }
+            javac.classpath += project.files(jars)
+        }
+    }
+}
+
+public static Set<ResolvedDependency> getAllDependencies(Configuration configuration) {
+    ResolvedConfiguration resolvedConfiguration = configuration.resolvedConfiguration
+    def firstLevelDependencies = resolvedConfiguration.firstLevelModuleDependencies
+    Set<ResolvedDependency> allDependencies = new HashSet<>()
+    firstLevelDependencies.each {
+        collectDependencies(it, allDependencies)
+    }
+    return allDependencies
+}
+
+private static void collectDependencies(ResolvedDependency node, Set<ResolvedDependency> out) {
+    if (out.find { addedNode -> addedNode.name == node.name } == null) {
+        out.add(node)
+    }
+    // Recursively
+    node.children.each { newNode ->
+        collectDependencies(newNode, out)
+    }
 }
