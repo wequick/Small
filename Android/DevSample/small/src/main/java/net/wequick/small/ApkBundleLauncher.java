@@ -395,13 +395,12 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         Collection<LoadedApk> apks = sLoadedApks.values();
 
         // Merge all the resources in bundles and replace the host one
-        Application app = (Application) Small.getContext();
+        Application app = Small.getContext();
         Resources res = mergeResources(app.getBaseContext(), apks);
         ReflectAccelerator.setResources(app, res);
 
         // Merge all the dex into host's class loader
-        Context context = Small.getContext();
-        ClassLoader cl = context.getClassLoader();
+        ClassLoader cl = app.getClassLoader();
         int i = 0;
         int N = apks.size();
         String[] dexPaths = new String[N];
@@ -437,7 +436,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             try {
                 Class applicationClass = Class.forName(bundleApplicationName);
                 Application bundleApplication = Instrumentation.newApplication(
-                        applicationClass, context);
+                        applicationClass, app);
                 sHostInstrumentation.callApplicationOnCreate(bundleApplication);
             } catch (Exception e) {
                 e.printStackTrace();

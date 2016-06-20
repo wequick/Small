@@ -215,7 +215,7 @@ class AppPlugin extends BundlePlugin {
                             if (k > 0) {
                                 filtered = true
                                 def k_ = line.indexOf('"', k + 15) // bypass 'android:name='
-                                line = line.substring(0, k) + line.substring(k_)
+                                line = line.substring(0, k) + line.substring(k_ + 1)
                             }
                             break
                         }

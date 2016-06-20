@@ -24,6 +24,8 @@ import android.net.Uri;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
 import android.webkit.ConsoleMessage;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
@@ -112,10 +114,10 @@ public class WebView extends android.webkit.WebView {
     private static ConcurrentHashMap<String, JsHandler> sJsHandlers;
 
     private OnResultListener mOnResultListener = null;
-    private Boolean mConfirmed = false;
     private String mTitle = null;
     private String mLoadingUrl = null;
     private boolean mInjected = false;
+    private boolean mBlank;
     private ProgressDialog mProgressDialog = null;
     private HashMap<String, Boolean> mHasStartedUrl = new HashMap<String, Boolean>();
     private HashMap<String, HashMap<String, String>> mMetaContents = null;
@@ -209,228 +211,271 @@ public class WebView extends android.webkit.WebView {
         loadJs("Small._c['" + functionId + "']=null;");
     }
 
+    private WebActivity getActivity() {
+        View parent = (View) this.getParent();
+        return (WebActivity) parent.getContext();
+    }
+
+    protected void removeFromParent() {
+        ViewGroup parent = (ViewGroup) this.getParent();
+        if (parent != null) {
+            parent.removeView(this);
+        }
+    }
+
+    /** Show empty content */
+    protected void showBlank() {
+        mBlank = true;
+        setVisibility(View.INVISIBLE);
+        super.loadUrl("about:blank");
+    }
+
+    private static final class SmallWebChromeClient extends WebChromeClient {
+
+        private boolean mConfirmed;
+        private WebView mWebView;
+
+        SmallWebChromeClient(WebView wv) {
+            mWebView = wv;
+        }
+
+        @Override
+        public void onReceivedTitle(android.webkit.WebView view, String title) {
+            // Call if html title is set
+            super.onReceivedTitle(view, title);
+            mWebView.mTitle = title;
+            WebActivity activity = ((WebView) view).getActivity();
+            if (activity != null) {
+                activity.setTitle(title);
+            }
+            // May receive head meta at the same time
+            mWebView.initMetas();
+        }
+
+        @Override
+        public boolean onJsAlert(android.webkit.WebView view, String url, String message,
+                                 final android.webkit.JsResult result) {
+            Context context = ((WebView) view).getActivity();
+            if (context == null) return false;
+
+            AlertDialog.Builder dlg = new AlertDialog.Builder(context);
+            dlg.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    mConfirmed = true;
+                    result.confirm();
+                }
+            });
+            dlg.setMessage(message);
+            AlertDialog alert = dlg.create();
+            alert.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    if (!mConfirmed) {
+                        result.cancel();
+                    }
+                }
+            });
+            mConfirmed = false;
+            alert.show();
+            return true;
+        }
+
+        @Override
+        public boolean onJsConfirm(android.webkit.WebView view, String url, String message,
+                                   final android.webkit.JsResult result) {
+            Context context = ((WebView) view).getActivity();
+            AlertDialog.Builder dlg = new AlertDialog.Builder(context);
+            dlg.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    mConfirmed = true;
+                    result.confirm();
+                }
+            });
+            dlg.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    mConfirmed = true;
+                    result.cancel();
+                }
+            });
+            dlg.setMessage(message);
+            AlertDialog alert = dlg.create();
+            alert.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    if (!mConfirmed) {
+                        result.cancel();
+                    }
+                }
+            });
+            mConfirmed = false;
+            alert.show();
+            return true;
+        }
+
+        @Override
+        public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
+            String msg = consoleMessage.message();
+            if (msg == null)
+                return false;
+            Uri uri = Uri.parse(msg);
+            if (uri != null && null != uri.getScheme() && uri.getScheme().equals(SMALL_SCHEME))
+            {
+                String host = uri.getHost();
+                String ret = uri.getQueryParameter(SMALL_QUERY_KEY_RET);
+                if (host.equals(SMALL_HOST_POP)) {
+                    WebActivity activity = mWebView.getActivity();
+                    if (activity != null) {
+                        activity.finish(ret);
+                    }
+                } else if (host.equals(SMALL_HOST_EXEC)) {
+                    if (mWebView.mOnResultListener != null) {
+                        mWebView.mOnResultListener.onResult(ret);
+                    }
+                }
+                return true;
+            }
+            Log.d(consoleMessage.sourceId(),
+                    "line" + consoleMessage.lineNumber() + ": " + consoleMessage.message());
+            return true;
+        }
+
+        @Override
+        public void onCloseWindow(android.webkit.WebView window) {
+            super.onCloseWindow(window);
+            mWebView.close(new OnResultListener() {
+                @Override
+                public void onResult(String ret) {
+                    if (ret.equals("false")) return;
+
+                    WebActivity activity = mWebView.getActivity();
+                    if (activity != null) {
+                        activity.finish(ret);
+                    }
+                }
+            });
+        }
+    }
+
+    private static final class SmallWebViewClient extends android.webkit.WebViewClient {
+
+        private final String ANCHOR_SCHEME = "anchor";
+
+        @Override
+        public boolean shouldOverrideUrlLoading(android.webkit.WebView view, String url) {
+            WebView wv = (WebView) view;
+
+            if (wv.mLoadingUrl != null && wv.mLoadingUrl.equals(url)) {
+                // reload by window.location.reload or something
+                return super.shouldOverrideUrlLoading(view, url);
+            }
+
+            Boolean hasStarted = wv.mHasStartedUrl.get(url);
+            if (hasStarted != null && hasStarted) {
+                // location redirected before page finished
+                return super.shouldOverrideUrlLoading(view, url);
+            }
+
+            HitTestResult hit = view.getHitTestResult();
+            if (hit != null) {
+                Uri uri = Uri.parse(url);
+                if (uri.getScheme().equals(ANCHOR_SCHEME)) {
+                    // Scroll to anchor
+                    int anchorY = Integer.parseInt(uri.getHost());
+                    view.scrollTo(0, anchorY);
+                } else {
+                    Small.openUri(uri, wv.getActivity());
+                }
+                return true;
+            }
+            return super.shouldOverrideUrlLoading(view, url);
+        }
+
+        @Override
+        public void onPageStarted(android.webkit.WebView view, String url, Bitmap favicon) {
+            super.onPageStarted(view, url, favicon);
+
+            WebView wv = (WebView) view;
+            wv.mHasStartedUrl.put(url, true);
+
+            if (wv.mLoadingUrl != null && wv.mLoadingUrl.equals(url)) {
+                // reload by window.location.reload or something
+                wv.mInjected = false;
+            }
+            if (sWebViewClient != null && url.equals(wv.mLoadingUrl)) {
+                sWebViewClient.onPageStarted(wv.getActivity(), wv, url, favicon);
+            }
+        }
+
+        @Override
+        public void onPageFinished(android.webkit.WebView view, String url) {
+            super.onPageFinished(view, url);
+
+            WebView wv = (WebView) view;
+            wv.mHasStartedUrl.remove(url);
+            if (wv.mBlank) {
+                wv.setVisibility(View.VISIBLE);
+                wv.mBlank = false;
+            }
+
+            HitTestResult hit = view.getHitTestResult();
+            if (hit != null && hit.getType() == HitTestResult.SRC_ANCHOR_TYPE) {
+                // Triggered by user clicked
+                Uri uri = Uri.parse(url);
+                String anchor = uri.getFragment();
+                if (anchor != null) {
+                    // If is an anchor, calculate the content offset by DOM
+                    // and call native to adjust WebView's offset
+                    view.loadUrl(JS_PREFIX +
+                            "var y=document.body.scrollTop;" +
+                            "var e=document.getElementsByName('" + anchor + "')[0];" +
+                            "while(e){" +
+                            "y+=e.offsetTop-e.scrollTop+e.clientTop;e=e.offsetParent;}" +
+                            "location='" + ANCHOR_SCHEME + "://'+y;");
+                }
+            }
+
+            if (!wv.mInjected) {
+                // Re-inject Small Js
+                wv.loadJs(SMALL_INJECT_JS);
+                wv.initMetas();
+                wv.mInjected = true;
+            }
+
+            if (sWebViewClient != null && url.equals(wv.mLoadingUrl)) {
+                sWebViewClient.onPageFinished(wv.getActivity(), wv, url);
+            }
+        }
+
+        @Override
+        public void onReceivedError(android.webkit.WebView view, int errorCode,
+                                    String description, String failingUrl) {
+            super.onReceivedError(view, errorCode, description, failingUrl);
+            Log.e("Web", "error: " + description);
+            WebView wv = (WebView) view;
+            if (sWebViewClient != null && failingUrl.equals(wv.mLoadingUrl)) {
+                Context context = wv.getActivity();
+                sWebViewClient.onReceivedError(context, wv, errorCode, description, failingUrl);
+            }
+        }
+    }
+
     private void initSettings() {
         WebSettings webSettings = this.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webSettings.setUserAgentString(webSettings.getUserAgentString() + " Native");
         this.addJavascriptInterface(new SmallJsBridge(), "_Small");
 
-        this.setWebChromeClient(new WebChromeClient() {
-            @Override
-            public void onReceivedTitle(android.webkit.WebView view, String title) {
-                // Call if html title is set
-                super.onReceivedTitle(view, title);
-                mTitle = title;
-                WebActivity activity = (WebActivity) WebViewPool.getContext(view);
-                if (activity != null) {
-                    activity.setTitle(title);
-                }
-                // May receive head meta at the same time
-                initMetas();
-            }
-
-            @Override
-            public boolean onJsAlert(android.webkit.WebView view, String url, String message,
-                                     final android.webkit.JsResult result) {
-                Context context = WebViewPool.getContext(view);
-                if (context == null) return false;
-
-                AlertDialog.Builder dlg = new AlertDialog.Builder(context);
-                dlg.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        mConfirmed = true;
-                        result.confirm();
-                    }
-                });
-                dlg.setMessage(message);
-                AlertDialog alert = dlg.create();
-                alert.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                    @Override
-                    public void onDismiss(DialogInterface dialog) {
-                        if (!mConfirmed) {
-                            result.cancel();
-                        }
-                    }
-                });
-                mConfirmed = false;
-                alert.show();
-                return true;
-            }
-
-            @Override
-            public boolean onJsConfirm(android.webkit.WebView view, String url, String message,
-                                       final android.webkit.JsResult result) {
-                Context context = WebViewPool.getContext(view);
-                AlertDialog.Builder dlg = new AlertDialog.Builder(context);
-                dlg.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        mConfirmed = true;
-                        result.confirm();
-                    }
-                });
-                dlg.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        mConfirmed = true;
-                        result.cancel();
-                    }
-                });
-                dlg.setMessage(message);
-                AlertDialog alert = dlg.create();
-                alert.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                    @Override
-                    public void onDismiss(DialogInterface dialog) {
-                        if (!mConfirmed) {
-                            result.cancel();
-                        }
-                    }
-                });
-                mConfirmed = false;
-                alert.show();
-                return true;
-            }
-
-            @Override
-            public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
-                String msg = consoleMessage.message();
-                if (msg == null)
-                    return false;
-                Uri uri = Uri.parse(msg);
-                if (uri != null && null != uri.getScheme() && uri.getScheme().equals(SMALL_SCHEME))
-                {
-                    String host = uri.getHost();
-                    String ret = uri.getQueryParameter(SMALL_QUERY_KEY_RET);
-                    if (host.equals(SMALL_HOST_POP)) {
-                        WebActivity activity = (WebActivity) WebViewPool.getContext(WebView.this);
-                        activity.finish(ret);
-                    } else if (host.equals(SMALL_HOST_EXEC)) {
-                        if (mOnResultListener != null) {
-                            mOnResultListener.onResult(ret);
-                        }
-                    }
-                    return true;
-                }
-                Log.d(consoleMessage.sourceId(),
-                        "line" + consoleMessage.lineNumber() + ": " + consoleMessage.message());
-                return true;
-            }
-
-            @Override
-            public void onCloseWindow(android.webkit.WebView window) {
-                super.onCloseWindow(window);
-                close(new OnResultListener() {
-                    @Override
-                    public void onResult(String ret) {
-                        if (ret.equals("false")) return;
-
-                        WebActivity activity = (WebActivity) WebViewPool.getContext(WebView.this);
-                        activity.finish(ret);
-                    }
-                });
-            }
-        });
-
-        this.setWebViewClient(new android.webkit.WebViewClient() {
-
-            private final String ANCHOR_SCHEME = "anchor";
-
-            @Override
-            public boolean shouldOverrideUrlLoading(android.webkit.WebView view, String url) {
-                if (mLoadingUrl != null && mLoadingUrl.equals(url)) {
-                    // reload by window.location.reload or something
-                    return super.shouldOverrideUrlLoading(view, url);
-                }
-
-                Boolean hasStarted = mHasStartedUrl.get(url);
-                if (hasStarted != null && hasStarted) {
-                    // location redirected before page finished
-                    return super.shouldOverrideUrlLoading(view, url);
-                }
-
-                HitTestResult hit = view.getHitTestResult();
-                if (hit != null) {
-                    Uri uri = Uri.parse(url);
-                    if (uri.getScheme().equals(ANCHOR_SCHEME)) {
-                        // Scroll to anchor
-                        int anchorY = Integer.parseInt(uri.getHost());
-                        view.scrollTo(0, anchorY);
-                    } else {
-                        Small.openUri(uri, WebViewPool.getContext(view));
-                    }
-                    return true;
-                }
-                return super.shouldOverrideUrlLoading(view, url);
-            }
-
-            @Override
-            public void onPageStarted(android.webkit.WebView view, String url, Bitmap favicon) {
-                super.onPageStarted(view, url, favicon);
-                mHasStartedUrl.put(url, true);
-
-                if (mLoadingUrl != null && mLoadingUrl.equals(url)) {
-                    // reload by window.location.reload or something
-                    mInjected = false;
-                }
-                if (sWebViewClient != null && url.equals(mLoadingUrl)) {
-                    sWebViewClient.onPageStarted(WebViewPool.getContext(view),
-                            (WebView) view, url, favicon);
-                }
-            }
-
-            @Override
-            public void onPageFinished(android.webkit.WebView view, String url) {
-                super.onPageFinished(view, url);
-                mHasStartedUrl.remove(url);
-
-                HitTestResult hit = view.getHitTestResult();
-                if (hit != null && hit.getType() == HitTestResult.SRC_ANCHOR_TYPE) {
-                    // Triggered by user clicked
-                    Uri uri = Uri.parse(url);
-                    String anchor = uri.getFragment();
-                    if (anchor != null) {
-                        // If is an anchor, calculate the content offset by DOM
-                        // and call native to adjust WebView's offset
-                        view.loadUrl(JS_PREFIX +
-                                "var y=document.body.scrollTop;" +
-                                "var e=document.getElementsByName('" + anchor + "')[0];" +
-                                "while(e){" +
-                                "y+=e.offsetTop-e.scrollTop+e.clientTop;e=e.offsetParent;}" +
-                                "location='" + ANCHOR_SCHEME + "://'+y;");
-                    }
-                }
-
-                if (!mInjected) {
-                    // Re-inject Small Js
-                    loadJs(SMALL_INJECT_JS);
-                    initMetas();
-                    mInjected = true;
-                }
-
-                if (sWebViewClient != null && url.equals(mLoadingUrl)) {
-                    sWebViewClient.onPageFinished(WebViewPool.getContext(view),
-                            (WebView) view, url);
-                }
-            }
-
-            @Override
-            public void onReceivedError(android.webkit.WebView view, int errorCode,
-                                        String description, String failingUrl) {
-                super.onReceivedError(view, errorCode, description, failingUrl);
-                Log.e("Web", "error: " + description);
-                if (sWebViewClient != null && failingUrl.equals(mLoadingUrl)) {
-                    sWebViewClient.onReceivedError(WebViewPool.getContext(view),
-                            (WebView) view, errorCode, description, failingUrl);
-                }
-            }
-        });
+        this.setWebChromeClient(new SmallWebChromeClient(this));
+        this.setWebViewClient(new SmallWebViewClient());
     }
 
     private void initMetas() {
         if (mMetaContents != null) return;
 
-        final WebActivity activity = (WebActivity) WebViewPool.getContext(WebView.this);
+        final WebActivity activity = WebView.this.getActivity();
         // Get metas for action bar button
         execJavascript(SMALL_GET_METAS_JS, new OnResultListener() {
             @Override
@@ -528,7 +573,7 @@ public class WebView extends android.webkit.WebView {
                 }
             }
 
-            Context context = WebViewPool.getContext(WebView.this);
+            Context context = WebView.this.getActivity();
             if (internalInvoke(context, method, parameters, callbackFunctionId)) return;
 
             // User custom events

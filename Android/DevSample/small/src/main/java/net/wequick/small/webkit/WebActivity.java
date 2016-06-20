@@ -25,6 +25,7 @@ import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.SparseArray;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -40,21 +41,19 @@ import java.util.HashMap;
  *
  * <p>The content view of this class is a WebView with an url passed by the launcher.
  *
- * <p>For speeding up the loading of web content, we use {@link WebViewPool} to manager
- * all the web views.
- *
  * <p>For the ability of initialize native navigation bar by html content, we use the
  * {@link android.support.v7.app.AppCompatActivity} to provide a common style action bar.
  *
  * @see WebView
- * @see WebViewPool
  */
 public class WebActivity extends AppCompatActivity {
 
+    private static SparseArray<CharSequence> sUrlTitles;
+
     private WebView mWebView;
+    private String mUrl;
     private boolean mCanSetTitle = true;
     private boolean mFullscreen = false;
-    private boolean mFirstShow = true;
     private boolean mHasInitMenu = false;
     private Menu mOptionsMenu;
 
@@ -95,20 +94,31 @@ public class WebActivity extends AppCompatActivity {
         }
         mFullscreen = fullscreen;
 
-        // Init webView
-        String url = getIntent().getStringExtra("url");
-        WebView webView = WebViewPool.getInstance().create(url);
+        // Initialize content wrapper
         RelativeLayout wrapper = new RelativeLayout(this);
+        wrapper.setGravity(Gravity.CENTER);
+        setContentView(wrapper);
+
+        // Initialize webView
+        mWebView = new WebView(this);
         ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        wrapper.addView(webView, 0, layoutParams);
-        setContentView(wrapper);
-        wrapper.setGravity(Gravity.CENTER);
+        wrapper.addView(mWebView, 0, layoutParams);
 
-        WebViewPool.getInstance().bindActivity(this, url);
+        // Try to load title from cache
+        mUrl = getIntent().getStringExtra("url");
+        if (mCanSetTitle) {
+            CharSequence title = getCacheTitle(mUrl);
+            if (title != null) {
+                super.setTitle(title);
+            }
+        }
+    }
 
-        setTitle(webView.getTitle());
-        mWebView = webView;
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mWebView.loadUrl(mUrl);
     }
 
     @Override
@@ -116,7 +126,20 @@ public class WebActivity extends AppCompatActivity {
         if (!mCanSetTitle)
             return;
 
+        cacheTitle(mUrl, title);
         super.setTitle(title);
+    }
+
+    private void cacheTitle(String url, CharSequence title) {
+        if (sUrlTitles == null) {
+            sUrlTitles = new SparseArray<CharSequence>();
+        }
+        sUrlTitles.put(url.hashCode(), title);
+    }
+
+    private CharSequence getCacheTitle(String url) {
+        if (sUrlTitles == null) return null;
+        return sUrlTitles.get(url.hashCode());
     }
 
     // TODO: Simulate html window's onpageshow and onpagehide event
@@ -144,7 +167,9 @@ public class WebActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         mOptionsMenu = menu;
-        initMenu(mWebView.getMetaContents());
+        if (mWebView != null) {
+            initMenu(mWebView.getMetaContents());
+        }
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -231,12 +256,13 @@ public class WebActivity extends AppCompatActivity {
             menuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                 @Override
                 public boolean onMenuItemClick(MenuItem item) {
-                    mWebView.loadJs(onclick);
+                    if (mWebView != null) {
+                        mWebView.loadJs(onclick);
+                    }
                     return true;
                 }
             });
         }
-        return;
     }
 
     @Override
@@ -252,6 +278,11 @@ public class WebActivity extends AppCompatActivity {
 
     @Override
     public void finish() {
+        if (mWebView == null) {
+            super.finish();
+            return;
+        }
+
         mWebView.close(new WebView.OnResultListener() {
             @Override
             public void onResult(String ret) {
@@ -271,6 +302,7 @@ public class WebActivity extends AppCompatActivity {
     }
 
     public void finish(String ret) {
+        // Set result and finish
         Intent intent = new Intent();
         intent.putExtra(Small.EXTRAS_KEY_RET, ret);
         setResult(RESULT_OK, intent);

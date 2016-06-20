@@ -33,8 +33,7 @@
         <!-- Web Activity -->
         <activity android:name=".webkit.WebActivity"
             android:screenOrientation="portrait"
-            android:windowSoftInputMode="stateHidden|adjustPan"/>
-        <!--<service android:name="net.wequick.small.service.UpgradeService"-->
-            <!--android:exported="false"/>-->
+            android:windowSoftInputMode="stateHidden|adjustPan"
+            android:hardwareAccelerated="true"/>
     </application>
 </manifest>
