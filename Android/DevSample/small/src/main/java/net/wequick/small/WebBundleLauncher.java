@@ -19,7 +19,6 @@ package net.wequick.small;
 import android.app.Activity;
 
 import net.wequick.small.webkit.WebActivity;
-import net.wequick.small.webkit.WebViewPool;
 
 /**
  * This class launch the plugin html file with an internal {@link WebActivity}.
@@ -29,12 +28,8 @@ import net.wequick.small.webkit.WebViewPool;
  *
  * <p>The <tt>WebActivity</tt> takes the <tt>WebView</tt> as content view to show html content.
  *
- * <p>For speeding up the loading of html content, we use the <tt>WebViewPool</tt>
- * to manager the web views.
- *
  * @see WebActivity
  * @see net.wequick.small.webkit.WebView
- * @see WebViewPool
  */
 public class WebBundleLauncher extends AssetBundleLauncher {
 
