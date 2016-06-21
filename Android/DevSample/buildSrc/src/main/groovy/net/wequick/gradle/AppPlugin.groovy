@@ -836,7 +836,8 @@ class AppPlugin extends BundlePlugin {
                     if (i < 0) {
                         if (!enteredApplicationNode) break
 
-                        if (line.indexOf('>') > 0) needsFilter = false
+                        int endPos = line.indexOf('>')
+                        if (endPos > 0) needsFilter = false
 
                         // filter unused keys
                         def filtered = false
@@ -849,7 +850,11 @@ class AppPlugin extends BundlePlugin {
                         if (filtered) {
                             if (needsFilter) return
 
-                            line = '>'
+                            if (line.charAt(endPos - 1) == '/' as char) {
+                                line = '/>'
+                            } else {
+                                line = '>'
+                            }
                         }
                         break
                     }
