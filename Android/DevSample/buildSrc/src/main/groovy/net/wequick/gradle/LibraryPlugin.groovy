@@ -41,9 +41,16 @@ class LibraryPlugin extends AppPlugin {
                     // FIXME: we'd better figure out why the task failed and fix it
                     project.preBuild.doLast {
                         def syncJniTaskName = 'transformNative_libsWithSyncJniLibsForRelease'
-                        if (!project.hasProperty(syncJniTaskName)) return
-                        def syncJniTask = project.tasks[syncJniTaskName]
-                        syncJniTask.onlyIf { false }
+                        if (project.hasProperty(syncJniTaskName)) {
+                            def syncJniTask = project.tasks[syncJniTaskName]
+                            syncJniTask.onlyIf { false }
+                        }
+                        // FIXME: Temporary workaround
+                        def syncLibTaskName = 'transformClassesAndResourcesWithSyncLibJarsForRelease'
+                        if (project.hasProperty(syncLibTaskName)) {
+                            def syncLibTask = project.tasks[syncLibTaskName]
+                            syncLibTask.onlyIf { false }
+                        }
                     }
                 }
             }
