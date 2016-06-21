@@ -434,10 +434,20 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             if (bundleApplicationName == null) continue;
 
             try {
-                Class applicationClass = Class.forName(bundleApplicationName);
-                Application bundleApplication = Instrumentation.newApplication(
-                        applicationClass, app);
-                sHostInstrumentation.callApplicationOnCreate(bundleApplication);
+                final Class applicationClass = Class.forName(bundleApplicationName);
+                final Context appContext = app;
+                Bundle.postUI(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Application bundleApplication = Instrumentation.newApplication(
+                                    applicationClass, appContext);
+                            sHostInstrumentation.callApplicationOnCreate(bundleApplication);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
             } catch (Exception e) {
                 e.printStackTrace();
             }

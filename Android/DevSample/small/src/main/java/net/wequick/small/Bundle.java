@@ -693,6 +693,11 @@ public class Bundle {
         sIOActions.add(action);
     }
 
+    protected static void postUI(Runnable action) {
+        Message msg = Message.obtain(sHandler, action);
+        msg.sendToTarget();
+    }
+
     private static class LoadBundleHandler extends Handler {
         private Small.OnCompleteListener mListener;
 
