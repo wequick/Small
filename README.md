@@ -6,7 +6,7 @@
 [![License Apache2.0](https://img.shields.io/hexpm/l/plug.svg)][license]
 
 
-支持平台：[Android](Android) API 8(2.2)+  [iOS](iOS) 7.0+
+支持平台：[Android](Android) API 9(2.3)+  [iOS](iOS) 7.0+
 
 ![Small][icon]
 
@@ -35,7 +35,7 @@ Apache License 2.0
 
 [iOS](iOS) [iOS](iOS) [iOS](iOS)
 
-# 以下装逼请忽略
+# English Version
 
 A small framework to split an app into small parts.
 
