@@ -12,7 +12,7 @@ gradle-small-plugin是一个gradle插件，用来打包安卓组件包。
       }
       dependencies {
           classpath 'com.android.tools.build:gradle:1.5.0'
-          classpath 'net.wequick.tools.build:gradle-small:0.7.0'
+          classpath 'net.wequick.tools.build:gradle-small:0.9.0'
       }
   }
 

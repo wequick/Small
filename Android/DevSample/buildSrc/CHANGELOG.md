@@ -1,3 +1,23 @@
+## 0.9.0 (2016-06-29)
+
+Features:
+
+  - 支持插件混淆 (#85, #158)
+
+Performance:
+
+  - 动态添加classpath，避免javac task重复运行
+
+Bugfixes:
+
+  - 修正当`app.A`依赖`lib.B`且二者manifest都定义了`<application>`时，`processManifest`失败的问题
+  - 在manifest的`platformBuildVersionCode`里添加`无资源标记` (#62, #139)
+  - 修正`processDebugManifest`时`<application>`标签未闭合的问题 (@tcking)
+
+Other:
+
+  - 导入`Android Plugin`相关类，提高代码可读性
+
 ## 0.8.0 (2016-05-18)
 
 Bugfixes:
