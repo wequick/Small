@@ -16,6 +16,8 @@ dependencies {
     compile 'org.codehaus.groovy:groovy-all:2.4.4'
 }
 
+apply from: 'provided.gradle'
+
 //import org.gradle.api.tasks.javadoc.GroovyDoc
 
 //--------------------------------------------------------------------------------------------------
