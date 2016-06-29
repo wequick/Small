@@ -1,5 +1,6 @@
 package net.wequick.example.small;
 
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.support.v7.app.ActionBar;
 import android.os.Bundle;
@@ -46,9 +47,13 @@ public class LaunchActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        SharedPreferences sp = this.getSharedPreferences("profile", 0);
+        final SharedPreferences.Editor se = sp.edit();
+        se.putLong("setUpStart", System.nanoTime());
         Small.setUp(this, new net.wequick.small.Small.OnCompleteListener() {
             @Override
             public void onComplete() {
+                se.putLong("setUpFinish", System.nanoTime()).apply();
                 Small.openUri("main", LaunchActivity.this);
                 finish();
             }

@@ -1,5 +1,6 @@
 package net.wequick.example.small.app.main;
 
+import android.content.SharedPreferences;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
@@ -17,11 +18,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import android.widget.TableLayout;
 import android.widget.TextView;
 
+import net.wequick.example.lib.analytics.AnalyticsManager;
 import net.wequick.small.Small;
 import net.wequick.example.small.lib.utils.UIUtils;
+
+import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -46,6 +49,24 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        // 统计Small加载时间
+        SharedPreferences sp = this.getSharedPreferences("profile", 0);
+        long setUpStart = sp.getLong("setUpStart", 0);
+        long setUpFinish = sp.getLong("setUpFinish", 0);
+        long setUpTime = setUpFinish - setUpStart;
+
+        float t = setUpTime / 1000000.0f;
+        System.out.println("## Small setUp in " + t + " ms.");
+        String key = Small.getIsNewHostApp() ? "setUpFirst" : "setUpNext";
+        AnalyticsManager.traceTime(this, key, (int)t);
+
+        // 统计加载完成到启动首个Activity时间
+        t = (System.nanoTime() - setUpFinish) / 1000000.0f;
+        System.out.println("## Small start first activity in " + t + " ms.");
+        AnalyticsManager.traceTime(this, "startFirst", (int)t);
+
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 

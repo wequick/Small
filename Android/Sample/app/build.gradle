@@ -10,11 +10,11 @@ android {
         applicationId "net.wequick.example.small"
         versionCode 1
         versionName "1.0"
-        manifestPlaceholders = [UMENG_CHANNEL_VALUE: "official"]
+        manifestPlaceholders = [UMENG_CHANNEL_VALUE: "official", UMENG_APPKEY: "5746460b67e58e43860000e1"]
     }
     buildTypes {
-        debug {
-            minifyEnabled false
+        release {
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }

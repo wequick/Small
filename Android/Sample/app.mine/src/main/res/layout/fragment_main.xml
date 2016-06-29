@@ -22,8 +22,12 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/my_label" />
 
+    <TextView android:id="@+id/raw_label" android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/assets_label" />
+
     <TextView android:id="@+id/lib_label" android:layout_width="wrap_content"
-        android:layout_below="@id/assets_label"
+        android:layout_below="@id/raw_label"
         android:layout_height="wrap_content" />
 
     <TextView android:id="@+id/jni_label" android:layout_width="wrap_content"

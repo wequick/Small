@@ -2,6 +2,7 @@ package net.wequick.example.small.app.mine;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.support.annotation.Keep;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -22,6 +23,7 @@ import java.io.InputStreamReader;
 /**
  * Created by galen on 15/11/12.
  */
+@Keep
 public class MainFragment extends Fragment {
 
     private static final int REQUEST_CODE_COLOR = 1000;
@@ -54,8 +56,6 @@ public class MainFragment extends Fragment {
         });
 
         try {
-//            assert (getResources().getAssets().equals(getContext().getAssets()));
-
             InputStream is = getResources().getAssets().open("greet.txt");
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
             String greet = br.readLine();
@@ -63,9 +63,26 @@ public class MainFragment extends Fragment {
 
             TextView tvAssets = (TextView) rootView.findViewById(R.id.assets_label);
             tvAssets.setText("assets/greet.txt: " + greet);
+
+            is = getResources().openRawResource(R.raw.greet);
+            br = new BufferedReader(new InputStreamReader(is));
+            greet = br.readLine();
+            is.close();
+
+            TextView tvRaw = (TextView) rootView.findViewById(R.id.raw_label);
+            tvRaw.setText("res/raw/greet.txt: " + greet);
+
+            is = getResources().openRawResource(R.raw.mq_new_message);
+            System.out.println("### " + is.available());
+            is.close();
+
+
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        // TODO: Following will crash, try to fix it
+//        getResources().openRawResourceFd(R.raw.greet);
 
         TextView tvLib = (TextView) rootView.findViewById(R.id.lib_label);
         tvLib.setText(Greet.hello());

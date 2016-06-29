@@ -1,0 +1,8 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="net.wequick.example.lib.analytics">
+
+    <application android:name=".Application">
+
+    </application>
+
+</manifest>

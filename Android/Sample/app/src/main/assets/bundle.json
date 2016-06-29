@@ -10,6 +10,10 @@
       "pkg": "com.example.mysmall.lib.style"
     },
     {
+      "uri": "lib.analytics",
+      "pkg": "net.wequick.example.lib.analytics"
+    },
+    {
       "uri": "main",
       "pkg": "net.wequick.example.small.app.main"
     },
