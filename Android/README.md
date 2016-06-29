@@ -1,7 +1,8 @@
 # Small Android
 
 **Small**插件化方案适用于将一个APK拆分为多个公共库插件、业务模块插件的场景。
-基于这一场景的对比可以参考[COMPARISION.md](COMPARISION.md)。
+
+不同插件方案基于这一场景的对比可以参考[COMPARISION.md](COMPARISION.md)。
 
 ## Quick Started
 
@@ -9,54 +10,54 @@
 
 1. 导入模板
 
-```bash
-cd Android
-cp -r templates /Applications/Android\ Studio.app/Contents/plugins/android/lib/
-```
+    ```bash
+    cd Android
+    cp -r templates /Applications/Android\ Studio.app/Contents/plugins/android/lib/
+    ```
 
 2. 新建宿主工程
 
-File->New->New Project创建一个工程，在选择Activity时选择`@Small`模板：
-![Small template][small-template]
-
-由于IDE的一个bug，无法合并`build.gradle`脚本，
-需要在根目录下的`build.gradle`脚本里，打开注释的语句：
-
-```groovy
-buildscript  {
-    dependencies {
-        classpath 'net.wequick.tools.build:gradle-small:0.9.0'
+    File->New->New Project创建一个工程，在选择Activity时选择`@Small`模板：
+    ![Small template][small-template]
+    
+    由于IDE的一个bug，无法合并`build.gradle`脚本，
+    需要在根目录下的`build.gradle`脚本里，打开注释的语句：
+    
+    ```groovy
+    buildscript  {
+        dependencies {
+            classpath 'net.wequick.tools.build:gradle-small:0.9.0'
+        }
     }
-}
-
-apply plugin: 'net.wequick.small'
-
-small {
-    aarVersion = '1.0.0'
-}
-```
-
-并将其中的版本修改为最新版。
+    
+    apply plugin: 'net.wequick.small'
+    
+    small {
+        aarVersion = '1.0.0'
+    }
+    ```
+    
+    并将其中的版本修改为最新版。
 
 3. 新建插件模块
 
-File->New->Module来创建插件模块，需要满足：
-
-1. 模块名形如：`app.*`, `lib.*`或者`web.*`
-2. 包名包含：`.app.`, `.lib.`或者`.web.`
-
-  > 为什么要这样？因为Small会根据包名对插件进行归类，特殊的域名空间如：“.app.” 会让这变得容易。
-
-对`lib.*`模块选择**Android Library**，其他模块选择**Phone & Tablet Module**。
-
-创建一个插件模块，比如`app.main`：
-
-1. 修改**Application/Library name**为`App.main`
-2. 修改**Package name**为`com.example.mysmall.app.main`
-
-  ![New small module][anim-new-md]
-
-如要手动创建工程，请参考[GETTING-STARTED.md](GETTING-STARTED.md)
+    File->New->Module来创建插件模块，需要满足：
+    
+    1. 模块名形如：`app.*`, `lib.*`或者`web.*`
+    2. 包名包含：`.app.`, `.lib.`或者`.web.`
+    
+      > 为什么要这样？因为Small会根据包名对插件进行归类，特殊的域名空间如：“.app.” 会让这变得容易。
+    
+    对`lib.*`模块选择**Android Library**，其他模块选择**Phone & Tablet Module**。
+    
+    创建一个插件模块，比如`app.main`：
+    
+    1. 修改**Application/Library name**为`App.main`
+    2. 修改**Package name**为`com.example.mysmall.app.main`
+    
+      ![New small module][anim-new-md]
+    
+    如要手动创建工程，请参考[GETTING-STARTED.md](GETTING-STARTED.md)
 
 ### 编译插件
 
