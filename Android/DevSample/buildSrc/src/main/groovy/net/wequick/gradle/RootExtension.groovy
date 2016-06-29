@@ -54,8 +54,8 @@ public class RootExtension extends BaseExtension {
     /** Count of bundles */
     protected int bundleCount
 
-    /** Whether contains project small */
-    protected boolean hasSmallProject
+    /** Project of Small AAR module */
+    protected Project smallProject
 
     /** Directory to output bundles (*.so) */
     protected File outputBundleDir

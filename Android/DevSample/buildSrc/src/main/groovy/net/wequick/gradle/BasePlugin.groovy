@@ -79,8 +79,8 @@ public abstract class BasePlugin implements Plugin<Project> {
         // Automatic add `small' dependency
         if (smallCompileType != null) {
             project.afterEvaluate {
-                if (rootSmall.hasSmallProject) {
-                    project.dependencies.add(smallCompileType, project.project(':small'))
+                if (rootSmall.smallProject != null) {
+                    project.dependencies.add(smallCompileType, rootSmall.smallProject)
                 } else {
                     def version = rootSmall.aarVersion
                     project.dependencies.add(smallCompileType, "${SMALL_AAR_PREFIX}$version")

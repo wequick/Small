@@ -33,7 +33,7 @@ class RootPlugin extends BasePlugin {
         // Configure sub projects
         project.subprojects {
             if (it.name == 'small') {
-                rootExt.hasSmallProject = true
+                rootExt.smallProject = it
                 return
             }
 
