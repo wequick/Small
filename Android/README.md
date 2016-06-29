@@ -100,11 +100,12 @@
 
 #### TODO List
 
-  - [x] 下载插件
-  - [ ] 热更新（现在需要重启生效）
+  - [x] 下载插件与更新（进入后台再恢复前台后生效）
   - [x] [终极分离与去除警告](https://github.com/wequick/Small/issues/11)
   - [ ] [加速生成AndroidManifest.xml](https://github.com/wequick/Small/issues/12)
-  - [ ] [支持混淆](https://github.com/wequick/Small/issues/85)
+  - [x] [支持混淆](https://github.com/wequick/Small/issues/85)
+  - [ ] 插件依赖关系与按需加载
+  - [ ] 单元测试
 
 ## 文档
 [Wiki](https://github.com/wequick/small/wiki/Android)
