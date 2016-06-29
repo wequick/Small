@@ -57,7 +57,7 @@
     
       ![New small module][anim-new-md]
     
-    如要手动创建工程，请参考[GETTING-STARTED.md](GETTING-STARTED.md)
+如要手动创建工程，请参考[GETTING-STARTED.md](GETTING-STARTED.md)
 
 ### 编译插件
 
@@ -154,4 +154,5 @@ Apache License 2.0
 [gitter]: https://gitter.im/wequick/Small
 [ic-run]: http://code.wequick.net/assets/images/small-run.png
 
+[anim-new-md]: http://code.wequick.net/assets/anims/small-new-module.gif
 [small-template]: http://code.wequick.net/assets/images/small-template.png
