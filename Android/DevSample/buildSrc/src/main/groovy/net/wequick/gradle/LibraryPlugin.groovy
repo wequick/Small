@@ -114,8 +114,9 @@ class LibraryPlugin extends AppPlugin {
 
         small.jar = project.jarReleaseClasses
 
-        // Generate jar file to root pre-jar directory
         variant.assemble.doLast {
+            // Generate jar file to root pre-jar directory
+            // FIXME: Create a task for this
             def jarName = getJarName(project)
             def jarFile = new File(rootSmall.preLibsJarDir, jarName)
             if (mMinifyJar != null) {
@@ -123,6 +124,17 @@ class LibraryPlugin extends AppPlugin {
             } else {
                 project.ant.jar(baseDir: small.javac.destinationDir, destFile: jarFile)
             }
+
+            // Backup R.txt to public.txt
+            // FIXME: Create a task for this
+            def publicIdsPw = new PrintWriter(small.publicSymbolFile.newWriter(false))
+            small.symbolFile.eachLine { s ->
+                if (!s.contains("styleable")) {
+                    publicIdsPw.println(s)
+                }
+            }
+            publicIdsPw.flush()
+            publicIdsPw.close()
         }
     }
 

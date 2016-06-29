@@ -186,19 +186,6 @@ class RootPlugin extends BasePlugin {
         keysPw.flush()
         keysPw.close()
 
-        // Backup R.txt to public.txt
-        if (libName != 'app') {
-            AppExtension appExt = (AppExtension) ext
-            def publicIdsPw = new PrintWriter(appExt.publicSymbolFile.newWriter(false))
-            appExt.symbolFile.eachLine { s ->
-                if (!s.contains("styleable")) {
-                    publicIdsPw.println(s)
-                }
-            }
-            publicIdsPw.flush()
-            publicIdsPw.close()
-        }
-
         // Backup dependencies
         if (!small.preLinkAarDir.exists()) small.preLinkAarDir.mkdirs()
         if (!small.preLinkJarDir.exists()) small.preLinkJarDir.mkdirs()
