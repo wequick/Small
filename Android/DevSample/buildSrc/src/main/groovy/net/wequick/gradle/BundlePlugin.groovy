@@ -72,7 +72,7 @@ abstract class BundlePlugin extends AndroidPlugin {
             if (isBuildingRelease()) {
                 BuildType buildType = android.buildTypes.find { it.name == 'release' }
 
-                Project hostProject = project.rootProject.findProject('app')
+                Project hostProject = rootSmall.hostProject
                 com.android.build.gradle.BaseExtension hostAndroid = hostProject.android
                 def hostDebugBuildType = hostAndroid.buildTypes.find { it.name == 'debug' }
                 def hostReleaseBuildType = hostAndroid.buildTypes.find { it.name == 'release' }

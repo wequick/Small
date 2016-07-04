@@ -31,54 +31,57 @@ class RootPlugin extends BasePlugin {
         def rootExt = small
 
         // Configure sub projects
-        project.subprojects {
-            if (it.name == 'small') {
-                rootExt.smallProject = it
-                return
-            }
-
-            if (it.name == 'app') {
-                // Host
-                it.apply plugin: HostPlugin
-                rootExt.outputBundleDir = new File(it.projectDir, SMALL_LIBS)
-            } else {
-                def idx = it.name.indexOf('.')
-                if (idx < 0) return // Small bundle should has a name with format "$type.$name"
-
-                def type = it.name.substring(0, idx)
-                switch (type) {
-                    case 'app':
-                    case 'bundle': // Depreciated
-                        it.apply plugin: AppPlugin
-                        break;
-                    case 'lib':
-                        it.apply plugin: LibraryPlugin
-                        break;
-                    case 'web':
-                    default: // Default to Asset
-                        it.apply plugin: AssetPlugin
-                        break;
+        project.afterEvaluate {
+            project.subprojects {
+                if (it.name == 'small') {
+                    rootExt.smallProject = it
+                    return
                 }
-            }
 
-            // Hook on project build started and finished for log
-            // FIXME: any better way to hooks?
-            it.afterEvaluate {
-                it.preBuild.doFirst {
-                    logStartBuild(it.project)
-                }
-                it.assembleRelease.doLast {
-                    logFinishBuild(it.project)
-                }
-            }
+                if (it.name == rootExt.hostModuleName) {
+                    // Host
+                    it.apply plugin: HostPlugin
+                    rootExt.outputBundleDir = new File(it.projectDir, SMALL_LIBS)
+                    rootExt.hostProject = it
+                } else {
+                    def idx = it.name.indexOf('.')
+                    if (idx < 0) return // Small bundle should has a name with format "$type.$name"
 
-            if (it.hasProperty('buildLib')) {
-                it.small.buildIndex = ++rootExt.libCount
-                it.buildLib.doLast {
-                    buildLib(it.project)
+                    def type = it.name.substring(0, idx)
+                    switch (type) {
+                        case 'app':
+                        case 'bundle': // Depreciated
+                            it.apply plugin: AppPlugin
+                            break;
+                        case 'lib':
+                            it.apply plugin: LibraryPlugin
+                            break;
+                        case 'web':
+                        default: // Default to Asset
+                            it.apply plugin: AssetPlugin
+                            break;
+                    }
                 }
-            } else if (it.hasProperty('buildBundle')) {
-                it.small.buildIndex = ++rootExt.bundleCount
+
+                // Hook on project build started and finished for log
+                // FIXME: any better way to hooks?
+                it.afterEvaluate {
+                    it.preBuild.doFirst {
+                        logStartBuild(it.project)
+                    }
+                    it.assembleRelease.doLast {
+                        logFinishBuild(it.project)
+                    }
+                }
+
+                if (it.hasProperty('buildLib')) {
+                    it.small.buildIndex = ++rootExt.libCount
+                    it.buildLib.doLast {
+                        buildLib(it.project)
+                    }
+                } else if (it.hasProperty('buildBundle')) {
+                    it.small.buildIndex = ++rootExt.bundleCount
+                }
             }
         }
     }

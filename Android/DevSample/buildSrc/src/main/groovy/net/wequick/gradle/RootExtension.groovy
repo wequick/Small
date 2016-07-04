@@ -40,6 +40,12 @@ public class RootExtension extends BaseExtension {
      */
     String aarVersion
 
+    /**
+     * Host module name
+     * default to `app'
+     */
+    String hostModuleName
+
     /** The parsed revision of `aarVersion' */
     private VersionNumber aarRevision
 
@@ -56,6 +62,9 @@ public class RootExtension extends BaseExtension {
 
     /** Project of Small AAR module */
     protected Project smallProject
+
+    /** Project of host */
+    protected Project hostProject
 
     /** Directory to output bundles (*.so) */
     protected File outputBundleDir
@@ -80,6 +89,8 @@ public class RootExtension extends BaseExtension {
 
     RootExtension(Project project) {
         super(project)
+
+        hostModuleName = 'app'
 
         preBuildDir = new File(project.projectDir, FD_BUILD_SMALL)
         def interDir = new File(preBuildDir, FD_INTERMEDIATES)

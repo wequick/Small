@@ -787,7 +787,8 @@ class AppPlugin extends BundlePlugin {
             project.rootProject.subprojects {
                 if (it.name.startsWith('lib.')) {
                     smallLibAars.add(group: it.group, name: it.name, version: it.version)
-                } else if (it.name != 'app' && it.name != 'small' && it.name.indexOf('.') < 0) {
+                } else if (it.name != rootSmall.hostModuleName
+                        && it.name != 'small' && it.name.indexOf('.') < 0) {
                     userLibAars.add(group: it.group, name: it.name, version: it.version)
                 }
             }
