@@ -83,6 +83,11 @@ class RootPlugin extends BasePlugin {
                     it.small.buildIndex = ++rootExt.bundleCount
                 }
             }
+
+            if (rootExt.hostProject == null) {
+                throw new RuntimeException(
+                        "Cannot find host module with name: '${rootExt.hostModuleName}'!")
+            }
         }
     }
 
