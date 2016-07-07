@@ -85,6 +85,7 @@ public class Bundle {
     private static final int MSG_COMPLETE = 1;
     private static LoadBundleHandler sHandler;
     private static LoadBundleThread sThread;
+    private static boolean sLoading;
 
     private String mPackageName;
     private String uriString;
@@ -219,9 +220,9 @@ public class Bundle {
     protected static void loadLaunchableBundles(Small.OnCompleteListener listener) {
         Context context = Small.getContext();
 
-        if (listener == null) {
-            loadBundles(context);
-            return;
+        boolean synchronous = (listener == null);
+        if (synchronous) {
+            sLoading = true;
         }
 
         // Asynchronous
@@ -229,6 +230,22 @@ public class Bundle {
             sThread = new LoadBundleThread(context);
             sHandler = new LoadBundleHandler(listener);
             sThread.start();
+        }
+
+        if (synchronous) {
+            while (sLoading) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (sUIActions != null) {
+                for (Runnable action : sUIActions) {
+                    action.run();
+                }
+                sUIActions = null;
+            }
         }
     }
 
@@ -636,6 +653,7 @@ public class Bundle {
         public void run() {
             // Instantiate bundle
             loadBundles(mContext);
+            sLoading = false;
             sHandler.obtainMessage(MSG_COMPLETE).sendToTarget();
         }
     }
@@ -685,6 +703,7 @@ public class Bundle {
     }
 
     private static List<Runnable> sIOActions;
+    private static List<Runnable> sUIActions;
 
     protected static void postIO(Runnable action) {
         if (sIOActions == null) {
@@ -694,8 +713,16 @@ public class Bundle {
     }
 
     protected static void postUI(Runnable action) {
-        Message msg = Message.obtain(sHandler, action);
-        msg.sendToTarget();
+        if (sHandler.mListener == null) {
+            // The UI thread is block, records the actions for lazy run.
+            if (sUIActions == null) {
+                sUIActions = new ArrayList<Runnable>();
+            }
+            sUIActions.add(action);
+        } else {
+            Message msg = Message.obtain(sHandler, action);
+            msg.sendToTarget();
+        }
     }
 
     private static class LoadBundleHandler extends Handler {
@@ -704,6 +731,7 @@ public class Bundle {
         public LoadBundleHandler(Small.OnCompleteListener listener) {
             mListener = listener;
         }
+
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
