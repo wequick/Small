@@ -27,20 +27,21 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 
 /**
- * This class launch the host activity by it's class name.
- * <p>
- * <p>This class resolve the bundle who's <tt>pkg</tt> is unspecified
- * or specified as <i>"main"</i> in <tt>bundle.json</tt>.
- * <p>
- * <p>While launching, the class takes the bundle's <tt>uri</tt> as
- * the starting activity's class name.
- * <p>
- * <p>The conversions from <tt>uri</tt> to activity name are as following:
+ * This class launch the plugin activity by it's class name.
+ *
+ * <p>This class resolve the bundle who's <tt>pkg</tt> is specified as
+ * <i>"*.app.*"</i> or <i>*.lib.*</i> in <tt>bundle.json</tt>.
+ *
  * <ul>
- * <li>If <tt>uri</tt> is empty, take as <tt>MainActivity</tt>.</li>
- * <li>Otherwise, use <tt>uri</tt>. If the class not exists,
- * add <i>"Activity"</i> suffix and do a second try.</li>
+ * <li>The <i>app</i> plugin contains some activities usually, while launching,
+ * takes the bundle's <tt>uri</tt> as default activity. the other activities
+ * can be specified by the bundle's <tt>rules</tt>.</li>
+ *
+ * <li>The <i>lib</i> plugin which can be included by <i>app</i> plugin
+ * consists exclusively of global methods that operate on your product services.</li>
  * </ul>
+ *
+ * @see ActivityLauncher
  */
 public class ActivityLauncher extends BundleLauncher {
 
@@ -62,11 +63,11 @@ public class ActivityLauncher extends BundleLauncher {
         ActivityInfo[] as = pi.activities;
         if (as != null) {
             sActivityClasses = new HashSet<>();
-            for (int i = 0, j = as.length; i < j; i++) {
+            int N = as.length;
+            for (int i = 0; i < N; i++) {
                 ActivityInfo ai = as[i];
                 int dot = ai.name.lastIndexOf(".");
                 if (dot > 0) {
-                    // 这里考虑到宿主的activity可能较多，并且缓存所有class必要性不大，改为类名缓存
                     sActivityClasses.add(ai.name);
                 }
             }
@@ -80,14 +81,12 @@ public class ActivityLauncher extends BundleLauncher {
         }
 
         String activityName = bundle.getPath();
-        if (activityName != null && !activityName.isEmpty()) {
-            if (sActivityClasses.contains(activityName)) {
+        if (activityName == null || activityName.isEmpty()) return false;
+        if (!sActivityClasses.contains(activityName)) return false;
 
-                Intent intent = new Intent();
-                intent.setComponent(new ComponentName(Small.getContext(), activityName));
-                bundle.setIntent(intent);
-            }
-        }
+        Intent intent = new Intent();
+        intent.setComponent(new ComponentName(Small.getContext(), activityName));
+        bundle.setIntent(intent);
         return true;
     }
 
