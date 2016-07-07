@@ -365,7 +365,7 @@ class AppPlugin extends BundlePlugin {
         }
 
         def path = "$group/$name/$version"
-        def aar = [path: path, name: node.name]
+        def aar = [path: path, name: node.name, version: version]
         def resDir = new File(small.aarDir, "$path/res")
         // If the dependency has resources, collect it
         if (resDir.exists() && resDir.list().size() > 0) {
@@ -421,6 +421,13 @@ class AppPlugin extends BundlePlugin {
                 def aars = firstLevelVendorAars.collect{ it.name }.join('; ')
                 Log.warn("Using vendor aar(s): $aars")
             }
+        }
+
+        // Add user retained aars for generating their R.java, fix #194
+        if (small.retainedAars != null) {
+            transitiveVendorAars.addAll(small.retainedAars.collect {
+                [path: "$it.group/$it.name/$it.version", version: it.version]
+            })
         }
 
         // Prepare id maps (bundle resource id -> library resource id)
@@ -658,25 +665,27 @@ class AppPlugin extends BundlePlugin {
         }
         allStyleables.addAll(retainedStyleables)
 
-        // Collect vendor types and styleables if needed
+        // Collect vendor types and styleables
         def vendorEntries = [:]
         def vendorStyleableKeys = [:]
         transitiveVendorAars.each { aar ->
             String path = aar.path
-            File dir = new File(small.aarDir, path)
-            File vendorIdsFile = new File(dir, 'R.txt')
-            def entries = []
-            def styleables = []
+            String resPath = new File(small.aarDir, path + '/res').absolutePath
+            Set<Map> resTypeEntries = []
+            Set<String> resStyleableKeys = []
 
-            SymbolParser.collectResourceKeys(vendorIdsFile, entries, styleables)
+            // Collect the resource entries declared in the aar res directory
+            collectReservedResourceKeys(aar.version, resPath, resTypeEntries, resStyleableKeys)
 
-            vendorEntries.put(path, entries)
-            vendorStyleableKeys.put(path, styleables)
+            vendorEntries.put(path, resTypeEntries)
+            vendorStyleableKeys.put(path, resStyleableKeys)
         }
 
         def vendorTypes = [:]
         def vendorStyleables = [:]
         vendorEntries.each { name, es ->
+            if (es.isEmpty()) return
+
             allTypes.each { t ->
                 t.entries.each { e ->
                     def ve = es.find { it.type == t.name && it.name == e.name }
@@ -700,6 +709,8 @@ class AppPlugin extends BundlePlugin {
             }
         }
         vendorStyleableKeys.each { name, vs ->
+            if (vs.isEmpty()) return
+
             allStyleables.each { s ->
                 if (vs.contains(s.key)) {
                     if (vendorStyleables[name] == null) {
@@ -991,19 +1002,38 @@ class AppPlugin extends BundlePlugin {
      * resource `mipmap/ic_launcher' and `string/app_name' are excluded.
      */
     protected def getReservedResourceKeys() {
-        def merger = new XmlParser().parse(small.mergerXml)
-        def dataSets = merger.dataSet.findAll {
-            it.@config == 'main' || it.@config == 'release'
+        Set<Map> outTypeEntries = []
+        Set<String> outStyleableKeys = []
+        collectReservedResourceKeys(null, null, outTypeEntries, outStyleableKeys)
+        def keys = []
+        outTypeEntries.each {
+            keys.add("$it.type/$it.name")
         }
-        def resourceKeys = []
+        outStyleableKeys.each {
+            keys.add("styleable/$it")
+        }
+        return keys
+    }
+
+    protected void collectReservedResourceKeys(config, path, outTypeEntries, outStyleableKeys) {
+        def merger = new XmlParser().parse(small.mergerXml)
+        def filter = config == null ? {
+            it.@config == 'main' || it.@config == 'release'
+        } : {
+            it.@config = config
+        }
+        def dataSets = merger.dataSet.findAll filter
         dataSets.each { // <dataSet config="main" generated-set="main$Generated">
             it.source.each { // <source path="**/${project.name}/src/main/res">
+                if (path != null && it.@path != path) return
+
                 it.file.each {
                     def type = it.@type
                     if (type != null) { // <file name="activity_main" ... type="layout"/>
-                        def key = "$type/${it.@name}" // layout/activity_main
-                        if (key == 'mipmap/ic_launcher') return // DON'T NEED IN BUNDLE
-                        if (!resourceKeys.contains(key)) resourceKeys.add(key)
+                        def name = it.@name
+                        if (type == 'mipmap' && name == 'ic_launcher') return // NO NEED IN BUNDLE
+                        def key = [type: type, name: name] // layout/activity_main
+                        if (!outTypeEntries.contains(key)) outTypeEntries.add(key)
                         return
                     }
 
@@ -1016,31 +1046,30 @@ class AppPlugin extends BundlePlugin {
                             name = name.replaceAll("\\.", "_")
                         } else if (type == 'declare-styleable') {
                             // <declare-styleable name="MyTextView">
-                            type = 'styleable'
                             it.children().each { // <attr format="string" name="label"/>
                                 def attr = it.@name
-                                def key
                                 if (attr.startsWith('android:')) {
                                     attr = attr.replaceAll(':', '_')
                                 } else {
-                                    key = "attr/$attr"
-                                    if (!resourceKeys.contains(key)) resourceKeys.add(key)
+                                    def key = [type: 'attr', name: attr]
+                                    if (!outTypeEntries.contains(key)) outTypeEntries.add(key)
                                 }
-                                key = "styleable/${name}_${attr}"
-                                if (!resourceKeys.contains(key)) resourceKeys.add(key)
+                                String key = "${name}_${attr}"
+                                if (!outStyleableKeys.contains(key)) outStyleableKeys.add(key)
                             }
+                            if (!outStyleableKeys.contains(name)) outStyleableKeys.add(name)
+                            return
                         } else if (type.endsWith('-array')) {
                             // string-array or integer-array
                             type = 'array'
                         }
 
-                        def key = "$type/$name"
-                        if (!resourceKeys.contains(key)) resourceKeys.add(key)
+                        def key = [type: type, name: name]
+                        if (!outTypeEntries.contains(key)) outTypeEntries.add(key)
                     }
                 }
             }
         }
-        return resourceKeys
     }
 
     /**
