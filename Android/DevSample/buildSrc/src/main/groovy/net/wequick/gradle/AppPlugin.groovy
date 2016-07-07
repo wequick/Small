@@ -102,6 +102,10 @@ class AppPlugin extends BundlePlugin {
         return "$group-${project.version}.jar"
     }
 
+    protected static Set<File> getJarDependencies(Project project) {
+        return project.fileTree(dir: 'libs', include: '*.jar').asList()
+    }
+
     protected Set<File> getLibraryJars() {
         if (mLibraryJars != null) return mLibraryJars
 
@@ -113,15 +117,20 @@ class AppPlugin extends BundlePlugin {
 
         // Collect the jars of `compile project(lib.*)' with absolute file path, fix issue #65
         Set<String> libJarNames = []
+        Set<File> libDependentJars = []
         mDependentLibProjects.each {
             libJarNames += getJarName(it)
+            libDependentJars += getJarDependencies(it)
         }
+
         if (libJarNames.size() > 0) {
             def libJars = project.files(libJarNames.collect{
                 new File(rootSmall.preLibsJarDir, it).path
             })
             mLibraryJars.addAll(libJars.files)
         }
+
+        mLibraryJars.addAll(libDependentJars)
 
         return mLibraryJars
     }
