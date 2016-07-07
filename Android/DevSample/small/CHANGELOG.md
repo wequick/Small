@@ -9,6 +9,7 @@ Performance:
 Bugfixes:
 
   - 创建插件application操作移至UI线程 (#173)
+  - 修正不包含资源的插件被`addAssetPath`后在4.4以下出现的闪退问题 (#62, #139)
 
 ## 1.0.0-beta2 (2016-05-19)
 
