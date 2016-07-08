@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Kind</key>
+	<string>Xcode.Xcode3.ProjectTemplateUnitKind</string>
+	<key>Identifier</key>
+	<string>net.wequick.small.smallPodsApplication</string>
+    <key>Ancestors</key>
+    <array>
+        <string>com.apple.dt.unit.storyboardApplication</string>
+        <string>com.apple.dt.unit.coreDataCocoaTouchApplication</string>
+    </array>
+	<key>Concrete</key>
+	<true/>
+	<key>Description</key>
+	<string>This template provides a starting point for an application with Small. It provides a bundle.json file to declare Small bundles and a view controller to load them.</string>
+	<key>SortOrder</key>
+	<integer>1</integer>
+	<key>Options</key>
+	<array>
+        <dict>
+            <key>Identifier</key>
+            <string>languageChoice</string>
+            <key>Units</key>
+            <dict>
+                <key>Objective-C</key>
+                <dict>
+                    <key>Nodes</key>
+                    <array>
+                        <string>ViewController.h:comments</string>
+                        <string>ViewController.h:imports:importCocoa</string>
+                        <string>ViewController.h:interface(___FILEBASENAME___ : UIViewController)</string>
+                        <string>ViewController.m:comments</string>
+                        <string>ViewController.m:imports:importSmall</string>
+                        <string>ViewController.m:imports:importHeader:ViewController.h</string>
+                        <string>ViewController.m:extension</string>
+                        <string>ViewController.m:implementation:methods:viewDidLoad(- (void\)viewDidLoad)</string>
+                        <string>ViewController.m:implementation:methods:viewDidLoad:super</string>
+                        <string>ViewController.m:implementation:methods:viewDidLoad:smallSetUp</string>
+                        <string>ViewController.m:implementation:methods:didReceiveMemoryWarning(- (void\)didReceiveMemoryWarning)</string>
+                        <string>ViewController.m:implementation:methods:didReceiveMemoryWarning:super</string>
+                        <string>bundle.json</string>
+                        <string>../Podfile</string>
+                    </array>
+                </dict>
+                <key>Swift</key>
+                <dict>
+                    <key>Nodes</key>
+                    <array>
+                        <string>ViewController.swift:comments</string>
+                        <string>ViewController.swift:imports:importCocoa</string>
+                        <string>ViewController.swift:imports:Small</string>
+                        <string>ViewController.swift:implementation(___FILEBASENAME___: UIViewController)</string>
+                        <string>ViewController.swift:implementation:methods:viewDidLoad(override func viewDidLoad(\))</string>
+                        <string>ViewController.swift:implementation:methods:viewDidLoad:super</string>
+                        <string>ViewController.swift:implementation:methods:viewDidLoad:smallSetUp</string>
+                        <string>ViewController.swift:implementation:methods:didReceiveMemoryWarning(override func didReceiveMemoryWarning(\))</string>
+                        <string>ViewController.swift:implementation:methods:didReceiveMemoryWarning:super</string>
+                    </array>
+                </dict>
+            </dict>
+        </dict>
+	</array>
+    <key>Definitions</key>
+    <dict>
+        <key>../Podfile</key>
+        <dict>
+            <key>Path</key>
+            <string>Podfile</string>
+            <key>SortOrder</key>
+            <integer>99</integer>
+        </dict>
+        <key>bundle.json</key>
+        <dict>
+            <key>Path</key>
+            <string>bundle.json</string>
+            <key>SortOrder</key>
+            <integer>1</integer>
+        </dict>
+        <key>Base.lproj/Main.storyboard</key>
+        <dict>
+            <key>Path</key>
+            <string>Main.storyboard</string>
+            <key>SortOrder</key>
+            <integer>99</integer>
+        </dict>
+        <key>ViewController.m:implementation:methods:viewDidLoad:smallSetUp</key>
+        <string>// Optional - define a base URI for multi-platforms (HTML etc)
+[Small setBaseUri:@"http://code.wequick.net/"];
+
+// Set up all the bundles declare in bundle.json
+[Small setUpWithComplection:^{
+    [Small openUri:@"main" fromController:self];
+}];</string>
+        <key>ViewController.m:imports:importSmall</key>
+        <string>#import &lt;Small/Small.h&gt;</string>
+    </dict>
+</dict>
+</plist>

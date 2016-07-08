@@ -1,0 +1,9 @@
+{
+  "version": "1.0.0",
+  "bundles": [
+    {
+      "uri": "main",
+      "pkg": "___VARIABLE_bundleIdentifier___.app.main"
+    }
+  ]
+}
