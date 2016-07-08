@@ -67,7 +67,7 @@
 - (void)requestUpgradeInfo:(NSDictionary *)bundleVersion complection:(void (^)(NSDictionary *))complection {
     // Place your http request here.
     NSDictionary *upgradeInfo = @{@"id": @"net.wequick.example.small.app.home",
-                                  @"url": @"http://code.wequick.net/small/upgrade/net_wequick_example_small_app_home.framework.zip"};
+                                  @"url": @"http://code.wequick.net/small/upgrade/dist/net_wequick_example_small_app_home.framework.zip"};
     complection(upgradeInfo);
 }
 

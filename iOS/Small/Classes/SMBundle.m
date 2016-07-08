@@ -152,6 +152,36 @@ static NSInteger kDownloadBundleIndex;
     [kLaunchableBundles removeObject:self];
     [kLaunchableBundles addObject:bundle];
     
+//    UIViewController *v = [UIApplication sharedApplication].delegate.window.rootViewController;
+//    UITabBarController *tc = (id) v.presentedViewController;
+//    UINavigationController *nc = (id) tc.childViewControllers[0];
+//    UIViewController *v0 = nc.childViewControllers[0];
+//    
+//    Class cls = v0.class;
+//    NSString *name = NSStringFromClass(cls);
+//    
+//    // Hot swap
+//    [self unload];
+//    NSMutableArray *bundles = (NSMutableArray *)[NSBundle allFrameworks];
+//    [bundles removeObject:self];
+//    
+//    NSError *error;
+//    BOOL succeed = [bundle loadAndReturnError:&error];
+//    if (!succeed) {
+//        return NO;
+//    }
+//    
+//    Class cls2 = NSClassFromString(name); //cls;//[bundle classNamed:name];
+//    
+//    UIViewController *v0_ = [[cls2 alloc] initWithNibName:name bundle:bundle];
+//    v0_.tabBarItem = v0.tabBarItem;
+////    [nc popToRootViewControllerAnimated:NO];
+//    dispatch_async(dispatch_get_main_queue(), ^{
+//        nc.viewControllers = @[v0_];
+////        [nc popToRootViewControllerAnimated:NO];
+////        [nc pushViewController:v0_ animated:YES];
+//    });
+    
     return YES;
 }
 
@@ -439,57 +469,6 @@ static NSInteger kDownloadBundleIndex;
     NSString *basePath = [SMFileManager documentTempPath]; // NSTemporaryDirectory()
     NSString *zipPath = [[basePath stringByAppendingPathComponent:name] stringByAppendingString:@".zip"];
     return zipPath;
-}
-
-+ (void)downloadBundleForIndex:(NSInteger)index {
-//    if (index >= [kDownloadBundles count]) {
-//        [Small setBundleUpgradeUrls:nil];
-//        dispatch_async(dispatch_get_main_queue(), ^{
-//            [kBundleLoader bundlesDidFinishLoad];
-//        });
-//        return;
-//    }
-//    kDownloadBundleIndex = index;
-//    NSDictionary *bundle = [kDownloadBundles objectAtIndex:index];
-//    NSURL *url = bundle[@"url"];
-//    if (url != nil) {
-//        NSDictionary *bundleDesc = bundle[@"bundle"];
-//        NSString *bundleName = bundleDesc[@"name"];
-//        dispatch_async(dispatch_get_main_queue(), ^{
-//            [[SMBundleFetcher defaultFetcher] fetchBundleOfName:bundleName withURL:url received:^(long long receivedBytes, long long totalBytes) {
-//                // Progress report
-//                if ([kBundleLoader respondsToSelector:@selector(bundle:didLoadSize:ofTotalSize:)]) {
-//                    [kBundleLoader bundle:bundleDesc didLoadSize:receivedBytes ofTotalSize:totalBytes];
-//                }
-//            } completion:^(NSString *path, NSError *error) {
-//                if (error == nil) {
-//                    // Unzip bundle
-//                    NSString *unzipPath = [SMFileManager documentBundlesPath];
-//                    ZipArchive *zipArchive = [[ZipArchive alloc] init];
-//                    [zipArchive UnzipOpenFile:path];
-//                    [zipArchive UnzipFileTo:unzipPath overWrite:YES];
-//                    [zipArchive UnzipCloseFile];
-//                    [[NSFileManager defaultManager] removeItemAtPath:path error:nil];
-//                    // Create new bundle object
-//                    unzipPath = [unzipPath stringByAppendingPathComponent:bundleName];
-//                    SMBundle *bundle = [SMBundle bundleWithPath:unzipPath];
-//                    [bundle initValuesWithDictionary:bundleDesc];
-//                    [bundle prepareForLaunch];
-//                    if (kLaunchableBundles == nil) {
-//                        kLaunchableBundles = [[NSMutableArray alloc] init];
-//                    }
-//                    [kLaunchableBundles addObject:bundle];
-//                } else {
-//                    // Error report
-//                    NSDictionary *bundle = [kDownloadBundles objectAtIndex:kDownloadBundleIndex];
-//                    [kBundleLoader bundle:bundle[@"bundle"] didFailLoadWithError:error];
-//                }
-//                
-//                // Recursive
-//                [self downloadBundleForIndex:kDownloadBundleIndex+1];
-//            }];
-//        });
-//    }
 }
 
 - (void)setValue:(id)value forUndefinedKey:(NSString *)key {

@@ -235,7 +235,7 @@
 		F8F023F01C575D89002B0A00 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "iPhone Developer: Guang Liang Lin (VAYGJ97YZ5)";
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -245,7 +245,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "net.wequick.example.small.lib-utils";
 				PRODUCT_NAME = net_wequick_example_small_lib_utils;
-				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE = "06888fd6-813e-46d6-97a0-22df351d14ae";
 				SKIP_INSTALL = YES;
 			};
 			name = Debug;
@@ -253,7 +253,7 @@
 		F8F023F11C575D89002B0A00 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_IDENTITY = "iPhone Distribution: Guang Liang Lin (EAV3F88MTX)";
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -263,7 +263,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "net.wequick.example.small.lib-utils";
 				PRODUCT_NAME = net_wequick_example_small_lib_utils;
-				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE = "7971b314-17b5-4f2b-8729-2d5fc147d73c";
 				SKIP_INSTALL = YES;
 			};
 			name = Release;

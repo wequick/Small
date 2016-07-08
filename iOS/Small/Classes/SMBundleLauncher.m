@@ -35,6 +35,12 @@
 
 - (void)loadBundle:(SMBundle *)bundle
 {
+    
+}
+
+- (void)reloadBundle:(SMBundle *)bundle
+{
+    
 }
 
 - (void)launchBundle:(SMBundle *)bundle fromController:(UIViewController *)controller
