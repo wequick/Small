@@ -21,6 +21,7 @@ import com.android.build.gradle.internal.pipeline.IntermediateFolderUtils
 import com.android.build.gradle.internal.pipeline.TransformTask
 import com.android.build.gradle.internal.transforms.ProGuardTransform
 import com.android.build.gradle.tasks.MergeManifests
+import com.android.build.gradle.tasks.MergeSourceSetFolders
 import com.android.build.gradle.tasks.ProcessAndroidResources
 import groovy.io.FileType
 import net.wequick.gradle.aapt.Aapt
@@ -784,6 +785,8 @@ class AppPlugin extends BundlePlugin {
     protected void hookVariantTask(BaseVariant variant) {
         collectDependentAars()
 
+        hookMergeAssets(variant.mergeAssets)
+
         hookProcessManifest(small.processManifest)
 
         hookAapt(small.aapt)
@@ -793,6 +796,44 @@ class AppPlugin extends BundlePlugin {
         // Hook clean task to unset package id
         project.clean.doLast {
             sPackageIds.remove(project.name)
+        }
+    }
+
+    /**
+     * Hook merge-assets task to ignores the lib.* assets
+     * TODO: filter the assets while exploding aar
+     * @param mergeAssetsTask
+     */
+    private void hookMergeAssets(MergeSourceSetFolders mergeAssetsTask) {
+        mergeAssetsTask.doFirst { MergeSourceSetFolders it ->
+            def stripPaths = new HashSet<File>()
+            mergeAssetsTask.inputDirectorySets.each {
+                if (it.configName == 'main' || it.configName == 'release') return
+                it.sourceFiles.each {
+                    def version = it.parentFile
+                    def name = version.parentFile
+                    def group = name.parentFile
+                    def aar = [group: group.name, name: name.name, version: version.name]
+                    if (!mUserLibAars.contains(aar)) {
+                        stripPaths.add(it)
+                    }
+                }
+            }
+
+            def filteredAssets = []
+            stripPaths.each {
+                def backup = new File(it.parentFile, "$it.name~")
+                filteredAssets.add(org: it, backup: backup)
+                it.renameTo(backup)
+            }
+            it.extensions.add('filteredAssets', filteredAssets)
+        }
+
+        mergeAssetsTask.doLast {
+            Set<Map> filteredAssets = (Set<Map>) it.extensions.getByName('filteredAssets')
+            filteredAssets.each {
+                it.backup.renameTo(it.org)
+            }
         }
     }
 
