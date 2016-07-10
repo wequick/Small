@@ -29,7 +29,9 @@ import net.wequick.gradle.transform.StripAarTransform
 import net.wequick.gradle.util.JNIUtils
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.tasks.compile.JavaCompile
 
 class AppPlugin extends BundlePlugin {
@@ -39,6 +41,7 @@ class AppPlugin extends BundlePlugin {
     protected static def sPackageIds = [:] as LinkedHashMap<String, Integer>
 
     protected Set<Project> mDependentLibProjects
+    protected Set<Map> mUserLibAars
     protected Set<File> mLibraryJars
     protected File mMinifyJar
 
@@ -72,16 +75,24 @@ class AppPlugin extends BundlePlugin {
 
         project.afterEvaluate {
             // Get all dependencies with gradle script `compile project(':lib.*')'
-            def libs = project.configurations.compile.dependencies.findAll {
-                it.hasProperty('dependencyProject') &&
-                        it.dependencyProject.name.startsWith('lib.')
+            DependencySet compilesDependencies = project.configurations.compile.dependencies
+            Set<DefaultProjectDependency> allLibs = compilesDependencies.withType(DefaultProjectDependency.class)
+            Set<DefaultProjectDependency> smallLibs = []
+            mUserLibAars = []
+            mDependentLibProjects = []
+            allLibs.each {
+                if (it.dependencyProject.name.startsWith('lib.')) {
+                    smallLibs.add(it)
+                    mDependentLibProjects.add(it.dependencyProject)
+                } else {
+                    mUserLibAars.add(group: it.group, name: it.name, version: it.version)
+                }
             }
-            mDependentLibProjects = libs.collect { it.dependencyProject }
             if (isBuildingLibs()) {
                 // While building libs, `lib.*' modules are changing to be an application
                 // module and cannot be depended by any other modules. To avoid warnings,
                 // remove the `compile project(':lib.*')' dependencies temporary.
-                project.configurations.compile.dependencies.removeAll(libs)
+                compilesDependencies.removeAll(smallLibs)
             }
         }
 
@@ -785,36 +796,38 @@ class AppPlugin extends BundlePlugin {
         }
     }
 
+    private static void collectAars(File d, Project src, Set outAars) {
+        d.eachLine { line ->
+            def module = line.split(':')
+            def N = module.size()
+            def aar = [group: module[0], name: module[1], version: (N == 3) ? module[2] : '']
+            if (!outAars.contains(aar)) {
+                outAars.add(aar)
+            }
+        }
+    }
+
     /** Hook preBuild task to resolve dependent AARs */
     private def collectDependentAars() {
         project.preBuild.doFirst {
             def smallLibAars = new HashSet() // the aars compiled in host or lib.*
-            rootSmall.preLinkAarDir.listFiles().each { file ->
-                if (!file.name.endsWith('D.txt')) return
-                if (file.name.startsWith(project.name)) return
 
-                file.eachLine { line ->
-                    def module = line.split(':')
-                    if (module.size() == 3) {
-                        smallLibAars.add(group: module[0], name: module[1], version: module[2])
-                    } else {
-                        // If using local aar, the version may be unspecific
-                        smallLibAars.add(group: module[0], name: module[1], version: '')
-                    }
-                }
+            // Collect aar(s) in lib.*
+            mDependentLibProjects.each { lib ->
+                // lib.* dependencies
+                File file = new File(rootSmall.preLinkAarDir, "$lib.name-D.txt")
+                collectAars(file, lib, smallLibAars)
+
+                // lib.* self
+                smallLibAars.add(group: lib.group, name: lib.name, version: lib.version)
             }
-            def userLibAars = new HashSet() // user modules who's name are not in Small way - `*.*'
-            project.rootProject.subprojects {
-                if (it.name.startsWith('lib.')) {
-                    smallLibAars.add(group: it.group, name: it.name, version: it.version)
-                } else if (it.name != rootSmall.hostModuleName
-                        && it.name != 'small' && it.name.indexOf('.') < 0) {
-                    userLibAars.add(group: it.group, name: it.name, version: it.version)
-                }
-            }
+
+            // Collect aar(s) in host
+            File hostAarDependencies = new File(rootSmall.preLinkAarDir, "$rootSmall.hostModuleName-D.txt")
+            collectAars(hostAarDependencies, rootSmall.hostProject, smallLibAars)
 
             small.splitAars = smallLibAars
-            small.retainedAars = userLibAars
+            small.retainedAars = mUserLibAars
         }
     }
 
