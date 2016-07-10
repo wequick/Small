@@ -3,6 +3,7 @@ package net.wequick.gradle
 import com.android.build.gradle.api.BaseVariant
 import com.android.build.gradle.internal.pipeline.TransformTask
 import com.android.build.gradle.internal.transforms.ProGuardTransform
+import com.android.build.gradle.internal.tasks.PrepareLibraryTask
 import org.gradle.api.Project
 
 class AndroidPlugin extends BasePlugin {
@@ -76,9 +77,9 @@ class AndroidPlugin extends BasePlugin {
     protected void configureReleaseVariant(BaseVariant variant) {
         // Init default output file (*.apk)
         small.outputFile = variant.outputs[0].outputFile
-        small.explodeAarDirs = project.tasks.findAll {
-            it.hasProperty('explodedDir')
-        }.collect { it.explodedDir }
+        small.explodeAarDirs = project.tasks
+                .withType(PrepareLibraryTask.class)
+                .collect { it.explodedDir }
 
         // Hook variant tasks
         variant.assemble.doLast {
