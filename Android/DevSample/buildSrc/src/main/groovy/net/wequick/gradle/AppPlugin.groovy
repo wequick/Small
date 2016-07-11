@@ -160,24 +160,6 @@ class AppPlugin extends BundlePlugin {
                 compile.exclude group: module[0], module: module[1]
             }
         }
-
-        // Check if dependents by appcompat library which contains theme resource and
-        // cannot be pre-split
-        def appcompat = compile.dependencies.find {
-            it.group.equals('com.android.support') && it.name.startsWith('appcompat')
-        }
-        if (appcompat == null) {
-            // Pre-split classes and resources.
-            project.rootProject.small.preApDir.listFiles().each {
-                android.aaptOptions.additionalParameters '-I', it.path
-            }
-            // Ensure generating text symbols - R.txt
-            project.preBuild.doLast {
-                def symbolsPath = project.processReleaseResources.textSymbolOutputDir.path
-                android.aaptOptions.additionalParameters '--output-text-symbols',
-                        symbolsPath
-            }
-        }
     }
 
     @Override
