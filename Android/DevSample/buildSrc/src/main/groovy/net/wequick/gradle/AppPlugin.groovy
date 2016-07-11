@@ -837,7 +837,7 @@ class AppPlugin extends BundlePlugin {
         }
     }
 
-    private static void collectAars(File d, Project src, Set outAars) {
+    protected static void collectAars(File d, Project src, Set outAars) {
         d.eachLine { line ->
             def module = line.split(':')
             def N = module.size()
