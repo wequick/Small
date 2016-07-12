@@ -27,4 +27,6 @@ Pod::Spec.new do |s|
   s.library    = "z.1.2.5"
 
   s.vendored_framework = "Small.framework"
+
+  s.pod_target_xcconfig = { 'CONFIGURATION_BUILD_DIR' => '$PODS_CONFIGURATION_BUILD_DIR' }
 end
