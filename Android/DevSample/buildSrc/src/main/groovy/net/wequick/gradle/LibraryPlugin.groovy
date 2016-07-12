@@ -91,7 +91,7 @@ class LibraryPlugin extends AppPlugin {
         project.tasks.remove(project.cleanBundle)
         project.tasks.remove(project.buildBundle)
 
-        if (!isBuildingRelease()) return
+        if (mT != 'buildLib') return
 
         // Add library dependencies for `buildLib', fix issue #65
         project.afterEvaluate {
