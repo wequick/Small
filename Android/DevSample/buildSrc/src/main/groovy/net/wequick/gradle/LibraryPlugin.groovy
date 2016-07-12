@@ -29,11 +29,13 @@ class LibraryPlugin extends AppPlugin {
         if (!isBuildingRelease()) {
             project.afterEvaluate {
                 // Cause `isBuildingRelease()' return false, at this time, super's
-                // `resolveReleaseDependencies' will not be triggered.
-                // To avoid the `Small' class not found, provided the small jar here.
+                // `hookJavacTask' will not be triggered. Provided the necessary jars here.
                 def smallJar = project.fileTree(
                         dir: rootSmall.preBaseJarDir, include: [SMALL_JAR_PATTERN])
+                def libJars = project.fileTree(dir: rootSmall.preLibsJarDir,
+                        include: mDependentLibProjects.collect { "$it.name-${it.version}.jar" })
                 project.dependencies.add('provided', smallJar)
+                project.dependencies.add('provided', libJars)
 
                 if (isBuildingApps()) {
                     // Dependently built by `buildBundle' or `:app.xx:assembleRelease'.
