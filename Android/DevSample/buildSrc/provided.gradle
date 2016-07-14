@@ -16,3 +16,8 @@ dependencies {
         compile 'com.android.tools.build:gradle:2.0.0'
     }
 }
+
+tasks.withType(GroovyCompile) {
+    sourceCompatibility = '1.7'
+    targetCompatibility = '1.7'
+}
