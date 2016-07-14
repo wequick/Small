@@ -954,8 +954,13 @@ class AppPlugin extends BundlePlugin {
             File sourceOutputDir = it.sourceOutputDir
             File rJavaFile = new File(sourceOutputDir, "${small.packagePath}/R.java")
             def rev = android.buildToolsRevision
+            int noResourcesFlag = 0
             Aapt aapt = new Aapt(unzipApDir, rJavaFile, symbolFile, rev)
             if (small.retainedTypes != null) {
+                if (small.retainedTypes.size() == 0) {
+                    noResourcesFlag = 1
+                }
+
                 aapt.filterResources(small.retainedTypes)
                 Log.success "[${project.name}] split library res files..."
 
@@ -963,13 +968,6 @@ class AppPlugin extends BundlePlugin {
                         small.retainedStyleables)
 
                 Log.success "[${project.name}] slice asset package and reset package id..."
-
-                int noResourcesFlag = (small.retainedTypes.size() == 0) ? 1 : 0
-                int abiFlag = getABIFlag()
-                int flags = (abiFlag << 1) | noResourcesFlag
-                if (aapt.writeSmallFlags(flags)) {
-                    Log.success "[${project.name}] add flags: ${Integer.toBinaryString(flags)}..."
-                }
 
                 String pkg = small.packageName
                 // Overwrite the aapt-generated R.java with full edition
@@ -1002,11 +1000,24 @@ class AppPlugin extends BundlePlugin {
 
                 Log.success "[${project.name}] split library R.java files..."
             } else {
-                aapt.resetPackage(small.packageId, small.packageIdStr, small.idMaps)
-                Log.success "[${project.name}] reset resource package id..."
+                noResourcesFlag = 1
+
+                File arscFile = new File(unzipApDir, 'resources.arsc')
+                arscFile.delete()
+                Log.success "[${project.name}] remove resources.arsc..."
+
+                small.rJavaFile.delete()
+                Log.success "[${project.name}] remove R.java..."
+            }
+
+            int abiFlag = getABIFlag()
+            int flags = (abiFlag << 1) | noResourcesFlag
+            if (aapt.writeSmallFlags(flags)) {
+                Log.success "[${project.name}] add flags: ${Integer.toBinaryString(flags)}..."
             }
 
             // Repack resources.ap_
+            apFile.delete()
             project.ant.zip(baseDir: unzipApDir, destFile: apFile)
         }
     }
