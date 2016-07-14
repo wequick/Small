@@ -45,14 +45,6 @@ public class Aapt {
      */
     void filterPackage(List retainedTypes, int pp, Map idMaps, List retainedStyleables) {
         File arscFile = new File(mAssetDir, 'resources.arsc')
-        if (retainedTypes.size() == 0) {
-            // Remove everything
-            mJavaFile.write('')
-            if (mSymbolFile != null) mSymbolFile.write('')
-            arscFile.delete()
-            return
-        }
-
         def arscEditor = new ArscEditor(arscFile, mToolsRevision)
 
         // Filter R.txt
@@ -86,6 +78,14 @@ public class Aapt {
         arscEditor.reset(pp, idMaps)
 
         resetAllXmlPackageId(mAssetDir, pp, idMaps)
+    }
+
+    boolean deletePackage() {
+        File arscFile = new File(mAssetDir, 'resources.arsc')
+        if (arscFile.exists()) {
+            return arscFile.delete()
+        }
+        return false
     }
 
     /**
@@ -150,6 +150,14 @@ public class Aapt {
                 typeDir.deleteDir()
             }
         }
+    }
+
+    boolean deleteResourcesDir() {
+        def resDir = new File(mAssetDir, 'res')
+        if (resDir.exists()) {
+            return resDir.deleteDir()
+        }
+        return false
     }
 
     /** Reset package id for *.xml */

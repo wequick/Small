@@ -956,11 +956,7 @@ class AppPlugin extends BundlePlugin {
             def rev = android.buildToolsRevision
             int noResourcesFlag = 0
             Aapt aapt = new Aapt(unzipApDir, rJavaFile, symbolFile, rev)
-            if (small.retainedTypes != null) {
-                if (small.retainedTypes.size() == 0) {
-                    noResourcesFlag = 1
-                }
-
+            if (small.retainedTypes != null && small.retainedTypes.size() > 0) {
                 aapt.filterResources(small.retainedTypes)
                 Log.success "[${project.name}] split library res files..."
 
@@ -1001,13 +997,17 @@ class AppPlugin extends BundlePlugin {
                 Log.success "[${project.name}] split library R.java files..."
             } else {
                 noResourcesFlag = 1
+                if (aapt.deleteResourcesDir()) {
+                    Log.success "[${project.name}] remove resources dir..."
+                }
 
-                File arscFile = new File(unzipApDir, 'resources.arsc')
-                arscFile.delete()
-                Log.success "[${project.name}] remove resources.arsc..."
+                if (aapt.deletePackage()) {
+                    Log.success "[${project.name}] remove resources.arsc..."
+                }
 
-                small.rJavaFile.delete()
-                Log.success "[${project.name}] remove R.java..."
+                if (small.rJavaFile.delete()) {
+                    Log.success "[${project.name}] remove R.java..."
+                }
             }
 
             int abiFlag = getABIFlag()
