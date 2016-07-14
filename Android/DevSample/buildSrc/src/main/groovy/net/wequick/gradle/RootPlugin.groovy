@@ -171,28 +171,30 @@ class RootPlugin extends BasePlugin {
         def preIdsDir = small.preIdsDir
         if (!preIdsDir.exists()) preIdsDir.mkdir()
         def srcIdsFile = new File(aapt.textSymbolOutputDir, 'R.txt')
-        def idsFileName = "${libName}-R.txt"
-        def keysFileName = 'R.keys.txt'
-        def dstIdsFile = new File(preIdsDir, idsFileName)
-        def keysFile = new File(preIdsDir, keysFileName)
-        def addedKeys = []
-        if (keysFile.exists()) {
-            keysFile.eachLine { s ->
-                addedKeys.add(SymbolParser.getResourceDeclare(s))
+        if (srcIdsFile.exists()) {
+            def idsFileName = "${libName}-R.txt"
+            def keysFileName = 'R.keys.txt'
+            def dstIdsFile = new File(preIdsDir, idsFileName)
+            def keysFile = new File(preIdsDir, keysFileName)
+            def addedKeys = []
+            if (keysFile.exists()) {
+                keysFile.eachLine { s ->
+                    addedKeys.add(SymbolParser.getResourceDeclare(s))
+                }
             }
+            def idsPw = new PrintWriter(dstIdsFile.newWriter(true)) // true=append mode
+            def keysPw = new PrintWriter(keysFile.newWriter(true))
+            srcIdsFile.eachLine { s ->
+                def key = SymbolParser.getResourceDeclare(s)
+                if (addedKeys.contains(key)) return
+                idsPw.println(s)
+                keysPw.println(key)
+            }
+            idsPw.flush()
+            idsPw.close()
+            keysPw.flush()
+            keysPw.close()
         }
-        def idsPw = new PrintWriter(dstIdsFile.newWriter(true)) // true=append mode
-        def keysPw = new PrintWriter(keysFile.newWriter(true))
-        srcIdsFile.eachLine { s ->
-            def key = SymbolParser.getResourceDeclare(s)
-            if (addedKeys.contains(key)) return
-            idsPw.println(s)
-            keysPw.println(key)
-        }
-        idsPw.flush()
-        idsPw.close()
-        keysPw.flush()
-        keysPw.close()
 
         // Backup dependencies
         if (!small.preLinkAarDir.exists()) small.preLinkAarDir.mkdirs()

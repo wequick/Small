@@ -129,6 +129,8 @@ class LibraryPlugin extends AppPlugin {
 
             // Backup R.txt to public.txt
             // FIXME: Create a task for this
+            if (!small.symbolFile.exists())  return
+
             def publicIdsPw = new PrintWriter(small.publicSymbolFile.newWriter(false))
             small.symbolFile.eachLine { s ->
                 if (!s.contains("styleable")) {
