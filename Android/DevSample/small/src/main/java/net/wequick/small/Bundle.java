@@ -97,6 +97,7 @@ public class Bundle {
     private String query;
     private HashMap<String, String> rules;
     private int versionCode;
+    private String versionName;
 
     private BundleLauncher mApplicableLauncher = null;
 
@@ -588,6 +589,18 @@ public class Bundle {
     protected void setVersionCode(int versionCode) {
         this.versionCode = versionCode;
         Small.setBundleVersionCode(this.mPackageName, versionCode);
+    }
+
+    public int getVersionCode() {
+        return versionCode;
+    }
+
+    protected void setVersionName(String versionName) {
+        this.versionName = versionName;
+    }
+
+    public String getVersionName() {
+        return versionName;
     }
 
     protected boolean isLaunchable() {

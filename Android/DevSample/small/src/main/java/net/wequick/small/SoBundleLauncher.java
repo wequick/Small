@@ -106,6 +106,7 @@ public abstract class SoBundleLauncher extends BundleLauncher implements BundleE
         // Record version code for upgrade
         PackageInfo pluginInfo = parser.getPackageInfo();
         bundle.setVersionCode(pluginInfo.versionCode);
+        bundle.setVersionName(pluginInfo.versionName);
 
         return true;
     }
