@@ -396,12 +396,21 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
         // Merge all the resources in bundles and replace the host one
         Application app = Small.getContext();
-        Resources res = mergeResources(app.getBaseContext(), apks);
-        ReflectAccelerator.setResources(app, res);
+        String[] paths = new String[apks.size() + 1];
+        paths[0] = app.getPackageResourcePath(); // add host asset path
+        int i = 1;
+        for (LoadedApk apk : apks) {
+            if (apk.nonResources) continue; // ignores the empty entry to fix #62
+            paths[i++] = apk.path; // add plugin asset path
+        }
+        if (i != paths.length) {
+            paths = Arrays.copyOf(paths, i);
+        }
+        ReflectAccelerator.mergeResources(app, paths);
 
         // Merge all the dex into host's class loader
         ClassLoader cl = app.getClassLoader();
-        int i = 0;
+        i = 0;
         int N = apks.size();
         String[] dexPaths = new String[N];
         DexFile[] dexFiles = new DexFile[N];
@@ -624,32 +633,5 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         Window window = activity.getWindow();
         window.setSoftInputMode(ai.softInputMode);
         activity.setRequestedOrientation(ai.screenOrientation);
-    }
-
-    private static Resources mergeResources(Context context, Collection<LoadedApk> apks) {
-        AssetManager assets = ReflectAccelerator.newAssetManager();
-        String[] paths = new String[apks.size() + 1];
-        paths[0] = context.getPackageResourcePath(); // add host asset path
-        int i = 1;
-        for (LoadedApk apk : apks) {
-            if (apk.nonResources) continue; // ignores the empty entry to fix #62
-            paths[i++] = apk.path; // add plugin asset path
-        }
-        if (i != paths.length) {
-            paths = Arrays.copyOf(paths, i);
-        }
-        ReflectAccelerator.addAssetPaths(assets, paths);
-
-        Resources base = context.getResources();
-        DisplayMetrics metrics = base.getDisplayMetrics();
-        Configuration configuration = base.getConfiguration();
-        Class baseClass = base.getClass();
-        if (baseClass == Resources.class) {
-            return new Resources(assets, metrics, configuration);
-        } else {
-            // Some crazy manufacturers will modify the application resources class.
-            // As Nubia, it use `NubiaResources'. So we had to create a related instance. #135
-            return ReflectAccelerator.newResources(baseClass, assets, metrics, configuration);
-        }
     }
 }
