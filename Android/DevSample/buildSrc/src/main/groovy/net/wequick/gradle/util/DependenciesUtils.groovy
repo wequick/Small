@@ -32,10 +32,14 @@ public final class DependenciesUtils {
             return null
         }
 
+        return getAllDependencies(configuration)
+    }
+
+    public static Set<ResolvedDependency> getAllDependencies(Configuration configuration) {
         ResolvedConfiguration resolvedConfiguration = configuration.resolvedConfiguration
         def firstLevelDependencies = resolvedConfiguration.firstLevelModuleDependencies
         Set<ResolvedDependency> allDependencies = new HashSet<>()
-        firstLevelDependencies.findAll { it.parents[0].configuration == config }.each {
+        firstLevelDependencies.each {
             collectDependencies(it, allDependencies)
         }
         return allDependencies
