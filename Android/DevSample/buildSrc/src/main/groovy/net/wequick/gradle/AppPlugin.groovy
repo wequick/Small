@@ -1018,7 +1018,8 @@ class AppPlugin extends BundlePlugin {
 
             // Repack resources.ap_
             apFile.delete()
-            project.ant.zip(baseDir: unzipApDir, destFile: apFile)
+            //some files in raw must not be compressed,eg:m4a,mp3
+            project.ant.zip(baseDir: unzipApDir, destFile: apFile,compress:false)
         }
     }
 
