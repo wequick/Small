@@ -23,15 +23,18 @@ import com.android.build.gradle.internal.transforms.ProGuardTransform
 import com.android.build.gradle.tasks.MergeManifests
 import com.android.build.gradle.tasks.MergeSourceSetFolders
 import com.android.build.gradle.tasks.ProcessAndroidResources
+import com.android.sdklib.BuildToolInfo
 import groovy.io.FileType
 import net.wequick.gradle.aapt.Aapt
 import net.wequick.gradle.aapt.SymbolParser
 import net.wequick.gradle.transform.StripAarTransform
 import net.wequick.gradle.util.JNIUtils
+import net.wequick.gradle.util.ZipUtils
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.file.FileTree
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.tasks.compile.JavaCompile
 
@@ -941,10 +944,16 @@ class AppPlugin extends BundlePlugin {
         aaptTask.doLast { ProcessAndroidResources it ->
             // Unpack resources.ap_
             File apFile = it.packageOutputFile
+            FileTree apFiles = project.zipTree(apFile)
             File unzipApDir = new File(apFile.parentFile, 'ap_unzip')
+            unzipApDir.delete()
             project.copy {
-                from project.zipTree(apFile)
+                from apFiles
                 into unzipApDir
+
+                include 'AndroidManifest.xml'
+                include 'resources.arsc'
+                include 'res/**/*'
             }
 
             // Modify assets
@@ -955,13 +964,15 @@ class AppPlugin extends BundlePlugin {
             File rJavaFile = new File(sourceOutputDir, "${small.packagePath}/R.java")
             def rev = android.buildToolsRevision
             int noResourcesFlag = 0
+            def filteredResources = new HashSet()
+            def updatedResources = new HashSet()
             Aapt aapt = new Aapt(unzipApDir, rJavaFile, symbolFile, rev)
             if (small.retainedTypes != null && small.retainedTypes.size() > 0) {
-                aapt.filterResources(small.retainedTypes)
+                aapt.filterResources(small.retainedTypes, filteredResources)
                 Log.success "[${project.name}] split library res files..."
 
                 aapt.filterPackage(small.retainedTypes, small.packageId, small.idMaps,
-                        small.retainedStyleables)
+                        small.retainedStyleables, updatedResources)
 
                 Log.success "[${project.name}] slice asset package and reset package id..."
 
@@ -997,11 +1008,11 @@ class AppPlugin extends BundlePlugin {
                 Log.success "[${project.name}] split library R.java files..."
             } else {
                 noResourcesFlag = 1
-                if (aapt.deleteResourcesDir()) {
+                if (aapt.deleteResourcesDir(filteredResources)) {
                     Log.success "[${project.name}] remove resources dir..."
                 }
 
-                if (aapt.deletePackage()) {
+                if (aapt.deletePackage(filteredResources)) {
                     Log.success "[${project.name}] remove resources.arsc..."
                 }
 
@@ -1012,15 +1023,32 @@ class AppPlugin extends BundlePlugin {
 
             int abiFlag = getABIFlag()
             int flags = (abiFlag << 1) | noResourcesFlag
-            if (aapt.writeSmallFlags(flags)) {
+            if (aapt.writeSmallFlags(flags, updatedResources)) {
                 Log.success "[${project.name}] add flags: ${Integer.toBinaryString(flags)}..."
             }
 
-            // Repack resources.ap_
-            apFile.delete()
-            project.ant.zip(baseDir: unzipApDir, destFile: apFile)
+            String aaptExe = small.aapt.buildTools.getPath(BuildToolInfo.PathId.AAPT)
+
+            // Delete filtered entries.
+            // Cause there is no `aapt update' command supported, so for the updated resources
+            // we also delete first and run `aapt add' later.
+            filteredResources.addAll(updatedResources)
+            ZipUtils.with(apFile).deleteAll(filteredResources)
+
+            // Re-add updated entries.
+            // $ aapt add resources.ap_ file1 file2 ...
+            project.exec {
+                executable aaptExe
+                workingDir unzipApDir
+                args 'add', apFile.path
+                args updatedResources
+
+                // store the output instead of printing to the console
+                standardOutput = new ByteArrayOutputStream()
+            }
         }
     }
+
 
     /**
      * Hook javac task to split libraries' R.class

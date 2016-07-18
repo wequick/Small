@@ -16,6 +16,7 @@
 package net.wequick.gradle
 
 import com.android.build.gradle.api.BaseVariant
+import com.android.sdklib.BuildToolInfo
 import net.wequick.gradle.aapt.Aapt
 import org.gradle.api.Project
 import org.gradle.api.tasks.Copy
@@ -73,13 +74,7 @@ class AssetPlugin extends BundlePlugin {
             // Generate AndroidManifest.xml
             Aapt aapt = new Aapt(destDir, null, null, android.buildToolsRevision)
             def aaptTask = project.processReleaseResources
-            def aaptExe
-            aaptTask.buildTools.mPaths.each { k, v ->
-                if ((String) k == 'AAPT') { // k.class = `com.android.sdklib.BuildToolInfo$PathId'
-                    aaptExe = v
-                    return
-                }
-            }
+            def aaptExe = aaptTask.buildTools.getPath(BuildToolInfo.PathId.AAPT)
             def cf = android.defaultConfig
             def baseAsset = new File(android.getSdkDirectory(),
                     "platforms/android-${cf.targetSdkVersion.getApiLevel()}/android.jar")
