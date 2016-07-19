@@ -1019,6 +1019,8 @@ class AppPlugin extends BundlePlugin {
                 if (small.rJavaFile.delete()) {
                     Log.success "[${project.name}] remove R.java..."
                 }
+
+                small.symbolFile.delete() // also delete the generated R.txt
             }
 
             int abiFlag = getABIFlag()
