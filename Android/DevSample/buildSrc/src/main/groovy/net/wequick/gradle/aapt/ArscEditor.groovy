@@ -66,9 +66,9 @@ public class ArscEditor extends AssetEditor {
         def t = readTable()
 
         def retainedTypeSpecs = []
-        def retainedStringIds = [] as HashSet
-        def retainedTypeIds = [] as HashSet
-        def retainedKeyIds = [] as HashSet
+        def retainedStringIds = []
+        def retainedTypeIds = []
+        def retainedKeyIds = []
         def retainedEntries = []
 
         // Ensure there is an `attr' typeSpec
@@ -143,8 +143,13 @@ public class ArscEditor extends AssetEditor {
                         dataType = entry.value.dataType
                         if (dataType == ResValueDataType.TYPE_STRING) {
                             // String reference
-                            retainedStringIds.add(entry.value.data)
-                            entry.value.data = retainedStringIds.size() - 1
+                            def oldId = entry.value.data
+                            def newId = retainedStringIds.indexOf(oldId)
+                            if (newId < 0) {
+                                retainedStringIds.add(oldId)
+                                newId = retainedStringIds.size() - 1
+                            }
+                            entry.value.data = newId
                         } else if (dataType == ResValueDataType.TYPE_REFERENCE) {
                             def id = idMaps.get(entry.value.data)
                             if (id != null) {
@@ -175,8 +180,13 @@ public class ArscEditor extends AssetEditor {
                             dataType = it.value.dataType
                             if (dataType == ResValueDataType.TYPE_STRING) {
                                 // String reference
-                                retainedStringIds.add(it.value.data)
-                                it.value.data = retainedStringIds.size() - 1
+                                def oldId = it.value.data
+                                def newId = retainedStringIds.indexOf(oldId)
+                                if (newId < 0) {
+                                    retainedStringIds.add(oldId)
+                                    newId = retainedStringIds.size() - 1
+                                }
+                                it.value.data = newId
                             } else if (dataType == ResValueDataType.TYPE_REFERENCE) {
                                 id = idMaps.get(it.value.data)
                                 if (id != null) {
