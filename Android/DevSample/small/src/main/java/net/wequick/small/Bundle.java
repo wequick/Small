@@ -463,12 +463,14 @@ public class Bundle {
             sIs64bit = sUserBundlesPath.contains("64");
         }
 
-        String pkg = map.getString("pkg");
-        if (pkg != null && !pkg.equals(HOST_PACKAGE)) {
-            String soName = "lib" + pkg.replaceAll("\\.", "_") + ".so";
-            mBuiltinFile = new File(sUserBundlesPath, soName);
-            mPatchFile = new File(FileUtils.getDownloadBundlePath(), soName);
-            mPackageName = pkg;
+        if (map.has("pkg")) {
+            String pkg = map.getString("pkg");
+            if (pkg != null && !pkg.equals(HOST_PACKAGE)) {
+                String soName = "lib" + pkg.replaceAll("\\.", "_") + ".so";
+                mBuiltinFile = new File(sUserBundlesPath, soName);
+                mPatchFile = new File(FileUtils.getDownloadBundlePath(), soName);
+                mPackageName = pkg;
+            }
         }
 
         if (map.has("uri")) {
@@ -588,6 +590,22 @@ public class Bundle {
 
     protected void setPath(String path) {
         this.path = path;
+    }
+
+    protected String getActivityName() {
+        String activityName = path;
+        if (activityName == null || activityName.equals("")) {
+            activityName = entrance;
+        } else {
+            String pkg = mPackageName != null ? mPackageName : Small.getContext().getPackageName();
+            char c = activityName.charAt(0);
+            if (c == '.') {
+                activityName = pkg + activityName;
+            } else if (c >= 'A' && c <= 'Z') {
+                activityName = pkg + '.' + activityName;
+            }
+        }
+        return activityName;
     }
 
     protected void setVersionCode(int versionCode) {

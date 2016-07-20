@@ -549,16 +549,8 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         bundle.setIntent(intent);
 
         // Intent extras - class
-        String activityName = bundle.getPath();
-        if (activityName == null || activityName.equals("")) {
-            activityName = bundle.getEntrance();
-        } else {
-            char c = activityName.charAt(0);
-            if (c == '.') {
-                activityName = bundle.getPackageName() + activityName;
-            } else if (c >= 'A' && c <= 'Z') {
-                activityName = bundle.getPackageName() + '.' + activityName;
-            }
+        String activityName = bundle.getActivityName();
+        if (!ActivityLauncher.containsActivity(activityName)) {
             if (!sLoadedActivities.containsKey(activityName)) {
                 if (activityName.endsWith("Activity")) {
                     throw new ActivityNotFoundException("Unable to find explicit activity class " +
