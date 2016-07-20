@@ -53,6 +53,7 @@ public abstract class SoBundleLauncher extends BundleLauncher implements BundleE
         boolean supporting = false;
         String bundleType = bundle.getType();
         if (bundleType != null) {
+            // Consider user-defined type in `bundle.json'
             for (String type : types) {
                 if (type.equals(bundleType)) {
                     supporting = true;
@@ -60,8 +61,16 @@ public abstract class SoBundleLauncher extends BundleLauncher implements BundleE
                 }
             }
         } else {
+            // Consider explicit type specify in package name as following:
+            //  - com.example.[type].any
+            //  - com.example.[type]any
+            String[] pkgs = packageName.split("\\.");
+            int N = pkgs.length;
+            String aloneType = N > 1 ? pkgs[N - 2] : null;
+            String lastComponent = pkgs[N - 1];
             for (String type : types) {
-                if (packageName.contains("." + type + ".")) {
+                if ((aloneType != null && aloneType.equals(type))
+                        || lastComponent.startsWith(type)) {
                     supporting = true;
                     break;
                 }
