@@ -28,6 +28,7 @@ import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 
 import java.io.File;
@@ -422,6 +423,14 @@ public class ReflectAccelerator {
     public static Resources newResources(Class resourcesClass, AssetManager assets,
                                          DisplayMetrics metrics, Configuration configuration) {
         try {
+            //if the phone has installed xposed,here will crash.
+            //because the resourcesClass is XResources.class,it's constructor parameter was null and throw exception.
+            //see https://github.com/rovo89/XposedBridge/blob/art/app/src/main/java/android/content/res/XResources.java
+            //i found it's super class is android.content.res.MiuiResources and MiuiResources's super class is android.content.res.Resources.
+            //maybe this is what we want.
+            if (TextUtils.equals(resourcesClass.getName(),"android.content.res.XResources")){
+                resourcesClass = resourcesClass.getSuperclass().getSuperclass();
+            }
             Constructor c = resourcesClass.getConstructor(
                     AssetManager.class, DisplayMetrics.class, Configuration.class);
             return (Resources) c.newInstance(assets, metrics, configuration);
