@@ -526,7 +526,6 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         }
 
         // Record activities for intent redirection
-        bundle.setEntrance(pluginInfo.activities[0].name);
         if (sLoadedActivities == null) sLoadedActivities = new ConcurrentHashMap<String, ActivityInfo>();
         for (ActivityInfo ai : pluginInfo.activities) {
             sLoadedActivities.put(ai.name, ai);
@@ -540,6 +539,9 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             }
             sLoadedIntentFilters.putAll(filters);
         }
+
+        // Set entrance activity
+        bundle.setEntrance(parser.getDefaultActivityName());
     }
 
     @Override

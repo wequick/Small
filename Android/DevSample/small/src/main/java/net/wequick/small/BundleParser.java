@@ -1,6 +1,7 @@
 package net.wequick.small;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
@@ -22,7 +23,6 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
@@ -108,6 +108,7 @@ public class BundleParser {
     private ConcurrentHashMap<String, List<IntentFilter>> mIntentFilters;
     private boolean mNonResources;
     private String mLibDir;
+    private String mLauncherActivityName;
 
     private Context mContext;
     private ZipFile mZipFile;
@@ -315,6 +316,9 @@ public class BundleParser {
                                     + parser.getPositionDescription());
                         } else {
                             intents.add(intent);
+                            if (intent.hasCategory(Intent.CATEGORY_LAUNCHER)) {
+                                mLauncherActivityName = ai.name;
+                            }
                         }
                     }
                 }
@@ -655,6 +659,12 @@ public class BundleParser {
 
     public String getLibraryDirectory() {
         return mLibDir;
+    }
+
+    public String getDefaultActivityName() {
+        if (mPackageInfo == null || mPackageInfo.activities == null) return null;
+        if (mLauncherActivityName != null) return mLauncherActivityName;
+        return mPackageInfo.activities[0].name;
     }
 
     /**
