@@ -163,6 +163,12 @@ class AppPlugin extends BundlePlugin {
                 compile.exclude group: module[0], module: module[1]
             }
         }
+
+        // Ensure generating text symbols - R.tx
+        project.preBuild.doLast {
+            def symbolsPath = small.aapt.textSymbolOutputDir.path
+            android.aaptOptions.additionalParameters '--output-text-symbols', symbolsPath
+        }
     }
 
     @Override
