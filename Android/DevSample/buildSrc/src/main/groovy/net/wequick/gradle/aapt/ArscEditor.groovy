@@ -66,9 +66,9 @@ public class ArscEditor extends AssetEditor {
         def t = readTable()
 
         def retainedTypeSpecs = []
-        def retainedStringIds = []
-        def retainedTypeIds = []
-        def retainedKeyIds = []
+        def retainedStringIds = [] as HashSet
+        def retainedTypeIds = [] as HashSet
+        def retainedKeyIds = [] as HashSet
         def retainedEntries = []
 
         // Ensure there is an `attr' typeSpec
