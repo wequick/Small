@@ -92,7 +92,7 @@ public class Bundle {
     private Uri uri;
     private URL url; // for WebBundleLauncher
     private Intent mIntent;
-    private String type; // for ApkBundleLauncher
+    private String type;
     private String path;
     private String query;
     private HashMap<String, String> rules;
@@ -478,6 +478,10 @@ public class Bundle {
             }
             this.uriString = uri;
             this.uri = Uri.parse(uriString);
+        }
+
+        if (map.has("type")) {
+            this.type = map.getString("type");
         }
 
         this.rules = new HashMap<String, String>();

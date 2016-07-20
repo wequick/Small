@@ -51,10 +51,20 @@ public abstract class SoBundleLauncher extends BundleLauncher implements BundleE
         if (types == null) return false;
 
         boolean supporting = false;
-        for (String type : types) {
-            if (packageName.contains("." + type + ".")) {
-                supporting = true;
-                break;
+        String bundleType = bundle.getType();
+        if (bundleType != null) {
+            for (String type : types) {
+                if (type.equals(bundleType)) {
+                    supporting = true;
+                    break;
+                }
+            }
+        } else {
+            for (String type : types) {
+                if (packageName.contains("." + type + ".")) {
+                    supporting = true;
+                    break;
+                }
             }
         }
         if (!supporting) return false;
