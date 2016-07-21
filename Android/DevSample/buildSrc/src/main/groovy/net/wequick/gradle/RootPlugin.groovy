@@ -10,6 +10,7 @@ import java.text.DecimalFormat
 class RootPlugin extends BasePlugin {
 
     private int buildingLibIndex = 0
+    private Map<String, Set<String>> bundleModules = [:]
 
     void apply(Project project) {
         super.apply(project)
@@ -30,8 +31,16 @@ class RootPlugin extends BasePlugin {
 
         def rootExt = small
 
-        // Configure sub projects
         project.afterEvaluate {
+
+            def userBundleTypes = [:]
+            rootExt.bundleModules.each { type, names ->
+                names.each {
+                    userBundleTypes.put(it, type)
+                }
+            }
+
+            // Configure sub projects
             project.subprojects {
                 if (it.name == 'small') {
                     rootExt.smallProject = it
@@ -44,13 +53,15 @@ class RootPlugin extends BasePlugin {
                     rootExt.outputBundleDir = new File(it.projectDir, SMALL_LIBS)
                     rootExt.hostProject = it
                 } else {
-                    def idx = it.name.indexOf('.')
-                    if (idx < 0) return // Small bundle should has a name with format "$type.$name"
+                    String type = userBundleTypes.get(it.name)
+                    if (type == null) {
+                        def idx = it.name.indexOf('.')
+                        if (idx < 0) return
+                        type = it.name.substring(0, idx)
+                    }
 
-                    def type = it.name.substring(0, idx)
                     switch (type) {
                         case 'app':
-                        case 'bundle': // Depreciated
                             it.apply plugin: AppPlugin
                             break;
                         case 'lib':
@@ -61,6 +72,14 @@ class RootPlugin extends BasePlugin {
                             it.apply plugin: AssetPlugin
                             break;
                     }
+
+                    // Collect for log
+                    def modules = bundleModules.get(type)
+                    if (modules == null) {
+                        modules = new HashSet<String>()
+                        bundleModules.put(type, modules)
+                    }
+                    modules.add(it.name)
                 }
 
                 // Hook on project build started and finished for log
@@ -102,6 +121,53 @@ class RootPlugin extends BasePlugin {
         }
         project.task('cleanBundle', group: 'small', description: 'Clean all bundles')
         project.task('buildBundle', group: 'small', description: 'Build all bundles')
+
+        project.task('small') << {
+
+            println()
+            println '------------------------------------------------------------'
+            println 'Small: A small framework to split your app into small parts '
+
+            // gradle-small
+            print String.format('%16s', 'gradle-small: ')
+            def pluginVersion
+            def pluginProperties = project.file('buildSrc/gradle.properties')
+            if (pluginProperties.exists()) {
+                def prop = new Properties()
+                prop.load(pluginProperties.newDataInputStream())
+                pluginVersion = prop.getProperty('version')
+                println "$pluginVersion (buildSrc)"
+            } else {
+                def config = project.buildscript.configurations['classpath']
+                def module = config.resolvedConfiguration.firstLevelModuleDependencies.find {
+                    it.moduleGroup == 'net.wequick.tools.build' && it.moduleName == 'gradle-small'
+                }
+                println "$module.moduleVersion (maven)"
+            }
+
+            // small
+            def aarVersion
+            try {
+                aarVersion = rootSmall.aarVersion
+            } catch (Exception e) {
+                aarVersion = 'unspecific'
+            }
+            print String.format('%16s', 'small: ')
+            print aarVersion
+            println(rootSmall.smallProject != null ? ' (local)' : ' (maven)')
+            println '------------------------------------------------------------'
+            println()
+
+            // host module
+            print String.format('%-10s', 'host: ')
+            println rootSmall.hostModuleName
+            // other modules
+            bundleModules.each { type, names ->
+                print String.format('%-10s', "$type: ")
+                println names.join(', ')
+            }
+            println()
+        }
     }
 
     void buildLib(Project lib) {

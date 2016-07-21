@@ -154,4 +154,28 @@ public class RootExtension extends BaseExtension {
 
         return aarVersion
     }
+
+    Map<String, Set<String>> bundleModules = [:]
+
+    public void bundles(String type, String name) {
+        def modules = bundleModules.get(type)
+        if (modules == null) {
+            modules = new HashSet<String>()
+            bundleModules.put(type, modules)
+        }
+        modules.add(name)
+    }
+
+    public void bundles(String type, names) {
+        def modules = bundleModules.get(type)
+        if (modules == null) {
+            modules = new HashSet<String>()
+            bundleModules.put(type, modules)
+        }
+        modules.addAll(names)
+    }
+
+    public void compileSdkVersion(int apiLevel) {
+
+    }
 }
