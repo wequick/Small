@@ -37,7 +37,7 @@ class LibraryPlugin extends AppPlugin {
                 project.dependencies.add('provided', smallJar)
                 project.dependencies.add('provided', libJars)
 
-                if (isBuildingApps()) {
+                if (isBuildingApps() || (mT != null && mT.startsWith(":$rootSmall.hostModuleName"))) {
                     // Dependently built by `buildBundle' or `:app.xx:assembleRelease'.
                     // To avoid transformNative_libsWithSyncJniLibsForRelease task error, skip it.
                     // FIXME: we'd better figure out why the task failed and fix it
