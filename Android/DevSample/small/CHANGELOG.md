@@ -1,3 +1,20 @@
+## 1.1.0-beta1 (2016-07-21)
+
+Features:
+
+  - `bundle.json`支持宿主路由配置 (pkg不配置)
+  - `bundle.json`支持自定义插件`type`
+  - 支持将插件manifest的Launcher作为默认路由Activity
+  - 使用`Instant Run`方式修改宿主资源`mAssets`来完成资源合并, 兼容Xposed (#190)
+
+Bugfixes:
+
+  - [重要] 修正插件application在异常重启后无法触发`onCreate`的问题
+
+Other:
+
+  - `Bundle`类导出`versionCode`与`versionName`的获取API
+
 ## 1.0.0 (2016-06-29)
 
 Performance:
