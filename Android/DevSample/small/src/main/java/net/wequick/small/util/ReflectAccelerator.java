@@ -54,97 +54,11 @@ public class ReflectAccelerator {
     // AssetManager.addAssetPath
     private static Method sAssetManager_addAssetPath_method;
     private static Method sAssetManager_addAssetPaths_method;
-    // ApplicationInfo.resourceDirs
-    private static Field sContextImpl_mResources_field;
     // ActivityClientRecord
     private static Field sActivityClientRecord_intent_field;
     private static Field sActivityClientRecord_activityInfo_field;
 
     private ReflectAccelerator() { /** cannot be instantiated */ }
-
-    public static void mergeResources(Application app, String[] assetPaths) {
-        AssetManager newAssetManager = newAssetManager();
-        addAssetPaths(newAssetManager, assetPaths);
-
-        try {
-            Method mEnsureStringBlocks = AssetManager.class.getDeclaredMethod("ensureStringBlocks", new Class[0]);
-            mEnsureStringBlocks.setAccessible(true);
-            mEnsureStringBlocks.invoke(newAssetManager, new Object[0]);
-
-            Collection<WeakReference<Resources>> references;
-
-            if (Build.VERSION.SDK_INT >= 19) {
-                Class<?> resourcesManagerClass = Class.forName("android.app.ResourcesManager");
-                Method mGetInstance = resourcesManagerClass.getDeclaredMethod("getInstance", new Class[0]);
-                mGetInstance.setAccessible(true);
-                Object resourcesManager = mGetInstance.invoke(null, new Object[0]);
-                try {
-                    Field fMActiveResources = resourcesManagerClass.getDeclaredField("mActiveResources");
-                    fMActiveResources.setAccessible(true);
-
-                    ArrayMap<?, WeakReference<Resources>> arrayMap = (ArrayMap)fMActiveResources.get(resourcesManager);
-
-                    references = arrayMap.values();
-                } catch (NoSuchFieldException ignore) {
-                    Field mResourceReferences = resourcesManagerClass.getDeclaredField("mResourceReferences");
-                    mResourceReferences.setAccessible(true);
-
-                    references = (Collection) mResourceReferences.get(resourcesManager);
-                }
-            } else {
-                Class<?> activityThread = Class.forName("android.app.ActivityThread");
-                Field fMActiveResources = activityThread.getDeclaredField("mActiveResources");
-                fMActiveResources.setAccessible(true);
-                Object thread = getActivityThread(app, activityThread);
-
-                HashMap<?, WeakReference<Resources>> map = (HashMap)fMActiveResources.get(thread);
-
-                references = map.values();
-            }
-
-            for (WeakReference<Resources> wr : references) {
-                Resources resources = wr.get();
-                if (resources == null) continue;
-
-                try {
-                    Field mAssets = Resources.class.getDeclaredField("mAssets");
-                    mAssets.setAccessible(true);
-                    mAssets.set(resources, newAssetManager);
-                } catch (Throwable ignore) {
-                    Field mResourcesImpl = Resources.class.getDeclaredField("mResourcesImpl");
-                    mResourcesImpl.setAccessible(true);
-                    Object resourceImpl = mResourcesImpl.get(resources);
-                    Field implAssets = resourceImpl.getClass().getDeclaredField("mAssets");
-                    implAssets.setAccessible(true);
-                    implAssets.set(resourceImpl, newAssetManager);
-                }
-
-                resources.updateConfiguration(resources.getConfiguration(), resources.getDisplayMetrics());
-            }
-        } catch (Throwable e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    private static Object getActivityThread(Context context, Class<?> activityThread) {
-        try {
-            // ActivityThread.currentActivityThread()
-            Method m = activityThread.getMethod("currentActivityThread", new Class[0]);
-            m.setAccessible(true);
-            Object thread = m.invoke(null, new Object[0]);
-            if (thread != null) return thread;
-
-            // context.@mLoadedApk.@mActivityThread
-            Field mLoadedApk = context.getClass().getField("mLoadedApk");
-            mLoadedApk.setAccessible(true);
-            Object apk = mLoadedApk.get(context);
-            Field mActivityThreadField = apk.getClass().getDeclaredField("mActivityThread");
-            mActivityThreadField.setAccessible(true);
-            return mActivityThreadField.get(apk);
-        } catch (Throwable ignore) {}
-
-        return null;
-    }
 
     private static final class V9_13 {
 
@@ -329,37 +243,6 @@ public class ReflectAccelerator {
         }
     }
 
-    private static class V9_18 {
-
-        public static void updateTopLevelResources(Application app, Resources resources) {
-            Field field = getDeclaredField(app.getBaseContext().getClass(), "mPackageInfo");
-            Object apk = getValue(field, app.getBaseContext());
-            if (apk == null) return;
-            field = getDeclaredField(apk.getClass(), "mResources");
-            setValue(field, apk, resources);
-        }
-    }
-
-    private static final class V19_ {
-
-        public static void updateTopLevelResources(Application app, Resources resources) {
-            try {
-                Class cl = Class.forName("android.app.ContextImpl");
-                Field field = cl.getDeclaredField("mResourcesManager");
-                field.setAccessible(true);
-                Object resManager = field.get(app.getBaseContext());
-                field = resManager.getClass().getDeclaredField("mActiveResources");
-                field.setAccessible(true);
-                Map map = (Map) field.get(resManager);
-                Object k = map.keySet().iterator().next();
-                WeakReference<Resources> wr = new WeakReference<Resources>(resources);
-                map.put(k, wr);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
     private static final class V9_20 {
 
         private static Method sInstrumentation_execStartActivityV20_method;
@@ -506,15 +389,87 @@ public class ReflectAccelerator {
         return invoke(sAssetManager_addAssetPaths_method, assets, new Object[]{paths});
     }
 
-    public static Resources newResources(Class resourcesClass, AssetManager assets,
-                                         DisplayMetrics metrics, Configuration configuration) {
+    public static void mergeResources(Application app, String[] assetPaths) {
+        AssetManager newAssetManager = newAssetManager();
+        addAssetPaths(newAssetManager, assetPaths);
+
         try {
-            Constructor c = resourcesClass.getConstructor(
-                    AssetManager.class, DisplayMetrics.class, Configuration.class);
-            return (Resources) c.newInstance(assets, metrics, configuration);
-        } catch (Exception e) {
-            e.printStackTrace();
+            Method mEnsureStringBlocks = AssetManager.class.getDeclaredMethod("ensureStringBlocks", new Class[0]);
+            mEnsureStringBlocks.setAccessible(true);
+            mEnsureStringBlocks.invoke(newAssetManager, new Object[0]);
+
+            Collection<WeakReference<Resources>> references;
+
+            if (Build.VERSION.SDK_INT >= 19) {
+                Class<?> resourcesManagerClass = Class.forName("android.app.ResourcesManager");
+                Method mGetInstance = resourcesManagerClass.getDeclaredMethod("getInstance", new Class[0]);
+                mGetInstance.setAccessible(true);
+                Object resourcesManager = mGetInstance.invoke(null, new Object[0]);
+                try {
+                    Field fMActiveResources = resourcesManagerClass.getDeclaredField("mActiveResources");
+                    fMActiveResources.setAccessible(true);
+
+                    ArrayMap<?, WeakReference<Resources>> arrayMap = (ArrayMap)fMActiveResources.get(resourcesManager);
+
+                    references = arrayMap.values();
+                } catch (NoSuchFieldException ignore) {
+                    Field mResourceReferences = resourcesManagerClass.getDeclaredField("mResourceReferences");
+                    mResourceReferences.setAccessible(true);
+
+                    references = (Collection) mResourceReferences.get(resourcesManager);
+                }
+            } else {
+                Class<?> activityThread = Class.forName("android.app.ActivityThread");
+                Field fMActiveResources = activityThread.getDeclaredField("mActiveResources");
+                fMActiveResources.setAccessible(true);
+                Object thread = getActivityThread(app, activityThread);
+
+                HashMap<?, WeakReference<Resources>> map = (HashMap)fMActiveResources.get(thread);
+
+                references = map.values();
+            }
+
+            for (WeakReference<Resources> wr : references) {
+                Resources resources = wr.get();
+                if (resources == null) continue;
+
+                try {
+                    Field mAssets = Resources.class.getDeclaredField("mAssets");
+                    mAssets.setAccessible(true);
+                    mAssets.set(resources, newAssetManager);
+                } catch (Throwable ignore) {
+                    Field mResourcesImpl = Resources.class.getDeclaredField("mResourcesImpl");
+                    mResourcesImpl.setAccessible(true);
+                    Object resourceImpl = mResourcesImpl.get(resources);
+                    Field implAssets = resourceImpl.getClass().getDeclaredField("mAssets");
+                    implAssets.setAccessible(true);
+                    implAssets.set(resourceImpl, newAssetManager);
+                }
+
+                resources.updateConfiguration(resources.getConfiguration(), resources.getDisplayMetrics());
+            }
+        } catch (Throwable e) {
+            throw new IllegalStateException(e);
         }
+    }
+
+    public static Object getActivityThread(Context context, Class<?> activityThread) {
+        try {
+            // ActivityThread.currentActivityThread()
+            Method m = activityThread.getMethod("currentActivityThread", new Class[0]);
+            m.setAccessible(true);
+            Object thread = m.invoke(null, new Object[0]);
+            if (thread != null) return thread;
+
+            // context.@mLoadedApk.@mActivityThread
+            Field mLoadedApk = context.getClass().getField("mLoadedApk");
+            mLoadedApk.setAccessible(true);
+            Object apk = mLoadedApk.get(context);
+            Field mActivityThreadField = apk.getClass().getDeclaredField("mActivityThread");
+            mActivityThreadField.setAccessible(true);
+            return mActivityThreadField.get(apk);
+        } catch (Throwable ignore) {}
+
         return null;
     }
 
@@ -535,27 +490,6 @@ public class ReflectAccelerator {
         } else {
             V23_.expandNativeLibraryDirectories(classLoader, libPath);
         }
-    }
-
-    public static void setResources(Application app, Resources resources) {
-        setResources(app.getBaseContext(), resources);
-        // Though we replace the application resources, while a new activity created,
-        // it will be attached to a new context who's resources is got from somewhere cached.
-        // So we need to update the cache to ensure `activity.mContext.mResources' correct.
-        if (Build.VERSION.SDK_INT < 19) {
-            V9_18.updateTopLevelResources(app, resources);
-        } else {
-            V19_.updateTopLevelResources(app, resources);
-        }
-    }
-
-    public static void setResources(Context context, Resources resources) {
-        if (sContextImpl_mResources_field == null) {
-            sContextImpl_mResources_field = getDeclaredField(
-                    context.getClass(), "mResources");
-            if (sContextImpl_mResources_field == null) return;
-        }
-        setValue(sContextImpl_mResources_field, context, resources);
     }
 
     public static Instrumentation.ActivityResult execStartActivity(

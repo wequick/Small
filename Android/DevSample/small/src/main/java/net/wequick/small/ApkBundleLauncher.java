@@ -355,8 +355,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             try {
                 // Inject instrumentation
                 final Class<?> activityThreadClass = Class.forName("android.app.ActivityThread");
-                final Method method = activityThreadClass.getMethod("currentActivityThread");
-                Object thread = method.invoke(null, (Object[]) null);
+                Object thread = ReflectAccelerator.getActivityThread(context, activityThreadClass);
                 Field field = activityThreadClass.getDeclaredField("mInstrumentation");
                 field.setAccessible(true);
                 sHostInstrumentation = (Instrumentation) field.get(thread);
