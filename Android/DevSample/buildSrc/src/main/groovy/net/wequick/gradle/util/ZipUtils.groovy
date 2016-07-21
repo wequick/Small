@@ -57,6 +57,7 @@ public final class ZipUtils {
         os.flush()
         os.close()
 
+        file.delete() // delete first to avoid `renameTo' failed on Windows
         temp.renameTo(file)
         return this
     }
