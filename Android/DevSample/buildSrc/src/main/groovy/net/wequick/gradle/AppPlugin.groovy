@@ -163,12 +163,6 @@ class AppPlugin extends BundlePlugin {
                 compile.exclude group: module[0], module: module[1]
             }
         }
-
-        // Ensure generating text symbols - R.tx
-        project.preBuild.doLast {
-            def symbolsPath = small.aapt.textSymbolOutputDir.path
-            android.aaptOptions.additionalParameters '--output-text-symbols', symbolsPath
-        }
     }
 
     @Override
@@ -774,8 +768,6 @@ class AppPlugin extends BundlePlugin {
     }
 
     protected void hookVariantTask(BaseVariant variant) {
-        collectDependentAars()
-
         hookMergeAssets(variant.mergeAssets)
 
         hookProcessManifest(small.processManifest)
@@ -839,28 +831,35 @@ class AppPlugin extends BundlePlugin {
         }
     }
 
-    /** Hook preBuild task to resolve dependent AARs */
-    private def collectDependentAars() {
-        project.preBuild.doFirst {
-            def smallLibAars = new HashSet() // the aars compiled in host or lib.*
+    @Override
+    protected void hookPreReleaseBuild() {
+        super.hookPreReleaseBuild()
 
-            // Collect aar(s) in lib.*
-            mDependentLibProjects.each { lib ->
-                // lib.* dependencies
-                File file = new File(rootSmall.preLinkAarDir, "$lib.name-D.txt")
-                collectAars(file, lib, smallLibAars)
+        // Ensure generating text symbols - R.txt
+        // --------------------------------------
+        def symbolsPath = small.aapt.textSymbolOutputDir.path
+        android.aaptOptions.additionalParameters '--output-text-symbols', symbolsPath
 
-                // lib.* self
-                smallLibAars.add(group: lib.group, name: lib.name, version: lib.version)
-            }
+        // Resolve dependent AARs
+        // ----------------------
+        def smallLibAars = new HashSet() // the aars compiled in host or lib.*
 
-            // Collect aar(s) in host
-            File hostAarDependencies = new File(rootSmall.preLinkAarDir, "$rootSmall.hostModuleName-D.txt")
-            collectAars(hostAarDependencies, rootSmall.hostProject, smallLibAars)
+        // Collect aar(s) in lib.*
+        mDependentLibProjects.each { lib ->
+            // lib.* dependencies
+            File file = new File(rootSmall.preLinkAarDir, "$lib.name-D.txt")
+            collectAars(file, lib, smallLibAars)
 
-            small.splitAars = smallLibAars
-            small.retainedAars = mUserLibAars
+            // lib.* self
+            smallLibAars.add(group: lib.group, name: lib.name, version: lib.version)
         }
+
+        // Collect aar(s) in host
+        File hostAarDependencies = new File(rootSmall.preLinkAarDir, "$rootSmall.hostModuleName-D.txt")
+        collectAars(hostAarDependencies, rootSmall.hostProject, smallLibAars)
+
+        small.splitAars = smallLibAars
+        small.retainedAars = mUserLibAars
     }
 
     private def hookProcessManifest(Task processManifest) {
