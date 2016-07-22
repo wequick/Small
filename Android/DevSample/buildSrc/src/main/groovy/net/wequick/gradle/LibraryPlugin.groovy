@@ -37,17 +37,24 @@ class LibraryPlugin extends AppPlugin {
                 project.dependencies.add('provided', smallJar)
                 project.dependencies.add('provided', libJars)
 
-                if (isBuildingApps() || (mT != null && mT.startsWith(":$rootSmall.hostModuleName"))) {
-                    // Dependently built by `buildBundle' or `:app.xx:assembleRelease'.
-                    // To avoid transformNative_libsWithSyncJniLibsForRelease task error, skip it.
-                    // FIXME: we'd better figure out why the task failed and fix it
+                // Dependently built by `buildBundle' or `:app.xx:assembleRelease'.
+                // To avoid transformNative_libsWithSyncJniLibsForRelease task error, skip it.
+                // FIXME: we'd better figure out why the task failed and fix it
+                def isSyncByIDE = (mT != null && mT.startsWith(":$rootSmall.hostModuleName:generate"))
+                def isBuildingAppBundle = isBuildingApps()
+                def skipsSyncJniLibs = isSyncByIDE || isBuildingAppBundle
+                def skipsSyncLibJars = isBuildingAppBundle
+                if (skipsSyncJniLibs) {
                     project.preBuild.doLast {
                         def syncJniTaskName = 'transformNative_libsWithSyncJniLibsForRelease'
                         if (project.hasProperty(syncJniTaskName)) {
                             def syncJniTask = project.tasks[syncJniTaskName]
                             syncJniTask.onlyIf { false }
                         }
-                        // FIXME: Temporary workaround
+                    }
+                }
+                if (skipsSyncLibJars) {
+                    project.preBuild.doLast {
                         def syncLibTaskName = 'transformClassesAndResourcesWithSyncLibJarsForRelease'
                         if (project.hasProperty(syncLibTaskName)) {
                             def syncLibTask = project.tasks[syncLibTaskName]
