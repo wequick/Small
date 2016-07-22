@@ -821,6 +821,8 @@ class AppPlugin extends BundlePlugin {
     }
 
     protected static void collectAars(File d, Project src, Set outAars) {
+        if (!d.exists()) return
+
         d.eachLine { line ->
             def module = line.split(':')
             def N = module.size()
