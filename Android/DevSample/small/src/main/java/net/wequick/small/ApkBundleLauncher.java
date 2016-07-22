@@ -23,8 +23,10 @@ import android.app.Application;
 import android.app.Instrumentation;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
+import android.content.ContextWrapper;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
+import android.content.pm.ApplicationInfo;
 import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -348,6 +350,37 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         return null;
     }
 
+    /**
+     * A context wrapper that redirect some host environments to plugin
+     */
+    private static final class BundleApplicationContext extends ContextWrapper {
+
+        private LoadedApk mApk;
+
+        public BundleApplicationContext(Context base, LoadedApk apk) {
+            super(base);
+            mApk = apk;
+        }
+
+        @Override
+        public String getPackageName() {
+            return mApk.packageName;
+        }
+
+        @Override
+        public String getPackageResourcePath() {
+            return mApk.path;
+        }
+
+        @Override
+        public ApplicationInfo getApplicationInfo() {
+            ApplicationInfo ai = super.getApplicationInfo();
+            // TODO: Read meta-data in bundles and merge to the host one
+            // ai.metaData.putAll();
+            return ai;
+        }
+    }
+
     @Override
     public void setUp(Context context) {
         super.setUp(context);
@@ -394,7 +427,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         Collection<LoadedApk> apks = sLoadedApks.values();
 
         // Merge all the resources in bundles and replace the host one
-        Application app = Small.getContext();
+        final Application app = Small.getContext();
         String[] paths = new String[apks.size() + 1];
         paths[0] = app.getPackageResourcePath(); // add host asset path
         int i = 1;
@@ -437,17 +470,17 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         }
 
         // Trigger all the bundle application `onCreate' event
-        for (LoadedApk apk : apks) {
+        for (final LoadedApk apk : apks) {
             String bundleApplicationName = apk.applicationName;
             if (bundleApplicationName == null) continue;
 
             try {
                 final Class applicationClass = Class.forName(bundleApplicationName);
-                final Context appContext = app;
                 Bundle.postUI(new Runnable() {
                     @Override
                     public void run() {
                         try {
+                            BundleApplicationContext appContext = new BundleApplicationContext(app, apk);
                             Application bundleApplication = Instrumentation.newApplication(
                                     applicationClass, appContext);
                             sHostInstrumentation.callApplicationOnCreate(bundleApplication);
