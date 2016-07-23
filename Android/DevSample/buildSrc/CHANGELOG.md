@@ -1,3 +1,9 @@
+## 1.0.0-beta3 (2016-07-23)
+
+Bugfixes:
+
+  - 修正`Windows`系统下不能正确分离`resources.ap_`的问题
+
 ## 1.0.0-beta2 (2016-07-22)
 
 Bugfixes:
