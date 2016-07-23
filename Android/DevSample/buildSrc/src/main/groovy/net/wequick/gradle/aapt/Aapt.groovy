@@ -26,6 +26,7 @@ public class Aapt {
     public static final int ID_DELETED = -1
     public static final String FILE_ARSC = 'resources.arsc'
     public static final String FILE_MANIFEST = 'AndroidManifest.xml'
+    private static final String ENTRY_SEPARATOR = '/'
 
     private File mAssetDir
     private File mJavaFile
@@ -181,12 +182,17 @@ public class Aapt {
     /** Reset package id for *.xml */
     private static void resetAllXmlPackageId(File dir, int pp, Map idMaps, Set outUpdatedResources) {
         int len = dir.canonicalPath.length() + 1 // bypass '/'
+        def isWindows = (File.separator != ENTRY_SEPARATOR)
         dir.eachFileRecurse(FileType.FILES) { file ->
             if (file.name.endsWith('.xml')) {
                 def editor = new AXmlEditor(file)
                 editor.setPackageId(pp, idMaps)
                 if (outUpdatedResources != null) {
-                    outUpdatedResources.add(file.canonicalPath.substring(len))
+                    def path = file.canonicalPath.substring(len)
+                    if (isWindows) { // compat for windows
+                        path = path.replaceAll('\\\\', ENTRY_SEPARATOR)
+                    }
+                    outUpdatedResources.add(path)
                 }
             }
         }
