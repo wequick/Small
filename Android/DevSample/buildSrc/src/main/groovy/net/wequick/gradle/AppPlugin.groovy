@@ -676,12 +676,26 @@ class AppPlugin extends BundlePlugin {
         def vendorStyleableKeys = [:]
         transitiveVendorAars.each { aar ->
             String path = aar.path
-            String resPath = new File(small.aarDir, path + '/res').absolutePath
+            File aarPath = new File(small.aarDir, path)
+            String resPath = new File(aarPath, 'res').absolutePath
+            File symbol = new File(aarPath, 'R.txt')
             Set<Map> resTypeEntries = []
             Set<String> resStyleableKeys = []
 
+            // Collect the id entries for the aar
+            def idEntries = []
+            def libIdKeys = []
+            libEntries.each { k, v ->
+                if (v.type == 'id') {
+                    libIdKeys.add(v.key)
+                }
+            }
+            SymbolParser.collectResourceKeys(symbol, 'id', libIdKeys, idEntries, null)
+
             // Collect the resource entries declared in the aar res directory
             collectReservedResourceKeys(aar.version, resPath, resTypeEntries, resStyleableKeys)
+
+            resTypeEntries.addAll(idEntries) // reserve R.id.* for the aar, fix #230
 
             vendorEntries.put(path, resTypeEntries)
             vendorStyleableKeys.put(path, resStyleableKeys)

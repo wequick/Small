@@ -102,7 +102,8 @@ public final class SymbolParser {
         return es
     }
 
-    public static void collectResourceKeys(File file, List outEntries, List outStyleableKeys) {
+    public static void collectResourceKeys(File file, String targetType, List excludes,
+                                           List outEntries, List outStyleableKeys) {
         if (!file.exists()) return
 
         file.eachLine { str ->
@@ -112,13 +113,21 @@ public final class SymbolParser {
             str = str.substring(i + 1)
             i = str.indexOf(' ')
             def type = str.substring(0, i)
+            if (targetType != null && type != targetType) return
+
             str = str.substring(i + 1)
             i = str.indexOf(' ')
             def name = str.substring(0, i)
+            if (excludes != null && excludes.contains(name)) return
+
             if (type == 'styleable') {
-                outStyleableKeys.add(name)
+                if (outStyleableKeys != null) {
+                    outStyleableKeys.add(name)
+                }
             } else {
-                outEntries.add(type: type, name: name, key: "$type/$name")
+                if (outEntries != null) {
+                    outEntries.add(type: type, name: name, key: "$type/$name")
+                }
             }
         }
     }
