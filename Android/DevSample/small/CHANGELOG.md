@@ -1,3 +1,9 @@
+## 1.1.0-beta2 (2016-07-29)
+
+Bugfixes:
+
+  - 修正 _singleTask_ 与 _singleTop_ launchMode匹配错误的问题 (#193, #231)
+
 ## 1.1.0-beta1 (2016-07-21)
 
 Features:
