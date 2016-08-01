@@ -448,6 +448,22 @@ public class ReflectAccelerator {
 
                 resources.updateConfiguration(resources.getConfiguration(), resources.getDisplayMetrics());
             }
+
+            if (Build.VERSION.SDK_INT >= 21) {
+                for (WeakReference<Resources> wr : references) {
+                    Resources resources = wr.get();
+                    if (resources == null) continue;
+
+                    // android.util.Pools$SynchronizedPool<TypedArray>
+                    Field mTypedArrayPool = Resources.class.getDeclaredField("mTypedArrayPool");
+                    mTypedArrayPool.setAccessible(true);
+                    Object typedArrayPool = mTypedArrayPool.get(resources);
+                    // Clear all the pools
+                    Method acquire = typedArrayPool.getClass().getMethod("acquire");
+                    acquire.setAccessible(true);
+                    while (acquire.invoke(typedArrayPool) != null) ;
+                }
+            }
         } catch (Throwable e) {
             throw new IllegalStateException(e);
         }
