@@ -31,6 +31,8 @@ class RootPlugin extends BasePlugin {
 
         def rootExt = small
 
+        AppPlugin.sPackageIds = [:]
+
         project.afterEvaluate {
 
             def userBundleTypes = [:]
