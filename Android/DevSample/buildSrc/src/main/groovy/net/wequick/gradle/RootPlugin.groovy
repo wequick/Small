@@ -136,7 +136,7 @@ class RootPlugin extends BasePlugin {
                 def prop = new Properties()
                 prop.load(pluginProperties.newDataInputStream())
                 pluginVersion = prop.getProperty('version')
-                println "$pluginVersion (buildSrc)"
+                println "$pluginVersion (project)"
             } else {
                 def config = project.buildscript.configurations['classpath']
                 def module = config.resolvedConfiguration.firstLevelModuleDependencies.find {
@@ -146,15 +146,20 @@ class RootPlugin extends BasePlugin {
             }
 
             // small
-            def aarVersion
-            try {
-                aarVersion = rootSmall.aarVersion
-            } catch (Exception e) {
-                aarVersion = 'unspecific'
-            }
             print String.format('%16s', 'small: ')
-            print aarVersion
-            println(rootSmall.smallProject != null ? ' (local)' : ' (maven)')
+            if (rootSmall.smallProject != null) {
+                def prop = new Properties()
+                prop.load(rootSmall.smallProject.file('gradle.properties').newDataInputStream())
+                println "${prop.getProperty('version')} (project)"
+            } else {
+                def aarVersion
+                try {
+                    aarVersion = rootSmall.aarVersion
+                } catch (Exception e) {
+                    aarVersion = 'unspecific'
+                }
+                println "$aarVersion (maven)"
+            }
             println '------------------------------------------------------------'
             println()
 
