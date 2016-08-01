@@ -164,12 +164,13 @@ class RootPlugin extends BasePlugin {
             println()
 
             // host module
-            print String.format('%-10s', 'host: ')
-            println rootSmall.hostModuleName
+            println "host: ${rootSmall.hostModuleName}"
             // other modules
             bundleModules.each { type, names ->
-                print String.format('%-10s', "$type: ")
-                println names.join(', ')
+                println "$type(s): "
+                names.each {
+                    println "    $it ${String.format('(0x%02x)', AppPlugin.sPackageIds.get(it))}"
+                }
             }
             println()
         }

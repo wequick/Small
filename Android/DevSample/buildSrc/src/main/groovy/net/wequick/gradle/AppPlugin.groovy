@@ -100,7 +100,14 @@ class AppPlugin extends BundlePlugin {
             }
         }
 
-        if (!isBuildingRelease()) return
+        if (!isBuildingRelease()) {
+            if (mT == 'small') {
+                project.afterEvaluate {
+                    initPackageId()
+                }
+            }
+            return
+        }
 
         project.afterEvaluate {
             // Add custom transformation to split shared libraries
