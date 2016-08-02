@@ -1,8 +1,9 @@
 ext {
     versionTags = [
-            [start: "aarVersion = '", end: "'", path: '../../Sample/build.gradle'],
-            [start: "aarVersion = '", end: "'", path: '../../GETTING-STARTED.md'],
-            [start: '"smallAarVersion" value="', end: ' />', path: '../../templates/activities/SmallLauncher/globals.xml.ftl']
+            [start: "gradle-small:", end: "'", path: 'README.md'],
+            [start: "gradle-small:", end: "'", path: '../../Sample/build.gradle'],
+            [start: "gradle-small:", end: "'", path: '../../../Android/GETTING-STARTED.md'],
+            [start: '"smallPluginVersion" value="', end: '" />', path: '../../../Android/templates/activities/SmallLauncher/globals.xml.ftl']
     ]
 }
 

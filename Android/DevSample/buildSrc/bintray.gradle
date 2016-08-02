@@ -17,6 +17,7 @@ dependencies {
 }
 
 apply from: 'provided.gradle'
+apply from: 'version.gradle'
 
 //import org.gradle.api.tasks.javadoc.GroovyDoc
 
