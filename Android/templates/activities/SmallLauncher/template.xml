@@ -3,7 +3,7 @@
     format="5"
     revision="6"
     name="@Small"
-    description="Configure the Small host which contains a luancher activity, a host application and the bundle.json."
+    description="Configure the Small host which contains a launcher activity, a host application and the bundle.json."
     requireAppTheme="true"
     minApi="11"
     minBuildApi="16">
