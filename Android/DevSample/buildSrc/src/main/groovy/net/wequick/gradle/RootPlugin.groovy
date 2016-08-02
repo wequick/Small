@@ -165,16 +165,90 @@ class RootPlugin extends BasePlugin {
             println '------------------------------------------------------------'
             println()
 
-            // host module
-            println "host: ${rootSmall.hostModuleName}"
-            // other modules
+            // modules
+            def rows = []
+            File out = new File(small.outputBundleDir, 'armeabi')
+            if (!out.exists()) {
+                out = new File(small.outputBundleDir, 'x86')
+            }
+            def hasOut = out.exists()
+            rows.add(['type', 'name', 'PP', 'file', 'size'])
+            rows.add(['host', rootSmall.hostModuleName, '', '', ''])
             bundleModules.each { type, names ->
-                println "$type(s): "
                 names.each {
-                    println "    $it ${String.format('(0x%02x)', AppPlugin.sPackageIds.get(it))}"
+                    def file = null
+                    if (hasOut) {
+                        def prj = project.rootProject.project(":$it")
+                        def manifest = new XmlParser().parse(prj.android.sourceSets.main.manifestFile)
+                        def pkg = manifest.@package
+                        def so = "lib${pkg.replaceAll('\\.', '_')}.so"
+                        file = new File(out, so)
+                    }
+                    def pp = AppPlugin.sPackageIds.get(it)
+                    pp = (pp == null) ? '' : String.format('0x%02x', pp)
+                    if (file != null && file.exists()) {
+                        rows.add([type, it, pp, "$file.name ($out.name)", getFileSize(file)])
+                    } else {
+                        rows.add([type, it, pp, '', ''])
+                    }
                 }
             }
+
+            printRows(rows)
             println()
+        }
+    }
+
+    static void printRows(List rows) {
+        def colLens = []
+        int nCol = rows[0].size()
+        for (int i = 0; i < nCol; i++) {
+            colLens[i] = 8
+        }
+
+        def nRow = rows.size()
+        for (int i = 0; i < nRow; i++) {
+            def row = rows[i]
+            nCol = row.size()
+            for (int j = 0; j < nCol; j++) {
+                def col = row[j]
+                colLens[j] = Math.max(colLens[j], col.length() + 4)
+            }
+        }
+
+        for (int i = 0; i < nRow; i++) {
+            def row = rows[i]
+            nCol = row.size()
+            def s = ''
+            def split = ''
+            for (int j = 0; j < nCol; j++) {
+                int maxLen = colLens[j]
+                String col = row[j]
+                int len = col.length()
+
+                if (i == 0) {
+                    // Center align for title
+                    int lp = (maxLen - len) / 2 // left padding
+                    int rp = maxLen - lp - len // right padding
+                    s += '|'
+                    for (int k = 0; k < lp; k++) s += ' '
+                    s += col
+                    for (int k = 0; k < rp; k++) s += ' '
+
+                    // Add split line
+                    split += '|'
+                    for (int k = 0; k < maxLen; k++) split += '-'
+                } else {
+                    // Left align for content
+                    int rp = maxLen - 2 - len // right padding
+                    s += '|  ' + col
+                    for (int k = 0; k < rp; k++) s += ' '
+                }
+            }
+            println s + '|'
+            if (i == 0) {
+                println split + '|'
+            }
         }
     }
 
