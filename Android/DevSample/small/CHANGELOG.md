@@ -1,3 +1,7 @@
+## 1.1.0-beta3 (2016-08-01)
+
+  - 修正在`5.0`以上系统可能出现的`getPooledStringForCookie`数组越界问题
+
 ## 1.1.0-beta2 (2016-07-29)
 
 Bugfixes:
