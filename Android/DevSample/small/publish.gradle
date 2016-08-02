@@ -8,6 +8,7 @@ buildscript {
 }
 
 apply from: 'base.gradle'
+apply from: 'version.gradle'
 
 //--------------------------------------------------------------------------------------------------
 // Scripts to upload plugin to Bintray/JCenter [https://bintray.com/]
