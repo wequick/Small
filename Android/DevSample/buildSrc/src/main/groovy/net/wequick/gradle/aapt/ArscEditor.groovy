@@ -197,7 +197,7 @@ public class ArscEditor extends AssetEditor {
                                     it.value.data = id
 
                                     int pid = (id >> 24)
-                                    if (pid != 0x7f && pid != 0x01) {
+                                    if (pid != 0x7f && pid != 0x01 && pid != pp) {
                                         libPackageIds.add(pid)
                                     }
                                 }
