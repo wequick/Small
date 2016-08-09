@@ -31,3 +31,23 @@ task doc(type: GradleBuild) {
     buildFile = 'publish.gradle'
     tasks = ['javadoc']
 }
+
+//--------------------------------------------------------------------------------------------------
+// Helper scripts
+//--------------------------------------------------------------------------------------------------
+task changes << {
+    def changelog = project.file('CHANGELOG.md')
+    if (!changelog.exists()) return
+    def br = new BufferedReader(new FileReader(changelog))
+    def top = br.readLine()
+    br.close()
+
+    def loc = top.indexOf('(')
+    if (loc < 0) return
+    def date = top.substring(loc + 1)
+    loc = date.indexOf(')')
+    date = date.substring(0, loc)
+
+    def log = "git log --since=$date --oneline ${project.projectDir}"
+    println log.execute().text
+}
