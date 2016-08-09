@@ -651,11 +651,15 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             String fname = bundle.getPath();
             if (fname == null || fname.equals("")) {
                 fname = packageName + ".MainFragment"; // default
-            } else if (fname.startsWith(".")) {
-                fname = packageName + fname;
             } else {
-                // TODO: check package name
-                assert false;
+                char c = fname.charAt(0);
+                if (c == '.') {
+                    fname = packageName + fname;
+                } else if (c >= 'A' && c <= 'Z') {
+                    fname = packageName + "." + fname;
+                } else {
+                    // TODO: check the full quality fragment class name
+                }
             }
             if (type.endsWith("v4")) {
                 return (T) android.support.v4.app.Fragment.instantiate(context, fname);
