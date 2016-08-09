@@ -275,9 +275,11 @@ public final class Small {
 
     public static Intent getIntentOfUri(Uri uri, Context context) {
         // System url schemes
-        if (!uri.getScheme().equals("http")
-                && !uri.getScheme().equals("https")
-                && !uri.getScheme().equals("file")
+        String scheme = uri.getScheme();
+        if (scheme != null
+                && !scheme.equals("http")
+                && !scheme.equals("https")
+                && !scheme.equals("file")
                 && ApplicationUtils.canOpenUri(uri, context)) {
             return ApplicationUtils.getIntentOfUri(uri);
         }
