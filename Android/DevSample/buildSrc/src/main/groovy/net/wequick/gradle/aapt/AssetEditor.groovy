@@ -231,14 +231,14 @@ public class AssetEditor extends CppHexEditor {
         writeInt(ResStringPoolSpan.END)
     }
 
-    /** Convert utf-16 to utf-8 */
-    protected static def getUtf16String(name) {
-        int len16 = name.size()
+    /** Get utf-8 from utf-16 */
+    protected static def getUtf8String(u16str) {
+        int len16 = u16str.size()
         int len = len16 / 2
         def buffer = new char[len]
         int i = 0;
         for (int j = 0; j < len16; j+=2) {
-            char c = (char)name[j]
+            char c = (char)u16str[j]
             if (c == 0) {
                 buffer[i] = '\0'
                 break
@@ -246,6 +246,22 @@ public class AssetEditor extends CppHexEditor {
             buffer[i++] = c
         }
         return String.copyValueOf(buffer, 0, i)
+    }
+
+    /** Get utf-16 from utf-8 */
+    protected static def getUtf16String(String u8str, int size) {
+        byte[] str = new byte[size]
+        int N = Math.min(u8str.length(), size)
+        int i = 0
+        int j = 0
+        for (; i < N; i++) {
+            str[j++] = u8str.charAt(i)
+            str[j++] = 0
+        }
+        for (; j < size; j++) {
+            str[j] = 0
+        }
+        return str
     }
 
     /**
@@ -360,7 +376,7 @@ public class AssetEditor extends CppHexEditor {
             if (pool.isUtf8) {
                 println "String #$i: ${new String(v)}"
             } else {
-                println "String #$i: ${getUtf16String(v)}"
+                println "String #$i: ${getUtf8String(v)}"
             }
         }
         pool.styles.eachWithIndex { v, i ->

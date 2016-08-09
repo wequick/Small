@@ -78,6 +78,9 @@ class AppPlugin extends BundlePlugin {
         super.configureProject()
 
         project.afterEvaluate {
+            // Initialize a resource package id for current bundle
+            initPackageId()
+
             // Get all dependencies with gradle script `compile project(':lib.*')'
             DependencySet compilesDependencies = project.configurations.compile.dependencies
             Set<DefaultProjectDependency> allLibs = compilesDependencies.withType(DefaultProjectDependency.class)
@@ -100,20 +103,12 @@ class AppPlugin extends BundlePlugin {
             }
         }
 
-        if (!isBuildingRelease()) {
-            if (mT == 'small') {
-                project.afterEvaluate {
-                    initPackageId()
-                }
-            }
-            return
-        }
+        if (!isBuildingRelease()) return
 
         project.afterEvaluate {
             // Add custom transformation to split shared libraries
             android.registerTransform(new StripAarTransform())
 
-            initPackageId()
             resolveReleaseDependencies()
         }
     }
@@ -444,12 +439,17 @@ class AppPlugin extends BundlePlugin {
         }
 
         // Prepare id maps (bundle resource id -> library resource id)
+        // Map to `lib.**` resources id first, and then the host one.
         def libEntries = [:]
-        rootSmall.preIdsDir.listFiles().each {
-            if (it.name.endsWith('R.txt') && !it.name.startsWith(project.name)) {
-                libEntries += SymbolParser.getResourceEntries(it)
-            }
+        File hostSymbol = new File(rootSmall.preIdsDir, "${rootSmall.hostModuleName}-R.txt")
+        if (hostSymbol.exists()) {
+            libEntries += SymbolParser.getResourceEntries(hostSymbol)
         }
+        mDependentLibProjects.each {
+            File libSymbol = new File(it.projectDir, 'public.txt')
+            libEntries += SymbolParser.getResourceEntries(libSymbol)
+        }
+
         def publicEntries = SymbolParser.getResourceEntries(small.publicSymbolFile)
         def bundleEntries = SymbolParser.getResourceEntries(idsFile)
         def staticIdMaps = [:]
@@ -998,12 +998,24 @@ class AppPlugin extends BundlePlugin {
             int noResourcesFlag = 0
             def filteredResources = new HashSet()
             def updatedResources = new HashSet()
+
+            // Collect the DynamicRefTable [pkgId => pkgName]
+            def libRefTable = [:]
+            mDependentLibProjects.each {
+                def libAapt = it.tasks.withType(ProcessAndroidResources.class).find {
+                    it.variantName.startsWith('release')
+                }
+                def pkgName = libAapt.packageForR
+                def pkgId = sPackageIds[it.name]
+                libRefTable.put(pkgId, pkgName)
+            }
+
             Aapt aapt = new Aapt(unzipApDir, rJavaFile, symbolFile, rev)
             if (small.retainedTypes != null && small.retainedTypes.size() > 0) {
                 aapt.filterResources(small.retainedTypes, filteredResources)
                 Log.success "[${project.name}] split library res files..."
 
-                aapt.filterPackage(small.retainedTypes, small.packageId, small.idMaps,
+                aapt.filterPackage(small.retainedTypes, small.packageId, small.idMaps, libRefTable,
                         small.retainedStyleables, updatedResources)
 
                 Log.success "[${project.name}] slice asset package and reset package id..."

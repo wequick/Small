@@ -46,7 +46,8 @@ public class Aapt {
      * @param pp new package id
      * @param idMaps
      */
-    void filterPackage(List retainedTypes, int pp, Map idMaps, List retainedStyleables,
+    void filterPackage(List retainedTypes, int pp, Map idMaps, Map libRefTable,
+                       List retainedStyleables,
                        Set outUpdatedResources) {
         File arscFile = new File(mAssetDir, FILE_ARSC)
         def arscEditor = new ArscEditor(arscFile, mToolsRevision)
@@ -54,7 +55,7 @@ public class Aapt {
         // Filter R.txt
         if (mSymbolFile != null) filterRtext(mSymbolFile, retainedTypes, retainedStyleables)
         // Filter resources.arsc
-        arscEditor.slice(pp, idMaps, retainedTypes)
+        arscEditor.slice(pp, idMaps, libRefTable, retainedTypes)
         outUpdatedResources.add(FILE_ARSC)
 
         resetAllXmlPackageId(mAssetDir, pp, idMaps, outUpdatedResources)
