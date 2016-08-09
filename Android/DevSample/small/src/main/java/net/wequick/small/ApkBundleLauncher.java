@@ -97,6 +97,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
     private static ConcurrentHashMap<String, List<IntentFilter>> sLoadedIntentFilters;
 
     protected static Instrumentation sHostInstrumentation;
+    private static Instrumentation sBundleInstrumentation;
 
     private static final char REDIRECT_FLAG = '>';
 
@@ -164,6 +165,22 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 applyActivityInfo(activity, ai);
             } while (false);
             sHostInstrumentation.callActivityOnCreate(activity, icicle);
+
+            // Reset activity instrumentation if it was modified by some other applications #245
+            if (sBundleInstrumentation != null) {
+                try {
+                    Field f = Activity.class.getDeclaredField("mInstrumentation");
+                    f.setAccessible(true);
+                    Object instrumentation = f.get(activity);
+                    if (instrumentation != sBundleInstrumentation) {
+                        f.set(activity, sBundleInstrumentation);
+                    }
+                } catch (NoSuchFieldException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
         }
 
         @Override
@@ -390,6 +407,9 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 sHostInstrumentation = (Instrumentation) field.get(thread);
                 Instrumentation wrapper = new InstrumentationWrapper();
                 field.set(thread, wrapper);
+                if (!sHostInstrumentation.getClass().getName().equals("android.app.Instrumentation")) {
+                    sBundleInstrumentation = wrapper; // record for later replacement
+                }
 
                 if (context instanceof Activity) {
                     field = Activity.class.getDeclaredField("mInstrumentation");
