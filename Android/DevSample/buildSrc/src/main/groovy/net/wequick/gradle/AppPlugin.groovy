@@ -497,17 +497,21 @@ class AppPlugin extends BundlePlugin {
 
         // TODO: retain deleted public entries
         if (publicEntries.size() > 0) {
-            publicEntries.each { k, e ->
-                e._typeId = e.typeId
-                e._entryId = e.entryId
-                e.entryId = Aapt.ID_DELETED
+            throw new RuntimeException("No support deleting resources on lib.* now!\n" +
+                    "  - ${publicEntries.keySet().join(", ")}\n" +
+                    "see https://github.com/wequick/Small/issues/53 for more information.")
 
-                def re = retainedPublicEntries.find{it.type == e.type}
-                e.typeId = (re != null) ? re.typeId : Aapt.ID_DELETED
-            }
-            publicEntries.each { k, e ->
-                retainedPublicEntries.add(e)
-            }
+//            publicEntries.each { k, e ->
+//                e._typeId = e.typeId
+//                e._entryId = e.entryId
+//                e.entryId = Aapt.ID_DELETED
+//
+//                def re = retainedPublicEntries.find{it.type == e.type}
+//                e.typeId = (re != null) ? re.typeId : Aapt.ID_DELETED
+//            }
+//            publicEntries.each { k, e ->
+//                retainedPublicEntries.add(e)
+//            }
         }
         if (retainedEntries.size() == 0 && retainedPublicEntries.size() == 0) {
             small.retainedTypes = [] // Doesn't have any resources
