@@ -10,6 +10,7 @@ import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.content.res.XmlResourceParser;
+import android.os.Build;
 import android.os.PatternMatcher;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -67,15 +68,16 @@ public class BundleParser {
             public static final int AndroidManifest_versionName = 1;
             // application
             public static int[] AndroidManifestApplication = {
-                    0x01010000, 0x01010001, 0x01010003
+                    0x01010000, 0x01010001, 0x01010003, 0x010102d3
             };
             public static int AndroidManifestApplication_theme = 0;
             public static int AndroidManifestApplication_label = 1; // for ABIs (Depreciated)
             public static int AndroidManifestApplication_name = 2;
+            public static int AndroidManifestApplication_hardwareAccelerated = 3;
             // activity
             public static int[] AndroidManifestActivity = {
                     0x01010000, 0x01010001, 0x01010002, 0x01010003,
-                    0x0101001d, 0x0101001e, 0x0101022b
+                    0x0101001d, 0x0101001e, 0x0101022b, 0x010102d3
             };
             public static int AndroidManifestActivity_theme = 0;
             public static int AndroidManifestActivity_label = 1;
@@ -84,6 +86,7 @@ public class BundleParser {
             public static int AndroidManifestActivity_launchMode = 4;
             public static int AndroidManifestActivity_screenOrientation = 5;
             public static int AndroidManifestActivity_windowSoftInputMode = 6;
+            public static int AndroidManifestActivity_hardwareAccelerated = 7;
             // data (for intent-filter)
             public static int[] AndroidManifestData = {
                     0x01010026, 0x01010027, 0x01010028, 0x01010029,
@@ -107,6 +110,7 @@ public class BundleParser {
     private Resources res;
     private ConcurrentHashMap<String, List<IntentFilter>> mIntentFilters;
     private boolean mNonResources;
+    private boolean mUsesHardwareAccelerated;
     private String mLibDir;
     private String mLauncherActivityName;
 
@@ -199,8 +203,8 @@ public class BundleParser {
 
                 String tagName = parser.getName();
                 if (tagName.equals("application")) {
-                    ApplicationInfo app = new ApplicationInfo(
-                            Small.getContext().getApplicationInfo());
+                    ApplicationInfo host = mContext.getApplicationInfo();
+                    ApplicationInfo app = new ApplicationInfo(host);
 
                     sa = res.obtainAttributes(attrs,
                             R.styleable.AndroidManifestApplication);
@@ -233,6 +237,13 @@ public class BundleParser {
 
                     app.theme = sa.getResourceId(
                             R.styleable.AndroidManifestApplication_theme, 0);
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                        mUsesHardwareAccelerated = sa.getBoolean(
+                                R.styleable.AndroidManifestApplication_hardwareAccelerated,
+                                host.targetSdkVersion >= Build.VERSION_CODES.ICE_CREAM_SANDWICH);
+                    }
+
                     mPackageInfo.applicationInfo = app;
                     break;
                 }
@@ -291,6 +302,16 @@ public class BundleParser {
                         ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
                 ai.softInputMode = sa.getInteger(
                         R.styleable.AndroidManifestActivity_windowSoftInputMode, 0);
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                    boolean hardwareAccelerated = sa.getBoolean(
+                            R.styleable.AndroidManifestActivity_hardwareAccelerated,
+                            mUsesHardwareAccelerated);
+                    if (hardwareAccelerated) {
+                        ai.flags |= ActivityInfo.FLAG_HARDWARE_ACCELERATED;
+                    }
+                }
+
                 activities.add(ai);
 
                 sa.recycle();
