@@ -23,68 +23,78 @@ class LibraryPlugin extends AppPlugin {
     }
 
     @Override
-    protected void configureProject() {
-        super.configureProject()
+    protected String getSmallCompileType() {
+        return 'compile'
+    }
 
-        if (!isBuildingRelease()) {
-            project.afterEvaluate {
-                // Cause `isBuildingRelease()' return false, at this time, super's
-                // `hookJavacTask' will not be triggered. Provided the necessary jars here.
-                def smallJar = project.fileTree(
-                        dir: rootSmall.preBaseJarDir, include: [SMALL_JAR_PATTERN])
-                def libJars = project.fileTree(dir: rootSmall.preLibsJarDir,
-                        include: mDependentLibProjects.collect { "$it.name-${it.version}.jar" })
-                project.dependencies.add('provided', smallJar)
-                project.dependencies.add('provided', libJars)
+    @Override
+    protected void beforeEvaluate(boolean released) {
+        super.beforeEvaluate(released)
+        if (!released) return
 
-                // Dependently built by `buildBundle' or `:app.xx:assembleRelease'.
-                // To avoid transformNative_libsWithSyncJniLibsForRelease task error, skip it.
-                // FIXME: we'd better figure out why the task failed and fix it
-                def isSyncByIDE = (mT != null && mT.startsWith(":$rootSmall.hostModuleName:generate"))
-                def isBuildingAppBundle = isBuildingApps()
-                def skipsSyncJniLibs = isSyncByIDE || isBuildingAppBundle
-                def skipsSyncLibJars = isBuildingAppBundle
-                if (skipsSyncJniLibs) {
-                    project.preBuild.doLast {
-                        def syncJniTaskName = 'transformNative_libsWithSyncJniLibsForRelease'
-                        if (project.hasProperty(syncJniTaskName)) {
-                            def syncJniTask = project.tasks[syncJniTaskName]
-                            syncJniTask.onlyIf { false }
-                        }
-                    }
-                }
-                if (skipsSyncLibJars) {
-                    project.preBuild.doLast {
-                        def syncLibTaskName = 'transformClassesAndResourcesWithSyncLibJarsForRelease'
-                        if (project.hasProperty(syncLibTaskName)) {
-                            def syncLibTask = project.tasks[syncLibTaskName]
-                            syncLibTask.onlyIf { false }
-                        }
-                    }
-                }
-            }
-            return
+        // Change android plugin from `lib' to `application' dynamically
+        // FIXME: Any better way without edit file?
+
+        if (mBakBuildFile.exists()) {
+            // With `tidyUp', should not reach here
+            throw new Exception("Conflict buildFile, please delete file $mBakBuildFile or " +
+                    "${project.buildFile}")
         }
 
-        project.beforeEvaluate {
-            // Change android plugin from `lib' to `application' dynamically
-            // FIXME: Any better way without edit file?
+        def text = project.buildFile.text.replaceAll(
+                'com\\.android\\.library', 'com.android.application')
+        project.buildFile.renameTo(mBakBuildFile)
+        project.buildFile.write(text)
+    }
 
-            if (mBakBuildFile.exists()) {
-                // With `tidyUp', should not reach here
-                throw new Exception("Conflict buildFile, please delete file $mBakBuildFile or " +
-                        "${project.buildFile}")
-            }
+    @Override
+    protected void afterEvaluate(boolean released) {
+        super.afterEvaluate(released)
 
-            def text = project.buildFile.text.replaceAll(
-                    'com\\.android\\.library', 'com.android.application')
-            project.buildFile.renameTo(mBakBuildFile)
-            project.buildFile.write(text)
-        }
-        project.afterEvaluate {
+        if (released) {
             // Set application id
             def manifest = new XmlParser().parse(android.sourceSets.main.manifestFile)
             android.defaultConfig.applicationId = manifest.@package
+            mDependentLibProjects.each {
+                project.preBuild.dependsOn "${it.path}:buildLib"
+            }
+        } else {
+            // Cause `isBuildingRelease()' return false, at this time, super's
+            // `hookJavacTask' will not be triggered. Provided the necessary jars here.
+            def smallJar = project.fileTree(
+                    dir: rootSmall.preBaseJarDir, include: [SMALL_JAR_PATTERN])
+            def libJars = project.fileTree(dir: rootSmall.preLibsJarDir,
+                    include: mDependentLibProjects.collect { "$it.name-${it.version}.jar" })
+            project.dependencies.add('provided', smallJar)
+            project.dependencies.add('provided', libJars)
+
+            // Dependently built by `buildBundle' or `:app.xx:assembleRelease'.
+            // To avoid transformNative_libsWithSyncJniLibsForRelease task error, skip it.
+            // FIXME: we'd better figure out why the task failed and fix it
+            def mT = rootSmall.mT
+            def isSyncByIDE = (mT != null && mT.startsWith(":$rootSmall.hostModuleName:generate"))
+            def isBuildingAppBundle = rootSmall.isBuildingApps()
+            def skipsSyncJniLibs = isSyncByIDE || isBuildingAppBundle
+            def skipsSyncLibJars = isBuildingAppBundle
+            if (skipsSyncJniLibs) {
+                project.preBuild.doLast {
+                    def syncJniTaskName = 'transformNative_libsWithSyncJniLibsForRelease'
+                    if (project.hasProperty(syncJniTaskName)) {
+                        def syncJniTask = project.tasks[syncJniTaskName]
+                        syncJniTask.onlyIf { false }
+                    }
+                }
+            }
+            if (skipsSyncLibJars) {
+
+                project.preBuild.doLast {
+                    def syncLibTaskName = 'transformClassesAndResourcesWithSyncLibJarsForRelease'
+                    if (project.hasProperty(syncLibTaskName)) {
+                        def syncLibTask = project.tasks[syncLibTaskName]
+                        syncLibTask.onlyIf { false }
+                    }
+                }
+            }
         }
     }
 
@@ -97,17 +107,6 @@ class LibraryPlugin extends AppPlugin {
 
         project.tasks.remove(project.cleanBundle)
         project.tasks.remove(project.buildBundle)
-
-        if (mT != 'buildLib') return
-
-        // Add library dependencies for `buildLib', fix issue #65
-        project.afterEvaluate {
-            if (isBuildingRelease()) {
-                mDependentLibProjects.each {
-                    project.preBuild.dependsOn "${it.path}:buildLib"
-                }
-            }
-        }
     }
 
     @Override
@@ -155,7 +154,7 @@ class LibraryPlugin extends AppPlugin {
     protected void tidyUp() {
         super.tidyUp()
         // Restore library module's android plugin to `com.android.library'
-        if (mBakBuildFile.exists()) {
+        if (mBakBuildFile != null && mBakBuildFile.exists()) {
             project.buildFile.delete()
             mBakBuildFile.renameTo(project.buildFile)
         }

@@ -149,14 +149,14 @@ class RootPlugin extends BasePlugin {
 
             // small
             print String.format('%16s', 'small: ')
-            if (rootSmall.smallProject != null) {
+            if (small.smallProject != null) {
                 def prop = new Properties()
-                prop.load(rootSmall.smallProject.file('gradle.properties').newDataInputStream())
+                prop.load(small.smallProject.file('gradle.properties').newDataInputStream())
                 println "${prop.getProperty('version')} (project)"
             } else {
                 def aarVersion
                 try {
-                    aarVersion = rootSmall.aarVersion
+                    aarVersion = small.aarVersion
                 } catch (Exception e) {
                     aarVersion = 'unspecific'
                 }
@@ -173,7 +173,7 @@ class RootPlugin extends BasePlugin {
             }
             def hasOut = out.exists()
             rows.add(['type', 'name', 'PP', 'file', 'size'])
-            rows.add(['host', rootSmall.hostModuleName, '', '', ''])
+            rows.add(['host', small.hostModuleName, '', '', ''])
             bundleModules.each { type, names ->
                 names.each {
                     def file = null

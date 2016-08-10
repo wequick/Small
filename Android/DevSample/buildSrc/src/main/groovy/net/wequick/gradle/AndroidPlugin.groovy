@@ -5,15 +5,15 @@ import com.android.build.gradle.internal.pipeline.TransformTask
 import com.android.build.gradle.internal.transforms.ProGuardTransform
 import com.android.build.gradle.internal.tasks.PrepareLibraryTask
 import org.gradle.api.Project
-import org.gradle.api.Task
 
 class AndroidPlugin extends BasePlugin {
 
-    protected String mP // the executing gradle project name
-    protected String mT // the executing gradle task name
+    protected boolean released
 
     void apply(Project project) {
         super.apply(project)
+
+        released = isBuildingRelease()
     }
 
     @Override
@@ -25,41 +25,28 @@ class AndroidPlugin extends BasePlugin {
         return (AndroidExtension) project.small
     }
 
+    protected RootExtension getRootSmall() {
+        return project.rootProject.small
+    }
+
     protected com.android.build.gradle.BaseExtension getAndroid() {
         return project.android
     }
+
+    protected String getSmallCompileType() { return null }
 
     @Override
     protected void configureProject() {
         super.configureProject()
 
-        // Parse gradle task
-        def sp = project.gradle.startParameter
-        def t = sp.taskNames[0]
-        if (t != null) {
-            def p = sp.projectDir
-            def pn = null
-            if (p == null) {
-                if (t.startsWith(':')) {
-                    // gradlew :app.main:assembleRelease
-                    def tArr = t.split(':')
-                    if (tArr.length == 3) { // ['', 'app.main', 'assembleRelease']
-                        pn = tArr[1]
-                        t = tArr[2]
-                    }
-                }
-            } else if (p != project.rootProject.projectDir) {
-                // gradlew -p [project.name] assembleRelease
-                pn = p.name
-            }
-            mP = pn
-            mT = t
+        project.beforeEvaluate {
+            beforeEvaluate(released)
         }
 
         project.afterEvaluate {
-            if (!android.hasProperty('applicationVariants')) return
+            afterEvaluate(released)
 
-            def released = isBuildingRelease()
+            if (!android.hasProperty('applicationVariants')) return
 
             android.applicationVariants.all { BaseVariant variant ->
                 // Configure ProGuard if needed
@@ -83,11 +70,22 @@ class AndroidPlugin extends BasePlugin {
                     }
                 }
             }
+        }
+    }
 
-            if (released) {
-                project.tasks['preBuild'].doFirst {
-                    hookPreReleaseBuild()
-                }
+    protected void beforeEvaluate(boolean released) { }
+
+    protected void afterEvaluate(boolean released) {
+        // Automatic add `small' dependency
+        if (rootSmall.smallProject != null) {
+            project.dependencies.add(smallCompileType, rootSmall.smallProject)
+        } else {
+            project.dependencies.add(smallCompileType, "${SMALL_AAR_PREFIX}$rootSmall.aarVersion")
+        }
+
+        if (released) {
+            project.tasks['preBuild'].doFirst {
+                hookPreReleaseBuild()
             }
         }
     }
@@ -129,6 +127,8 @@ class AndroidPlugin extends BasePlugin {
 
     /** Check if is building self in release mode */
     protected boolean isBuildingRelease() {
+        def mT = rootSmall.mT
+        def mP = rootSmall.mP
         if (mT == null) return false // no tasks
 
         if (mP == null) {
@@ -137,32 +137,6 @@ class AndroidPlugin extends BasePlugin {
                     (mT == 'buildLib') : (mT == 'buildBundle')
         } else {
             return (mP == project.name && (mT == 'assembleRelease' || mT == 'aR'))
-        }
-    }
-
-    /** Check if is building any libs (lib.*) */
-    protected boolean isBuildingLibs() {
-        if (mT == null) return false // no tasks
-
-        if (mP == null) {
-            // ./gradlew buildLib
-            return (mT == 'buildLib')
-        } else {
-            // ./gradlew -p lib.xx aR | ./gradlew :lib.xx:aR
-            return (mP.startsWith('lib.') && (mT == 'assembleRelease' || mT == 'aR'))
-        }
-    }
-
-    /** Check if is building any apps (app.*) */
-    protected boolean isBuildingApps() {
-        if (mT == null) return false // no tasks
-
-        if (mP == null) {
-            // ./gradlew buildBundle
-            return (mT == 'buildBundle')
-        } else {
-            // ./gradlew -p app.xx aR | ./gradlew :app.xx:aR
-            return (mP.startsWith('app.') && (mT == 'assembleRelease' || mT == 'aR'))
         }
     }
 }

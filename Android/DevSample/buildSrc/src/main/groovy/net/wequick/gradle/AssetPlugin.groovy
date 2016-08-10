@@ -41,18 +41,16 @@ class AssetPlugin extends BundlePlugin {
     }
 
     @Override
-    protected void configureProject() {
-        super.configureProject()
+    protected void afterEvaluate(boolean released) {
+        super.afterEvaluate(released)
 
-        project.afterEvaluate {
-            // Task for log
-            def orgGroup = project.preBuild.group // Keep original task group
-            project.task('preBuild', group: orgGroup, overwrite: true)
+        // Task for log
+        def orgGroup = project.preBuild.group // Keep original task group
+        project.task('preBuild', group: orgGroup, overwrite: true)
 
-            orgGroup = project.assembleRelease.group
-            project.task('assembleRelease', group: orgGroup, overwrite: true) << {
-                tidyUp()
-            }
+        orgGroup = project.assembleRelease.group
+        project.task('assembleRelease', group: orgGroup, overwrite: true) << {
+            tidyUp()
         }
     }
 

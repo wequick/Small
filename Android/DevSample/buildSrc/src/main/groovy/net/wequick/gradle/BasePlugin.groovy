@@ -75,18 +75,6 @@ public abstract class BasePlugin implements Plugin<Project> {
             if (result.failure == null) return
             tidyUp()
         }
-
-        // Automatic add `small' dependency
-        if (smallCompileType != null) {
-            project.afterEvaluate {
-                if (rootSmall.smallProject != null) {
-                    project.dependencies.add(smallCompileType, rootSmall.smallProject)
-                } else {
-                    def version = rootSmall.aarVersion
-                    project.dependencies.add(smallCompileType, "${SMALL_AAR_PREFIX}$version")
-                }
-            }
-        }
     }
 
     protected void createTask() {}
@@ -95,16 +83,10 @@ public abstract class BasePlugin implements Plugin<Project> {
         return (T) project.small
     }
 
-    protected RootExtension getRootSmall() {
-        return project.rootProject.small
-    }
-
     protected PluginType getPluginType() { return PluginType.Unknown }
 
     /** Restore state for DEBUG mode */
     protected void tidyUp() { }
-
-    protected String getSmallCompileType() { return null }
 
     protected abstract Class<? extends BaseExtension> getExtensionClass()
 

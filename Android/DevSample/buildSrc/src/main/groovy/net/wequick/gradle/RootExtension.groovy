@@ -87,6 +87,9 @@ public class RootExtension extends BaseExtension {
     private File preLinkAarDir
     private File preLinkJarDir
 
+    protected String mP // the executing gradle project name
+    protected String mT // the executing gradle task name
+
     RootExtension(Project project) {
         super(project)
 
@@ -102,6 +105,29 @@ public class RootExtension extends BaseExtension {
         def preLinkDir = new File(interDir, FD_PRE_LINK)
         preLinkJarDir = new File(preLinkDir, FD_JAR)
         preLinkAarDir = new File(preLinkDir, FD_AAR)
+
+        // Parse gradle task
+        def sp = project.gradle.startParameter
+        def t = sp.taskNames[0]
+        if (t != null) {
+            def p = sp.projectDir
+            def pn = null
+            if (p == null) {
+                if (t.startsWith(':')) {
+                    // gradlew :app.main:assembleRelease
+                    def tArr = t.split(':')
+                    if (tArr.length == 3) { // ['', 'app.main', 'assembleRelease']
+                        pn = tArr[1]
+                        t = tArr[2]
+                    }
+                }
+            } else if (p != project.rootProject.projectDir) {
+                // gradlew -p [project.name] assembleRelease
+                pn = p.name
+            }
+            mP = pn
+            mT = t
+        }
     }
 
     public File getPreBuildDir() {
@@ -175,7 +201,33 @@ public class RootExtension extends BaseExtension {
         modules.addAll(names)
     }
 
-    public void compileSdkVersion(int apiLevel) {
+    public void android(Closure closure) {
+        println closure.getProperty('buildToolsVersion')
+    }
 
+    /** Check if is building any libs (lib.*) */
+    protected boolean isBuildingLibs() {
+        if (mT == null) return false // no tasks
+
+        if (mP == null) {
+            // ./gradlew buildLib
+            return (mT == 'buildLib')
+        } else {
+            // ./gradlew -p lib.xx aR | ./gradlew :lib.xx:aR
+            return (mP.startsWith('lib.') && (mT == 'assembleRelease' || mT == 'aR'))
+        }
+    }
+
+    /** Check if is building any apps (app.*) */
+    protected boolean isBuildingApps() {
+        if (mT == null) return false // no tasks
+
+        if (mP == null) {
+            // ./gradlew buildBundle
+            return (mT == 'buildBundle')
+        } else {
+            // ./gradlew -p app.xx aR | ./gradlew :app.xx:aR
+            return (mP.startsWith('app.') && (mT == 'assembleRelease' || mT == 'aR'))
+        }
     }
 }

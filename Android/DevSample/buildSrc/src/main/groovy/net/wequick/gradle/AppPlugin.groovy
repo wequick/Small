@@ -74,43 +74,40 @@ class AppPlugin extends BundlePlugin {
     }
 
     @Override
-    protected void configureProject() {
-        super.configureProject()
+    protected void afterEvaluate(boolean released) {
+        super.afterEvaluate(released)
 
-        project.afterEvaluate {
-            // Initialize a resource package id for current bundle
-            initPackageId()
+        // Initialize a resource package id for current bundle
+        initPackageId()
 
-            // Get all dependencies with gradle script `compile project(':lib.*')'
-            DependencySet compilesDependencies = project.configurations.compile.dependencies
-            Set<DefaultProjectDependency> allLibs = compilesDependencies.withType(DefaultProjectDependency.class)
-            Set<DefaultProjectDependency> smallLibs = []
-            mUserLibAars = []
-            mDependentLibProjects = []
-            allLibs.each {
-                if (it.dependencyProject.name.startsWith('lib.')) {
-                    smallLibs.add(it)
-                    mDependentLibProjects.add(it.dependencyProject)
-                } else {
-                    mUserLibAars.add(group: it.group, name: it.name, version: it.version)
-                }
-            }
-            if (isBuildingLibs()) {
-                // While building libs, `lib.*' modules are changing to be an application
-                // module and cannot be depended by any other modules. To avoid warnings,
-                // remove the `compile project(':lib.*')' dependencies temporary.
-                compilesDependencies.removeAll(smallLibs)
+        // Get all dependencies with gradle script `compile project(':lib.*')'
+        DependencySet compilesDependencies = project.configurations.compile.dependencies
+        Set<DefaultProjectDependency> allLibs = compilesDependencies.withType(DefaultProjectDependency.class)
+        Set<DefaultProjectDependency> smallLibs = []
+        mUserLibAars = []
+        mDependentLibProjects = []
+        allLibs.each {
+            if (it.dependencyProject.name.startsWith('lib.')) {
+                smallLibs.add(it)
+                mDependentLibProjects.add(it.dependencyProject)
+            } else {
+                mUserLibAars.add(group: it.group, name: it.name, version: it.version)
             }
         }
 
-        if (!isBuildingRelease()) return
-
-        project.afterEvaluate {
-            // Add custom transformation to split shared libraries
-            android.registerTransform(new StripAarTransform())
-
-            resolveReleaseDependencies()
+        if (rootSmall.isBuildingLibs()) {
+            // While building libs, `lib.*' modules are changing to be an application
+            // module and cannot be depended by any other modules. To avoid warnings,
+            // remove the `compile project(':lib.*')' dependencies temporary.
+            compilesDependencies.removeAll(smallLibs)
         }
+
+        if (!released) return
+
+        // Add custom transformation to split shared libraries
+        android.registerTransform(new StripAarTransform())
+
+        resolveReleaseDependencies()
     }
 
     protected static def getJarName(Project project) {
@@ -1094,7 +1091,6 @@ class AppPlugin extends BundlePlugin {
             }
         }
     }
-
 
     /**
      * Hook javac task to split libraries' R.class

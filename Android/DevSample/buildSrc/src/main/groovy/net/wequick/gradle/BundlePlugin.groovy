@@ -39,28 +39,25 @@ abstract class BundlePlugin extends AndroidPlugin {
     }
 
     @Override
-    protected void configureProject() {
-        super.configureProject()
+    protected void afterEvaluate(boolean released) {
+        super.afterEvaluate(released)
+        if (!released) return
 
-        project.afterEvaluate {
-            if (isBuildingRelease()) {
-                BuildType buildType = android.buildTypes.find { it.name == 'release' }
+        BuildType buildType = android.buildTypes.find { it.name == 'release' }
 
-                Project hostProject = rootSmall.hostProject
-                com.android.build.gradle.BaseExtension hostAndroid = hostProject.android
-                def hostDebugBuildType = hostAndroid.buildTypes.find { it.name == 'debug' }
-                def hostReleaseBuildType = hostAndroid.buildTypes.find { it.name == 'release' }
+        Project hostProject = rootSmall.hostProject
+        com.android.build.gradle.BaseExtension hostAndroid = hostProject.android
+        def hostDebugBuildType = hostAndroid.buildTypes.find { it.name == 'debug' }
+        def hostReleaseBuildType = hostAndroid.buildTypes.find { it.name == 'release' }
 
-                // Copy host signing configs
-                def sc = hostReleaseBuildType.signingConfig ?: hostDebugBuildType.signingConfig
-                buildType.setSigningConfig(sc)
+        // Copy host signing configs
+        def sc = hostReleaseBuildType.signingConfig ?: hostDebugBuildType.signingConfig
+        buildType.setSigningConfig(sc)
 
-                // Enable minify if the command line defined `-Dbundle.minify=true'
-                def minify = System.properties['bundle.minify']
-                if (minify != null) {
-                    buildType.setMinifyEnabled(minify == 'true')
-                }
-            }
+        // Enable minify if the command line defined `-Dbundle.minify=true'
+        def minify = System.properties['bundle.minify']
+        if (minify != null) {
+            buildType.setMinifyEnabled(minify == 'true')
         }
     }
 
