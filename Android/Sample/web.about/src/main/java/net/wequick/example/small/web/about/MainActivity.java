@@ -10,6 +10,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Small.preSetUp(getApplication());
+        Small.setUp(this, null);
         Small.openUri("file:///android_asset/index.html", MainActivity.this);
         finish();
     }
