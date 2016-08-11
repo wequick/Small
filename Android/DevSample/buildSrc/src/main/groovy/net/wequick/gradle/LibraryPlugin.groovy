@@ -24,6 +24,9 @@ class LibraryPlugin extends AppPlugin {
 
     @Override
     protected String getSmallCompileType() {
+        if (rootSmall.isBuildingApps() || rootSmall.isBuildingLibs()) {
+            return 'debugCompile'
+        }
         return 'compile'
     }
 
