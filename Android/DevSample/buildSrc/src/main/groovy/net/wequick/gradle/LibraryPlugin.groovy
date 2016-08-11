@@ -54,14 +54,14 @@ class LibraryPlugin extends AppPlugin {
     protected void afterEvaluate(boolean released) {
         super.afterEvaluate(released)
 
-        if (released) {
+        if (released) { //< apply: 'com.android.application'
             // Set application id
             def manifest = new XmlParser().parse(android.sourceSets.main.manifestFile)
             android.defaultConfig.applicationId = manifest.@package
             mDependentLibProjects.each {
                 project.preBuild.dependsOn "${it.path}:buildLib"
             }
-        } else {
+        } else { //< apply: 'com.android.library'
             // Cause `isBuildingRelease()' return false, at this time, super's
             // `hookJavacTask' will not be triggered. Provided the necessary jars here.
             def smallJar = project.fileTree(
@@ -71,30 +71,33 @@ class LibraryPlugin extends AppPlugin {
             project.dependencies.add('provided', smallJar)
             project.dependencies.add('provided', libJars)
 
-            // Dependently built by `buildBundle' or `:app.xx:assembleRelease'.
-            // To avoid transformNative_libsWithSyncJniLibsForRelease task error, skip it.
-            // FIXME: we'd better figure out why the task failed and fix it
-            def mT = rootSmall.mT
-            def isSyncByIDE = (mT != null && mT.startsWith(":$rootSmall.hostModuleName:generate"))
-            def isBuildingAppBundle = rootSmall.isBuildingApps()
-            def skipsSyncJniLibs = isSyncByIDE || isBuildingAppBundle
-            def skipsSyncLibJars = isBuildingAppBundle
-            if (skipsSyncJniLibs) {
-                project.preBuild.doLast {
-                    def syncJniTaskName = 'transformNative_libsWithSyncJniLibsForRelease'
-                    if (project.hasProperty(syncJniTaskName)) {
-                        def syncJniTask = project.tasks[syncJniTaskName]
-                        syncJniTask.onlyIf { false }
-                    }
-                }
-            }
-            if (skipsSyncLibJars) {
+            // Resolve the transform tasks
+            project.preBuild.doLast {
+                def ts = project.tasks.withType(TransformTask.class)
 
-                project.preBuild.doLast {
-                    def syncLibTaskName = 'transformClassesAndResourcesWithSyncLibJarsForRelease'
-                    if (project.hasProperty(syncLibTaskName)) {
-                        def syncLibTask = project.tasks[syncLibTaskName]
-                        syncLibTask.onlyIf { false }
+                ts.each { t ->
+                    if (t.transform.outputTypes.isEmpty()) return
+                    if (t.transform.scopes.isEmpty()) return
+
+                    def requiredOutput = IntermediateFolderUtils.getContentLocation(
+                            t.streamOutputFolder, 'main',
+                            t.transform.outputTypes, t.transform.scopes,
+                            Format.DIRECTORY) // folders/2000/1f/main
+                    def requiredScope = requiredOutput.parentFile // folders/2000/1f
+                    if (requiredScope.exists()) return
+                    def typesDir = requiredScope.parentFile // folders/2000
+                    if (!typesDir.exists()) return
+
+                    def currentScope = typesDir.listFiles().find { it.isDirectory() }
+                    if (currentScope != requiredScope) {
+                        // Scope conflict!
+                        // This may be caused by:
+                        // - 1. After `buildLib', the `lib.*' module was apply to
+                        //      'com.android.application' and the transform scopes turn to be `1f'.
+                        // - 2. In other way, it was apply to
+                        //      'com.android.library' and the scopes are `3'.
+                        // What we can do is just rename the folder to make consistent.
+                        currentScope.renameTo(requiredScope)
                     }
                 }
             }

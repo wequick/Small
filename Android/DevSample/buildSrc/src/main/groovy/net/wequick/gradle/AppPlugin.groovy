@@ -798,6 +798,11 @@ class AppPlugin extends BundlePlugin {
 
         hookJavac(small.javac, variant.buildType.minifyEnabled)
 
+        def mergeJniLibsTask = project.tasks.withType(TransformTask.class).find {
+            it.transform.name == 'mergeJniLibs' && it.variantName == variant.name
+        }
+        hookMergeJniLibs(mergeJniLibsTask)
+
         // Hook clean task to unset package id
         project.clean.doLast {
             sPackageIds.remove(project.name)
@@ -805,38 +810,73 @@ class AppPlugin extends BundlePlugin {
     }
 
     /**
+     * Hook merge-jniLibs task to ignores the lib.* native libraries
+     * TODO: filter the native libraries while exploding aar
+     */
+    def hookMergeJniLibs(TransformTask t) {
+        stripAarFiles(t, { paths ->
+            t.streamInputs.each {
+                def version = it.parentFile
+                def name = version.parentFile
+                def group = name.parentFile
+                def root = group.parentFile
+                if (root.name != 'exploded-aar') return
+
+                def aar = [group: group.name, name: name.name, version: version.name]
+                if (mUserLibAars.contains(aar)) return
+
+                paths.add(it)
+            }
+        })
+    }
+
+    /**
      * Hook merge-assets task to ignores the lib.* assets
      * TODO: filter the assets while exploding aar
-     * @param mergeAssetsTask
      */
-    private void hookMergeAssets(MergeSourceSetFolders mergeAssetsTask) {
-        mergeAssetsTask.doFirst { MergeSourceSetFolders it ->
-            def stripPaths = new HashSet<File>()
-            mergeAssetsTask.inputDirectorySets.each {
+    private void hookMergeAssets(MergeSourceSetFolders t) {
+        stripAarFiles(t, { paths ->
+            t.inputDirectorySets.each {
                 if (it.configName == 'main' || it.configName == 'release') return
+
                 it.sourceFiles.each {
                     def version = it.parentFile
                     def name = version.parentFile
                     def group = name.parentFile
                     def aar = [group: group.name, name: name.name, version: version.name]
-                    if (!mUserLibAars.contains(aar)) {
-                        stripPaths.add(it)
-                    }
+                    if (mUserLibAars.contains(aar)) return
+
+                    paths.add(it)
                 }
             }
+        })
+    }
 
-            def filteredAssets = []
+    /**
+     * A hack way to strip aar files:
+     *  - Strip the task inputs before the task execute
+     *  - Restore the inputs after the task executed
+     * by what the task doesn't know what happen, and will be considered as 'UP-TO-DATE'
+     * at next time it be called. This means a less I/O.
+     * @param t the task who will merge aar files
+     * @param closure the function to gather all the paths to be stripped
+     */
+    private static void stripAarFiles(Task t, Closure closure) {
+        t.doFirst {
+            List<File> stripPaths = []
+            closure(stripPaths)
+
+            Set<Map> strips = []
             stripPaths.each {
                 def backup = new File(it.parentFile, "$it.name~")
-                filteredAssets.add(org: it, backup: backup)
+                strips.add(org: it, backup: backup)
                 it.renameTo(backup)
             }
-            it.extensions.add('filteredAssets', filteredAssets)
+            it.extensions.add('strips', strips)
         }
-
-        mergeAssetsTask.doLast {
-            Set<Map> filteredAssets = (Set<Map>) it.extensions.getByName('filteredAssets')
-            filteredAssets.each {
+        t.doLast {
+            Set<Map> strips = (Set<Map>) it.extensions.getByName('strips')
+            strips.each {
                 it.backup.renameTo(it.org)
             }
         }
