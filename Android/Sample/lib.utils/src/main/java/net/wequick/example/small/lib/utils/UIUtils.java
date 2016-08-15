@@ -10,13 +10,13 @@ import android.widget.Toast;
  */
 public class UIUtils {
     public static void showToast(Context context, String tips) {
-        Toast toast = Toast.makeText(context, "lib.utils: " + tips, Toast.LENGTH_SHORT);
+        Toast toast = Toast.makeText(context, "NEW lib.utils: " + tips, Toast.LENGTH_SHORT);
         toast.show();
     }
 
     public static void alert(Context context, String tips) {
         AlertDialog dlg = new AlertDialog.Builder(context)
-                .setMessage("lib.utils: " + tips)
+                .setMessage("NEW lib.utils: " + tips)
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {

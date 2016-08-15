@@ -2,8 +2,7 @@ include ':small'
 
 def externalModules = [
     ':app',
-    ':app.main', ':app.home', ':app.detail', ':app.mine',
-    ':web.about',
+    ':app.main', ':app.home', ':app.detail', ':app.mine', ':app.about',
     ':lib.utils', ':lib.style', ':lib.afterutils', ':lib.analytics',
     ':jni_plugin'
 ] as String[]

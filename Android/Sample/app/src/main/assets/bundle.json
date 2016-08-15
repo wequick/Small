@@ -34,7 +34,7 @@
     },
     {
       "uri": "about",
-      "pkg": "net.wequick.example.small.web.about"
+      "pkg": "net.wequick.example.small.app.about"
     }
   ]
 }
