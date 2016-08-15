@@ -1,3 +1,10 @@
+## 1.0.0-beta7 (2016-08-11)
+
+Bugfixes:
+
+  - 修正`buildLib`后再单独运行插件时可能出现的`transform`失败问题
+  - 修正单独运行插件再`buildBundle`时, 会将`lib.*`中的JNI携带到`app.*`的问题
+
 ## 1.0.0-beta6 (2016-08-09)
 
 Bugfixes:
