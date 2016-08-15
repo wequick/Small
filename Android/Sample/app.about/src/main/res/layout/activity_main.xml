@@ -40,6 +40,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Call app.detail"
+            android:textColor="@color/colorAccent"
+            android:background="@android:color/transparent"
             android:id="@+id/btn_detail"
             app:textAllCaps="false"
             android:layout_gravity="center_horizontal" />
@@ -48,6 +50,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Apache License 2.0"
+            android:textColor="@color/colorAccent"
+            android:background="@android:color/transparent"
             android:id="@+id/btn_license"
             app:textAllCaps="false"
             android:layout_gravity="center_horizontal" />
@@ -56,6 +60,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="code.wequick.net"
+            android:textColor="@color/colorAccent"
+            android:background="@android:color/transparent"
             android:id="@+id/btn_wequick"
             app:textAllCaps="false"
             android:layout_gravity="center_horizontal" />
