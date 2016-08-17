@@ -193,22 +193,38 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             // and while we are back to foreground, all the things(code & layout) will be reload.
             // Don't worry about the data missing in current activity, you can do all the backups
             // with your activity's `onSaveInstanceState' and `onRestoreInstanceState'.
+
+            // Get all the processes of device (1)
             ActivityManager am = (ActivityManager) activity.getSystemService(Context.ACTIVITY_SERVICE);
             List<RunningAppProcessInfo> processes = am.getRunningAppProcesses();
             if (processes == null) return;
 
+            // Gather all the processes of current application (2)
+            // Above 5.1.1, this may be equals to (1), on the safe side, we also
+            // filter the processes with current package name.
             String pkg = activity.getApplicationContext().getPackageName();
-            ActivityManager.RunningAppProcessInfo self = null;
-            for (ActivityManager.RunningAppProcessInfo p : processes) {
-                if (p.processName.equals(pkg)) {
-                    self = p;
-                    break;
-                }
-            }
-            if (self == null) return;
-            if (self.importance == RunningAppProcessInfo.IMPORTANCE_FOREGROUND) return;
+            final List<RunningAppProcessInfo> currentAppProcesses = new ArrayList<>(processes.size());
+            for (RunningAppProcessInfo p : processes) {
+                if (p.pkgList == null) continue;
 
-            final int pid = self.pid;
+                boolean match = false;
+                int N = p.pkgList.length;
+                for (int i = 0; i < N; i++) {
+                    if (p.pkgList[i].equals(pkg)) {
+                        match = true;
+                        break;
+                    }
+                }
+                if (!match) continue;
+
+                currentAppProcesses.add(p);
+            }
+            if (currentAppProcesses.isEmpty()) return;
+
+            // The top process of current application processes.
+            RunningAppProcessInfo currentProcess = currentAppProcesses.get(0);
+            if (currentProcess.importance == RunningAppProcessInfo.IMPORTANCE_FOREGROUND) return;
+
             // Seems should delay some time to ensure the activity can be successfully
             // restarted after the application restart.
             // FIXME: remove following thread if you find the better place to `killProcess'
@@ -220,7 +236,9 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    android.os.Process.killProcess(pid);
+                    for (RunningAppProcessInfo p : currentAppProcesses) {
+                        android.os.Process.killProcess(p.pid);
+                    }
                 }
             }.start();
         }
