@@ -405,7 +405,7 @@ public class Bundle {
         if (this.uriString == null || !uriString.startsWith(this.uriString)) return false;
 
         String srcPath = uriString.substring(this.uriString.length());
-        String srcQuery = uri.getQuery();
+        String srcQuery = uri.getEncodedQuery();
         if (srcQuery != null) {
             srcPath = srcPath.substring(0, srcPath.length() - srcQuery.length() - 1);
         }
