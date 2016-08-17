@@ -66,6 +66,7 @@ public final class Small {
     private static Application sContext = null;
     private static String sBaseUri = ""; // base url of uri
     private static boolean sIsNewHostApp; // first launched or upgraded
+    private static boolean sHasSetUp;
     private static int sWebActivityTheme;
 
     private static byte[][] sHostCertificates;
@@ -86,8 +87,16 @@ public final class Small {
         return sBaseUri;
     }
 
+    /**
+     * @deprecated Use {@link #isFirstSetUp} instead
+     * @return
+     */
     public static boolean getIsNewHostApp() {
         return sIsNewHostApp;
+    }
+
+    public static boolean isFirstSetUp() {
+        return sIsNewHostApp && !sHasSetUp;
     }
 
     public static byte[][] getHostCertificates() {
@@ -106,20 +115,15 @@ public final class Small {
         String packageName = context.getPackageName();
 
         // Check if host app is first-installed or upgraded
-        int backupHostVersion = getHostVersionCode();
-        int currHostVersion = 0;
         try {
             PackageInfo pi = pm.getPackageInfo(packageName, 0);
-            currHostVersion = pi.versionCode;
+            int launchingVersion = pi.versionCode;
+            if (getLaunchedHostVersionCode() != launchingVersion) {
+                sIsNewHostApp = true;
+                setLaunchedHostVersionCode(launchingVersion);
+            }
         } catch (PackageManager.NameNotFoundException ignored) {
             // Never reach
-        }
-
-        if (backupHostVersion != currHostVersion) {
-            sIsNewHostApp = true;
-            setHostVersionCode(currHostVersion);
-        } else {
-            sIsNewHostApp = false;
         }
 
         // Collect host certificates
@@ -154,8 +158,17 @@ public final class Small {
             throw new UnsupportedOperationException(
                     "Please call `Small.preSetUp' in your application first");
         }
+
+        if (sHasSetUp) {
+            if (listener != null) {
+                listener.onComplete();
+            }
+            return;
+        }
+
         Bundle.setupLaunchers(context);
         Bundle.loadLaunchableBundles(listener);
+        sHasSetUp = true;
     }
 
     public static Bundle getBundle(String bundleName) {
@@ -183,12 +196,12 @@ public final class Small {
                 getSharedPreferences(SHARED_PREFERENCES_BUNDLE_VERSIONS, 0).getAll();
     }
 
-    public static int getHostVersionCode() {
+    private static int getLaunchedHostVersionCode() {
         return getContext().getSharedPreferences(SHARED_PREFERENCES_SMALL, 0).
                 getInt(SHARED_PREFERENCES_KEY_VERSION, 0);
     }
 
-    public static void setHostVersionCode(int versionCode) {
+    private static void setLaunchedHostVersionCode(int versionCode) {
         SharedPreferences small = getContext().getSharedPreferences(SHARED_PREFERENCES_SMALL, 0);
         SharedPreferences.Editor editor = small.edit();
         editor.putInt(SHARED_PREFERENCES_KEY_VERSION, versionCode);
