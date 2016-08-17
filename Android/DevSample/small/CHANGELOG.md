@@ -1,3 +1,15 @@
+## 1.1.0-beta5 (2016-08-17)
+
+Bugfixes:
+
+  - 确保后台升级时能够杀死应用程序相关进程
+  - 避免 `Small.setUp` 重复调用时可能引起的 `pre-verify` 错误
+  - 修正当 `query` 被url编码后无法正确匹配 `uri` 的问题 (#222)
+
+Other:
+
+  - 引入 `Small.isFirstSetUp` 方法来判断是否首次启动
+
 ## 1.1.0-beta4 (2016-08-09)
 
 Bugfixes:
