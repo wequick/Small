@@ -713,7 +713,7 @@ class AppPlugin extends BundlePlugin {
             // This is all the aar coding-referent fields: `R.*.*'
             // We had to parse this cause the aar maybe referenced to the other external aars like
             // `AppCompat' and so on, so that we should keep those external `R.*.*' for current aar.
-            // Fix issue #273.
+            // Fix issue #271.
             File jar = new File(aarPath, 'jars/classes.jar')
             if (jar.exists()) {
                 def codedTypeEntries = []
