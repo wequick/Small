@@ -28,6 +28,7 @@ import groovy.io.FileType
 import net.wequick.gradle.aapt.Aapt
 import net.wequick.gradle.aapt.SymbolParser
 import net.wequick.gradle.transform.StripAarTransform
+import net.wequick.gradle.util.ClassFileUtils
 import net.wequick.gradle.util.JNIUtils
 import net.wequick.gradle.util.ZipUtils
 import org.gradle.api.Project
@@ -682,17 +683,22 @@ class AppPlugin extends BundlePlugin {
         allStyleables.addAll(retainedStyleables)
 
         // Collect vendor types and styleables
-        def vendorEntries = [:]
-        def vendorStyleableKeys = [:]
+        def vendorEntries = new HashMap<String, HashSet<SymbolParser.Entry>>()
+        def vendorStyleableKeys = new HashMap<String, HashSet<String>>()
         transitiveVendorAars.each { aar ->
             String path = aar.path
             File aarPath = new File(small.aarDir, path)
             String resPath = new File(aarPath, 'res').absolutePath
             File symbol = new File(aarPath, 'R.txt')
-            Set<Map> resTypeEntries = []
-            Set<String> resStyleableKeys = []
+            Set<SymbolParser.Entry> resTypeEntries = new HashSet<>()
+            Set<String> resStyleableKeys = new HashSet<>()
 
-            // Collect the id entries for the aar
+            // Collect the resource entries declared in the aar res directory
+            // This is all the arr's own resource: `R.layout.*', `R.string.*' and etc.
+            collectReservedResourceKeys(aar.version, resPath, resTypeEntries, resStyleableKeys)
+
+            // Collect the id entries for the aar, fix #230
+            // This is all the aar id references: `R.id.*'
             def idEntries = []
             def libIdKeys = []
             libEntries.each { k, v ->
@@ -701,17 +707,75 @@ class AppPlugin extends BundlePlugin {
                 }
             }
             SymbolParser.collectResourceKeys(symbol, 'id', libIdKeys, idEntries, null)
+            resTypeEntries.addAll(idEntries)
 
-            // Collect the resource entries declared in the aar res directory
-            collectReservedResourceKeys(aar.version, resPath, resTypeEntries, resStyleableKeys)
+            // Collect the resource references from *.class
+            // This is all the aar coding-referent fields: `R.*.*'
+            // We had to parse this cause the aar maybe referenced to the other external aars like
+            // `AppCompat' and so on, so that we should keep those external `R.*.*' for current aar.
+            // Fix issue #273.
+            File jar = new File(aarPath, 'jars/classes.jar')
+            if (jar.exists()) {
+                def codedTypeEntries = []
+                def codedStyleableKeys = []
 
-            resTypeEntries.addAll(idEntries) // reserve R.id.* for the aar, fix #230
+                File aarSymbolsDir = new File(small.aarDir.parentFile, 'small-symbols')
+                File refDir = new File(aarSymbolsDir, path)
+                File refFile = new File(refDir, 'R.txt')
+                if (refFile.exists()) {
+                    // Parse from file
+                    SymbolParser.collectAarResourceKeys(refFile, codedTypeEntries, codedStyleableKeys)
+                } else {
+                    // Parse classes
+                    if (!refDir.exists()) refDir.mkdirs()
+
+                    File unzipDir = new File(refDir, 'classes')
+                    project.copy {
+                        from project.zipTree(jar)
+                        into unzipDir
+                    }
+                    Set<Map> resRefs = []
+                    unzipDir.eachFileRecurse(FileType.FILES, {
+                        if (!it.name.endsWith('.class')) return
+
+                        ClassFileUtils.collectResourceReferences(it, resRefs)
+                    })
+
+                    // TODO: read the aar package name once and store
+                    File manifestFile = new File(aarPath, 'AndroidManifest.xml')
+                    def manifest = new XmlParser().parse(manifestFile)
+                    String aarPkg = manifest.@package.replaceAll('\\.', '/')
+
+                    def pw = new PrintWriter(new FileWriter(refFile))
+                    resRefs.each {
+                        if (it.pkg != aarPkg) {
+                            println "Unresolved refs: $it.pkg/$it.type/$it.name for $aarPkg"
+                            return
+                        }
+
+                        def type = it.type
+                        def name = it.name
+                        def key = "$type/$name"
+                        if (type == 'styleable') {
+                            codedStyleableKeys.add(type)
+                        } else {
+                            codedTypeEntries.add(new SymbolParser.Entry(type, name))
+                        }
+                        pw.println key
+                    }
+                    pw.flush()
+                    pw.close()
+                }
+
+                resTypeEntries.addAll(codedTypeEntries)
+                resStyleableKeys.addAll(codedStyleableKeys)
+            }
 
             vendorEntries.put(path, resTypeEntries)
             vendorStyleableKeys.put(path, resStyleableKeys)
         }
 
-        def vendorTypes = [:]
+        def vendorTypes = new HashMap<String, List<Map>>()
         def vendorStyleables = [:]
         vendorEntries.each { name, es ->
             if (es.isEmpty()) return
@@ -1070,6 +1134,7 @@ class AppPlugin extends BundlePlugin {
                 def retainedRFiles = [small.rJavaFile]
                 small.vendorTypes.each { name, types ->
                     File aarDir = new File(small.aarDir, name)
+                    // TODO: read the aar package name once and store
                     File manifestFile = new File(aarDir, 'AndroidManifest.xml')
                     def manifest = new XmlParser().parse(manifestFile)
                     String aarPkg = manifest.@package
@@ -1170,8 +1235,8 @@ class AppPlugin extends BundlePlugin {
      * resource `mipmap/ic_launcher' and `string/app_name' are excluded.
      */
     protected def getReservedResourceKeys() {
-        Set<Map> outTypeEntries = []
-        Set<String> outStyleableKeys = []
+        Set<SymbolParser.Entry> outTypeEntries = new HashSet<>()
+        Set<String> outStyleableKeys = new HashSet<>()
         collectReservedResourceKeys(null, null, outTypeEntries, outStyleableKeys)
         def keys = []
         outTypeEntries.each {
@@ -1183,7 +1248,9 @@ class AppPlugin extends BundlePlugin {
         return keys
     }
 
-    protected void collectReservedResourceKeys(config, path, outTypeEntries, outStyleableKeys) {
+    protected void collectReservedResourceKeys(config, path,
+                                               Set<SymbolParser.Entry> outTypeEntries,
+                                               Set<String> outStyleableKeys) {
         def merger = new XmlParser().parse(small.mergerXml)
         def filter = config == null ? {
             it.@config == 'main' || it.@config == 'release'
@@ -1196,18 +1263,18 @@ class AppPlugin extends BundlePlugin {
                 if (path != null && it.@path != path) return
 
                 it.file.each {
-                    def type = it.@type
+                    String type = it.@type
                     if (type != null) { // <file name="activity_main" ... type="layout"/>
                         def name = it.@name
                         if (type == 'mipmap' && name == 'ic_launcher') return // NO NEED IN BUNDLE
-                        def key = [type: type, name: name] // layout/activity_main
-                        if (!outTypeEntries.contains(key)) outTypeEntries.add(key)
+                        def key = new SymbolParser.Entry(type, name) // layout/activity_main
+                        outTypeEntries.add(key)
                         return
                     }
 
                     it.children().each {
                         type = it.name()
-                        def name = it.@name
+                        String name = it.@name
                         if (type == 'string') {
                             if (name == 'app_name') return // DON'T NEED IN BUNDLE
                         } else if (type == 'style') {
@@ -1219,21 +1286,21 @@ class AppPlugin extends BundlePlugin {
                                 if (attr.startsWith('android:')) {
                                     attr = attr.replaceAll(':', '_')
                                 } else {
-                                    def key = [type: 'attr', name: attr]
-                                    if (!outTypeEntries.contains(key)) outTypeEntries.add(key)
+                                    def key = new SymbolParser.Entry('attr', attr)
+                                    outTypeEntries.add(key)
                                 }
                                 String key = "${name}_${attr}"
-                                if (!outStyleableKeys.contains(key)) outStyleableKeys.add(key)
+                                outStyleableKeys.add(key)
                             }
-                            if (!outStyleableKeys.contains(name)) outStyleableKeys.add(name)
+                            outStyleableKeys.add(name)
                             return
                         } else if (type.endsWith('-array')) {
                             // string-array or integer-array
                             type = 'array'
                         }
 
-                        def key = [type: type, name: name]
-                        if (!outTypeEntries.contains(key)) outTypeEntries.add(key)
+                        def key = new SymbolParser.Entry(type, name)
+                        outTypeEntries.add(key)
                     }
                 }
             }
