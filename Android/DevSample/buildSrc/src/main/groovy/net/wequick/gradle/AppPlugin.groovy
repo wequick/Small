@@ -180,7 +180,9 @@ class AppPlugin extends BundlePlugin {
             def libManifests = []
             libs.each {
                 if (it.name.contains(':lib.')) {
-                    libManifests.add(it.manifest)
+                    libManifests.addAll(it.allManifests.findAll {
+                        it.parentFile.parentFile.name.startsWith('lib.')
+                    })
                 }
             }
             def filteredManifests = []
