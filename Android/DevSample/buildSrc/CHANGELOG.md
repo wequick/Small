@@ -1,3 +1,10 @@
+## 1.0.0-beta8 (2016-08-22)
+
+Bugfixes:
+
+  - 修正第三方库引用AppCompat资源导致的R字段找不到问题 (#271)
+  - 修正嵌套引用的 `lib.*` 模块与 `app.*` 模块的 `manifest application` 冲突定义的问题
+
 ## 1.0.0-beta7 (2016-08-11)
 
 Bugfixes:
