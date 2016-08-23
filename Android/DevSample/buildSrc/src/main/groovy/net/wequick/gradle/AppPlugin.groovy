@@ -17,9 +17,11 @@ package net.wequick.gradle
 
 import com.android.build.api.transform.Format
 import com.android.build.gradle.api.BaseVariant
+import com.android.build.gradle.internal.dependency.ManifestDependencyImpl
 import com.android.build.gradle.internal.pipeline.IntermediateFolderUtils
 import com.android.build.gradle.internal.pipeline.TransformTask
 import com.android.build.gradle.internal.transforms.ProGuardTransform
+import com.android.build.gradle.tasks.ProcessTestManifest
 import com.android.build.gradle.tasks.MergeManifests
 import com.android.build.gradle.tasks.MergeSourceSetFolders
 import com.android.build.gradle.tasks.ProcessAndroidResources
@@ -89,7 +91,7 @@ class AppPlugin extends BundlePlugin {
         mUserLibAars = []
         mDependentLibProjects = []
         allLibs.each {
-            if (it.dependencyProject.name.startsWith('lib.')) {
+            if (rootSmall.isLibProject(it.dependencyProject)) {
                 smallLibs.add(it)
                 mDependentLibProjects.add(it.dependencyProject)
             } else {
@@ -167,26 +169,49 @@ class AppPlugin extends BundlePlugin {
     }
 
     @Override
-    protected void configureDebugVariant(BaseVariant variant) {
-        super.configureDebugVariant(variant)
-
-        if (pluginType != PluginType.App) return
+    protected void hookPreDebugBuild() {
+        super.hookPreDebugBuild()
 
         // If an app.A dependent by lib.B and both of them declare application@name in their
         // manifests, the `processManifest` task will raise a conflict error. To avoid this,
         // modify the lib.B manifest to remove the attributes before app.A `processManifest`
         // and restore it after the task finished.
-        Task processDebugManifest = project.tasks["process${variant.name.capitalize()}Manifest"]
-        processDebugManifest.doFirst { MergeManifests it ->
-            def libs = it.libraries
-            def libManifests = []
+
+        // processDebugManifest
+        project.tasks.withType(MergeManifests.class).each {
+            if (it.variantName.startsWith('release')) return
+
+            hookProcessDebugManifest(it, it.libraries)
+        }
+
+        // processDebugAndroidTestManifest
+        project.tasks.withType(ProcessTestManifest.class).each {
+            if (it.variantName.startsWith('release')) return
+
+            hookProcessDebugManifest(it, it.libraries)
+        }
+    }
+
+    protected void hookProcessDebugManifest(Task processDebugManifest,
+                                            List<ManifestDependencyImpl> libs) {
+        processDebugManifest.doFirst {
+            def libManifests = new HashSet<File>()
             libs.each {
-                if (it.name.contains(':lib.')) {
-                    libManifests.addAll(it.allManifests.findAll {
-                        it.parentFile.parentFile.name.startsWith('lib.')
-                    })
-                }
+                def components = it.name.split(':') // e.g. 'Sample:lib.style:unspecified'
+                if (components.size() != 3) return
+
+                def projectName = components[1]
+                if (!rootSmall.isLibProject(projectName)) return
+
+                libManifests.addAll(it.allManifests.findAll {
+                    // e.g.
+                    // '**/Sample/lib.style/unspecified/AndroidManifest.xml
+                    // '**/Sample/lib.analytics/unspecified/AndroidManifest.xml
+                    def name = it.parentFile.parentFile.name
+                    rootSmall.isLibProject(name)
+                })
             }
+
             def filteredManifests = []
             libManifests.each { File manifest ->
                 def sb = new StringBuilder()
@@ -962,12 +987,12 @@ class AppPlugin extends BundlePlugin {
         }
     }
 
-    protected static void collectLibProjects(Project project, Set<Project> outLibProjects) {
+    protected void collectLibProjects(Project project, Set<Project> outLibProjects) {
         DependencySet compilesDependencies = project.configurations.compile.dependencies
         Set<DefaultProjectDependency> allLibs = compilesDependencies.withType(DefaultProjectDependency.class)
         allLibs.each {
             def dependency = it.dependencyProject
-            if (dependency.name.startsWith('lib.')) {
+            if (rootSmall.isLibProject(dependency)) {
                 outLibProjects.add(dependency)
                 collectLibProjects(dependency, outLibProjects)
             }
@@ -1020,9 +1045,13 @@ class AppPlugin extends BundlePlugin {
             def libs = it.libraries
             def smallLibs = []
             libs.each {
-                if (it.name.contains(':lib.')) {
-                    smallLibs.add(it)
-                }
+                def components = it.name.split(':') // e.g. 'Sample:lib.style:unspecified'
+                if (components.size() != 3) return
+
+                def projectName = components[1]
+                if (!rootSmall.isLibProject(projectName)) return
+
+                smallLibs.add(it)
             }
             libs.removeAll(smallLibs)
             it.libraries = libs

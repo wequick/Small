@@ -31,6 +31,7 @@ class RootPlugin extends BasePlugin {
 
         def rootExt = small
 
+        rootExt.libProjects = new HashSet<>()
         AppPlugin.sPackageIds = [:]
 
         project.afterEvaluate {
@@ -68,6 +69,7 @@ class RootPlugin extends BasePlugin {
                             break;
                         case 'lib':
                             it.apply plugin: LibraryPlugin
+                            rootExt.libProjects.add(it)
                             break;
                         case 'web':
                         default: // Default to Asset

@@ -66,6 +66,9 @@ public class RootExtension extends BaseExtension {
     /** Project of host */
     protected Project hostProject
 
+    /** Project of lib.* */
+    protected Set<Project> libProjects
+
     /** Directory to output bundles (*.so) */
     protected File outputBundleDir
 
@@ -229,5 +232,20 @@ public class RootExtension extends BaseExtension {
             // ./gradlew -p app.xx aR | ./gradlew :app.xx:aR
             return (mP.startsWith('app.') && (mT == 'assembleRelease' || mT == 'aR'))
         }
+    }
+
+    protected boolean isLibProject(Project project) {
+        if (libProjects == null || libProjects.isEmpty()) return false
+
+        return libProjects.contains(project)
+    }
+
+    protected boolean isLibProject(String name) {
+        if (libProjects == null || libProjects.isEmpty()) return false
+
+        for (Project p : libProjects) {
+            if (p.name == name) return true
+        }
+        return false
     }
 }

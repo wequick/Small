@@ -83,9 +83,14 @@ class AndroidPlugin extends BasePlugin {
             project.dependencies.add(smallCompileType, "${SMALL_AAR_PREFIX}$rootSmall.aarVersion")
         }
 
+        def preBuild = project.tasks['preBuild']
         if (released) {
-            project.tasks['preBuild'].doFirst {
+            preBuild.doFirst {
                 hookPreReleaseBuild()
+            }
+        } else {
+            preBuild.doFirst {
+                hookPreDebugBuild()
             }
         }
     }
@@ -107,6 +112,8 @@ class AndroidPlugin extends BasePlugin {
         pt.keep('@android.support.annotation.Keep class * { public *; }')
         pt.keep('@android.support.annotation.Keep interface * { *; }')
     }
+
+    protected void hookPreDebugBuild() { }
 
     protected void hookPreReleaseBuild() { }
 
