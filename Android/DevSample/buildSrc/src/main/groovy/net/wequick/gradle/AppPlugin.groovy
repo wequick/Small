@@ -46,6 +46,7 @@ class AppPlugin extends BundlePlugin {
     protected static def sPackageIds = [:] as LinkedHashMap<String, Integer>
 
     protected Set<Project> mDependentLibProjects
+    protected Set<Project> mTransitiveDependentLibProjects
     protected Set<Map> mUserLibAars
     protected Set<File> mLibraryJars
     protected File mMinifyJar
@@ -133,7 +134,7 @@ class AppPlugin extends BundlePlugin {
         // Collect the jars of `compile project(lib.*)' with absolute file path, fix issue #65
         Set<String> libJarNames = []
         Set<File> libDependentJars = []
-        mDependentLibProjects.each {
+        mTransitiveDependentLibProjects.each {
             libJarNames += getJarName(it)
             libDependentJars += getJarDependencies(it)
         }
@@ -445,7 +446,7 @@ class AppPlugin extends BundlePlugin {
         if (hostSymbol.exists()) {
             libEntries += SymbolParser.getResourceEntries(hostSymbol)
         }
-        mDependentLibProjects.each {
+        mTransitiveDependentLibProjects.each {
             File libSymbol = new File(it.projectDir, 'public.txt')
             libEntries += SymbolParser.getResourceEntries(libSymbol)
         }
@@ -961,6 +962,18 @@ class AppPlugin extends BundlePlugin {
         }
     }
 
+    protected static void collectLibProjects(Project project, Set<Project> outLibProjects) {
+        DependencySet compilesDependencies = project.configurations.compile.dependencies
+        Set<DefaultProjectDependency> allLibs = compilesDependencies.withType(DefaultProjectDependency.class)
+        allLibs.each {
+            def dependency = it.dependencyProject
+            if (dependency.name.startsWith('lib.')) {
+                outLibProjects.add(dependency)
+                collectLibProjects(dependency, outLibProjects)
+            }
+        }
+    }
+
     @Override
     protected void hookPreReleaseBuild() {
         super.hookPreReleaseBuild()
@@ -974,8 +987,12 @@ class AppPlugin extends BundlePlugin {
         // ----------------------
         def smallLibAars = new HashSet() // the aars compiled in host or lib.*
 
+        // Collect transitive dependent `lib.*' projects
+        mTransitiveDependentLibProjects = new HashSet<>()
+        collectLibProjects(project, mTransitiveDependentLibProjects)
+
         // Collect aar(s) in lib.*
-        mDependentLibProjects.each { lib ->
+        mTransitiveDependentLibProjects.each { lib ->
             // lib.* dependencies
             File file = new File(rootSmall.preLinkAarDir, "$lib.name-D.txt")
             collectAars(file, lib, smallLibAars)
@@ -1104,7 +1121,7 @@ class AppPlugin extends BundlePlugin {
 
             // Collect the DynamicRefTable [pkgId => pkgName]
             def libRefTable = [:]
-            mDependentLibProjects.each {
+            mTransitiveDependentLibProjects.each {
                 def libAapt = it.tasks.withType(ProcessAndroidResources.class).find {
                     it.variantName.startsWith('release')
                 }
