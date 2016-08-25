@@ -1014,7 +1014,10 @@ class AppPlugin extends BundlePlugin {
 
         // Collect transitive dependent `lib.*' projects
         mTransitiveDependentLibProjects = new HashSet<>()
-        collectLibProjects(project, mTransitiveDependentLibProjects)
+        mTransitiveDependentLibProjects.addAll(mDependentLibProjects)
+        mDependentLibProjects.each {
+            collectLibProjects(it, mTransitiveDependentLibProjects)
+        }
 
         // Collect aar(s) in lib.*
         mTransitiveDependentLibProjects.each { lib ->
