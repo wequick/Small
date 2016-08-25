@@ -32,7 +32,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:1.3.0'
-        classpath 'net.wequick.tools.build:gradle-small:1.0.0-beta8'
+        classpath 'net.wequick.tools.build:gradle-small:1.0.0-beta9'
     }
 }
 
