@@ -16,6 +16,8 @@
 
 #import "SMBackBarButtonItem.h"
 
+typedef void (*SMBackBarButtonOnClick)(id, SEL, id);
+
 @implementation SMBackBarButtonItem
 {
     UIButton *_backButton;
@@ -60,7 +62,9 @@
 }
 
 - (void)backButtonClick:(id)sender {
-    [self.target performSelector:self.action withObject:self];
+    IMP imp = [self.target methodForSelector:self.action];
+    SMBackBarButtonOnClick onClick = (SMBackBarButtonOnClick) imp;
+    onClick(self.target, self.action, self);
 }
 
 @end

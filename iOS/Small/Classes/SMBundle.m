@@ -36,7 +36,6 @@ static NSMutableDictionary *kBundleDownloadPaths;
 static NSString *kBaseUrl;
 static NSArray *kRegisteredBundles;
 static NSArray *kDownloadBundles;
-static NSInteger kDownloadBundleIndex;
 
 @interface SMBundle ()
 {
