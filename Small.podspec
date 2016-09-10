@@ -18,12 +18,6 @@ Pod::Spec.new do |s|
   s.private_header_files = "iOS/Small/Classes/_*.h"
 
   s.framework  = "UIKit"
-  s.library    = "z.1.2.5"
 
   s.dependency "ZipArchive"
-  #s.vendored_framework = "Small.framework"
-
-  s.prepare_command = <<-CMD
-                        echo 'Hello World: ' `pwd` "#{s}"
-                   CMD
 end
