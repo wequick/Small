@@ -17,7 +17,6 @@ package net.wequick.gradle
 
 import com.android.build.api.transform.Format
 import com.android.build.gradle.api.BaseVariant
-import com.android.build.gradle.internal.dependency.ManifestDependencyImpl
 import com.android.build.gradle.internal.pipeline.IntermediateFolderUtils
 import com.android.build.gradle.internal.pipeline.TransformTask
 import com.android.build.gradle.internal.transforms.ProGuardTransform
@@ -25,6 +24,7 @@ import com.android.build.gradle.tasks.ProcessTestManifest
 import com.android.build.gradle.tasks.MergeManifests
 import com.android.build.gradle.tasks.MergeSourceSetFolders
 import com.android.build.gradle.tasks.ProcessAndroidResources
+import com.android.builder.dependency.LibraryDependency
 import com.android.sdklib.BuildToolInfo
 import groovy.io.FileType
 import net.wequick.gradle.aapt.Aapt
@@ -192,8 +192,22 @@ class AppPlugin extends BundlePlugin {
         }
     }
 
+    protected void collectLibManifests(def lib, Set outFiles) {
+        outFiles.add(lib.getManifest())
+
+        if (lib instanceof LibraryDependency) { // android gradle 2.2.0+
+            lib.getLibraryDependencies().each {
+                collectLibManifests(it, outFiles)
+            }
+        } else { // android gradle 2.2.0-
+            lib.getManifestDependencies().each {
+                collectLibManifests(it, outFiles)
+            }
+        }
+    }
+
     protected void hookProcessDebugManifest(Task processDebugManifest,
-                                            List<ManifestDependencyImpl> libs) {
+                                            List libs) {
         processDebugManifest.doFirst {
             def libManifests = new HashSet<File>()
             libs.each {
@@ -203,7 +217,10 @@ class AppPlugin extends BundlePlugin {
                 def projectName = components[1]
                 if (!rootSmall.isLibProject(projectName)) return
 
-                libManifests.addAll(it.allManifests.findAll {
+                Set<File> allManifests = new HashSet<File>()
+                collectLibManifests(it, allManifests)
+
+                libManifests.addAll(allManifests.findAll {
                     // e.g.
                     // '**/Sample/lib.style/unspecified/AndroidManifest.xml
                     // '**/Sample/lib.analytics/unspecified/AndroidManifest.xml

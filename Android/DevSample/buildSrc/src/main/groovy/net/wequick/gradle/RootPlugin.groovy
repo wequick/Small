@@ -89,17 +89,18 @@ class RootPlugin extends BasePlugin {
                 // Hook on project build started and finished for log
                 // FIXME: any better way to hooks?
                 it.afterEvaluate {
-                    it.preBuild.doFirst {
+                    it.tasks['preBuild'].doFirst {
                         logStartBuild(it.project)
+                        it.project.tasks['assembleRelease'].doLast {
+                            logFinishBuild(it.project)
+                        }
                     }
-                    it.assembleRelease.doLast {
-                        logFinishBuild(it.project)
-                    }
+
                 }
 
                 if (it.hasProperty('buildLib')) {
                     it.small.buildIndex = ++rootExt.libCount
-                    it.buildLib.doLast {
+                    it.tasks['buildLib'].doLast {
                         buildLib(it.project)
                     }
                 } else if (it.hasProperty('buildBundle')) {

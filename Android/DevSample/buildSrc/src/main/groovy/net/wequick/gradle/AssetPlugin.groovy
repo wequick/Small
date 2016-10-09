@@ -47,11 +47,6 @@ class AssetPlugin extends BundlePlugin {
         // Task for log
         def orgGroup = project.preBuild.group // Keep original task group
         project.task('preBuild', group: orgGroup, overwrite: true)
-
-        orgGroup = project.assembleRelease.group
-        project.task('assembleRelease', group: orgGroup, overwrite: true) << {
-            tidyUp()
-        }
     }
 
     @Override
@@ -111,6 +106,8 @@ class AssetPlugin extends BundlePlugin {
                     storepass: sc.storePassword, alias: sc.keyAlias, keypass: sc.keyPassword,
                     digestalg: 'SHA1', sigalg: 'MD5withRSA') // Fix issue #13
         }
-        project.assembleRelease.dependsOn project.signAsset
+        variant.assemble.setDependsOn([])
+        variant.assemble.deleteAllActions()
+        variant.assemble.dependsOn project.signAsset
     }
 }
