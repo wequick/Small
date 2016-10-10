@@ -305,6 +305,10 @@ public final class Small {
         return null;
     }
 
+    public static void wrapIntent(Intent intent) {
+        ApkBundleLauncher.wrapIntent(intent);
+    }
+
     public static <T> T createObject(String type, String uriString, Context context) {
         return createObject(type, makeUri(uriString), context);
     }
