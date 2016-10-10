@@ -20,7 +20,8 @@ public enum PluginType {
     Host    (1),
     App     (2),
     Library (3),
-    Asset   (4)
+    Asset   (4),
+    Stub    (5)
 
     private int value
     public PluginType(int value) {

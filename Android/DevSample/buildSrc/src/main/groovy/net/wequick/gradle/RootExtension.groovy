@@ -66,8 +66,14 @@ public class RootExtension extends BaseExtension {
     /** Project of host */
     protected Project hostProject
 
+    /** Project of host which are automatically dependent by other bundle modules */
+    protected Set<Project> hostStubProjects
+
     /** Project of lib.* */
     protected Set<Project> libProjects
+
+    /** Project of app.* */
+    protected Set<Project> appProjects
 
     /** Directory to output bundles (*.so) */
     protected File outputBundleDir

@@ -31,7 +31,9 @@ class RootPlugin extends BasePlugin {
 
         def rootExt = small
 
+        rootExt.appProjects = new HashSet<>()
         rootExt.libProjects = new HashSet<>()
+        rootExt.hostStubProjects = new HashSet<>()
         AppPlugin.sPackageIds = [:]
 
         project.afterEvaluate {
@@ -55,17 +57,24 @@ class RootPlugin extends BasePlugin {
                     it.apply plugin: HostPlugin
                     rootExt.outputBundleDir = new File(it.projectDir, SMALL_LIBS)
                     rootExt.hostProject = it
+                } else if (it.name.startsWith('app+')) {
+                    rootExt.hostStubProjects.add(it)
                 } else {
                     String type = userBundleTypes.get(it.name)
                     if (type == null) {
                         def idx = it.name.indexOf('.')
                         if (idx < 0) return
+
                         type = it.name.substring(0, idx)
                     }
 
                     switch (type) {
                         case 'app':
                             it.apply plugin: AppPlugin
+                            rootExt.appProjects.add(it)
+                            break;
+                        case 'stub':
+                            rootExt.hostStubProjects.add(it)
                             break;
                         case 'lib':
                             it.apply plugin: LibraryPlugin
@@ -112,6 +121,24 @@ class RootPlugin extends BasePlugin {
             if (rootExt.hostProject == null) {
                 throw new RuntimeException(
                         "Cannot find host module with name: '${rootExt.hostModuleName}'!")
+            }
+
+            if (!rootExt.hostStubProjects.empty) {
+                rootExt.hostStubProjects.each { stub ->
+                    rootExt.hostProject.afterEvaluate {
+                        it.dependencies.add('compile', stub)
+                    }
+                    rootExt.appProjects.each {
+                        it.afterEvaluate {
+                            it.dependencies.add('debugCompile', stub)
+                        }
+                    }
+                    rootExt.libProjects.each {
+                        it.afterEvaluate {
+                            it.dependencies.add('debugCompile', stub)
+                        }
+                    }
+                }
             }
         }
     }
@@ -223,6 +250,9 @@ class RootPlugin extends BasePlugin {
             def hasOut = out.exists()
             rows.add(['type', 'name', 'PP', 'file', 'size'])
             rows.add(['host', small.hostModuleName, '', '', ''])
+            small.hostStubProjects.each {
+                rows.add(['stub', it.name, '', '', ''])
+            }
             bundleModules.each { type, names ->
                 names.each {
                     def file = null
