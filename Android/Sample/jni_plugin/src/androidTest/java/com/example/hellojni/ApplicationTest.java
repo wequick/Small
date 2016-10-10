@@ -1,4 +1,4 @@
-package com.example.hellojni.HelloPluginJni;
+package com.example.hellojni;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;
