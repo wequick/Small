@@ -35,6 +35,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.os.Message;
+import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 import android.view.Window;
 
@@ -44,6 +45,9 @@ import net.wequick.small.util.ReflectAccelerator;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -255,7 +259,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             sHostInstrumentation.callActivityOnDestroy(activity);
         }
 
-        private void wrapIntent(Intent intent) {
+        private static void wrapIntent(Intent intent) {
             ComponentName component = intent.getComponent();
             String realClazz;
             if (component == null) {
@@ -280,7 +284,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             intent.setComponent(new ComponentName(Small.getContext(), stubClazz));
         }
 
-        private String resolveActivity(Intent intent) {
+        private static String resolveActivity(Intent intent) {
             if (sLoadedIntentFilters == null) return null;
 
             Iterator<Map.Entry<String, List<IntentFilter>>> it =
@@ -304,10 +308,10 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             return null;
         }
 
-        private String[] mStubQueue;
+        private static String[] mStubQueue;
 
         /** Get an usable stub activity clazz from real activity */
-        private String dequeueStubActivity(ActivityInfo ai, String realActivityClazz) {
+        private static String dequeueStubActivity(ActivityInfo ai, String realActivityClazz) {
             if (ai.launchMode == ActivityInfo.LAUNCH_MULTIPLE) {
                 // In standard mode, the stub activity is reusable.
                 // Cause the `windowIsTranslucent' attribute cannot be dynamically set,
@@ -364,6 +368,10 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 }
             }
         }
+    }
+
+    public static void wrapIntent(Intent intent) {
+        InstrumentationWrapper.wrapIntent(intent);
     }
 
     private static String unwrapIntent(Intent intent) {
@@ -442,6 +450,25 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 field = Handler.class.getDeclaredField("mCallback");
                 field.setAccessible(true);
                 field.set(ah, new ActivityThreadHandlerCallback());
+
+                // AOP for pending intent
+                Field f = TaskStackBuilder.class.getDeclaredField("IMPL");
+                f.setAccessible(true);
+                final Object impl = f.get(TaskStackBuilder.class);
+                InvocationHandler aop = new InvocationHandler() {
+                    @Override
+                    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                        Intent[] intents = (Intent[]) args[1];
+                        for (Intent intent : intents) {
+                            InstrumentationWrapper.wrapIntent(intent);
+                            intent.setAction(Intent.ACTION_MAIN);
+                            intent.addCategory(Intent.CATEGORY_LAUNCHER);
+                        }
+                        return method.invoke(impl, args);
+                    }
+                };
+                Object newImpl = Proxy.newProxyInstance(context.getClassLoader(), impl.getClass().getInterfaces(), aop);
+                f.set(TaskStackBuilder.class, newImpl);
             } catch (Exception ignored) {
                 ignored.printStackTrace();
                 // Usually, cannot reach here
