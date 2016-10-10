@@ -33,6 +33,11 @@
       }
     },
     {
+      "uri": "stub",
+      "type": "app",
+      "pkg": "net.wequick.example.small.appavailable_if_stub"
+    },
+    {
       "uri": "about",
       "pkg": "net.wequick.example.small.web.about"
     }
