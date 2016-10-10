@@ -118,7 +118,7 @@
 
 感谢以下网站收录本项目：
 
-* [p.codekk.com](http://p.codekk.com) @[singwhatiwanna](https://github.com/singwhatiwanna)
+* [p.codekk.com](http://p.codekk.com) @[Trinea](https://github.com/Trinea)
 * [androidweekly.cn](http://androidweekly.cn) @[inferjay](https://github.com/inferjay)
 * [toutiao.io](http://toutiao.io) @[Juude](https://github.com/Juude)
 * [gank.io](http://gank.io) @[daimajia](https://github.com/daimajia)
