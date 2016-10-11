@@ -91,11 +91,12 @@ class RootPlugin extends BasePlugin {
                 it.afterEvaluate {
                     it.tasks['preBuild'].doFirst {
                         logStartBuild(it.project)
-                        it.project.tasks['assembleRelease'].doLast {
-                            logFinishBuild(it.project)
+                        if (it.project.hasProperty('assembleRelease')) {
+                            it.project.tasks['assembleRelease'].doLast {
+                                logFinishBuild(it.project)
+                            }
                         }
                     }
-
                 }
 
                 if (it.hasProperty('buildLib')) {
