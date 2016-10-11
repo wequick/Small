@@ -1,3 +1,9 @@
+## 1.0.0-alpha2 (2016-10-11)
+
+Bugfixes:
+
+  - 修正在Android Studio 2.2上出现的 `assembleRelease` 无法找到问题 (#315)
+
 ## 1.0.0-alpha1 (2016-10-09)
 
 Features:
