@@ -54,6 +54,14 @@ public class RootExtension extends BaseExtension {
      */
     boolean strictSplitResources = true
 
+    /**
+     * The default android version configuration
+     * - compileSdkVersion
+     * - buildToolsVersion
+     * - support library version (AppCompat and etc.)
+     */
+    protected AndroidConfig android
+
     /** Count of libraries */
     protected int libCount
 
@@ -210,10 +218,6 @@ public class RootExtension extends BaseExtension {
         modules.addAll(names)
     }
 
-    public void android(Closure closure) {
-        println closure.getProperty('buildToolsVersion')
-    }
-
     /** Check if is building any libs (lib.*) */
     protected boolean isBuildingLibs() {
         if (mT == null) return false // no tasks
@@ -253,5 +257,16 @@ public class RootExtension extends BaseExtension {
             if (p.name == name) return true
         }
         return false
+    }
+
+    public def android(Closure closure) {
+        android = new AndroidConfig()
+        project.configure(android, closure)
+    }
+
+    class AndroidConfig {
+        int compileSdkVersion
+        String buildToolsVersion
+        String supportVersion
     }
 }

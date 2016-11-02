@@ -45,6 +45,16 @@ class RootPlugin extends BasePlugin {
                 }
             }
 
+            // Configure versions
+            def base = rootExt.android
+            if (base != null) {
+                project.subprojects { p ->
+                    p.afterEvaluate {
+                        configVersions(p, base)
+                    }
+                }
+            }
+
             // Configure sub projects
             project.subprojects {
                 if (it.name == 'small') {
@@ -139,6 +149,32 @@ class RootPlugin extends BasePlugin {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    protected void configVersions(Project p, RootExtension.AndroidConfig base) {
+        if (!p.hasProperty('android')) return
+
+        com.android.build.gradle.BaseExtension android = p.android
+        if (base.compileSdkVersion != 0) {
+            android.compileSdkVersion = base.compileSdkVersion
+        }
+        if (base.buildToolsVersion != null) {
+            android.buildToolsVersion = base.buildToolsVersion
+        }
+        if (base.supportVersion != null) {
+            def sv = base.supportVersion
+            def cfg = p.configurations.compile
+            def supportDependencies = []
+            cfg.dependencies.each { d ->
+                if (d.group == 'com.android.support' && d.version != sv) {
+                    supportDependencies.add(d)
+                }
+            }
+            cfg.dependencies.removeAll(supportDependencies)
+            supportDependencies.each { d ->
+                p.dependencies.add('compile', "$d.group:$d.name:$sv")
             }
         }
     }
@@ -248,16 +284,20 @@ class RootPlugin extends BasePlugin {
                 out = new File(small.outputBundleDir, 'x86')
             }
             def hasOut = out.exists()
-            rows.add(['type', 'name', 'PP', 'file', 'size'])
-            rows.add(['host', small.hostModuleName, '', '', ''])
+            def fileTitle = hasOut ? "file($out.name)" : 'file';
+            rows.add(['type', 'name', 'PP', 'sdk', 'aapt', 'support', fileTitle, 'size'])
+            def vs = getVersions(small.hostProject)
+            rows.add(['host', small.hostModuleName, '', vs.sdk, vs.aapt, vs.support, '', ''])
             small.hostStubProjects.each {
-                rows.add(['stub', it.name, '', '', ''])
+                vs = getVersions(it)
+                rows.add(['stub', it.name, '', vs.sdk, vs.aapt, vs.support, '', ''])
             }
             bundleModules.each { type, names ->
                 names.each {
                     def file = null
+                    def prj = project.rootProject.project(":$it")
+                    vs = getVersions(prj)
                     if (hasOut) {
-                        def prj = project.rootProject.project(":$it")
                         def manifest = new XmlParser().parse(prj.android.sourceSets.main.manifestFile)
                         def pkg = manifest.@package
                         def so = "lib${pkg.replaceAll('\\.', '_')}.so"
@@ -267,9 +307,9 @@ class RootPlugin extends BasePlugin {
                     pp = (pp == null) ? '' : String.format('0x%02x', pp)
                     if (file != null && file.exists()) {
                         def fileName = '*_' + file.name.split('_').last()
-                        rows.add([type, it, pp, "$fileName ($out.name)", getFileSize(file)])
+                        rows.add([type, it, pp, vs.sdk, vs.aapt, vs.support, fileName, getFileSize(file)])
                     } else {
-                        rows.add([type, it, pp, '', ''])
+                        rows.add([type, it, pp, vs.sdk, vs.aapt, vs.support, '', ''])
                     }
                 }
             }
@@ -279,11 +319,27 @@ class RootPlugin extends BasePlugin {
         }
     }
 
+    static def getVersions(Project p) {
+        com.android.build.gradle.BaseExtension android = p.android
+        def sdk = android.getCompileSdkVersion()
+        if (sdk.startsWith('android-')) {
+            sdk = sdk.substring(8) // bypass 'android-'
+        }
+        def cfg = p.configurations.compile
+        def supportLib = cfg.dependencies.find { d ->
+            d.group == 'com.android.support'
+        }
+        def supportVer = supportLib != null ? supportLib.version : ''
+        return [sdk: sdk,
+                aapt: android.buildToolsVersion,
+                support: supportVer]
+    }
+
     static void printRows(List rows) {
         def colLens = []
         int nCol = rows[0].size()
         for (int i = 0; i < nCol; i++) {
-            colLens[i] = 8
+            colLens[i] = 4
         }
 
         def nRow = rows.size()
@@ -292,7 +348,7 @@ class RootPlugin extends BasePlugin {
             nCol = row.size()
             for (int j = 0; j < nCol; j++) {
                 def col = row[j]
-                colLens[j] = Math.max(colLens[j], col.length() + 4)
+                colLens[j] = Math.max(colLens[j], col.length() + 2)
             }
         }
 
@@ -320,8 +376,8 @@ class RootPlugin extends BasePlugin {
                     for (int k = 0; k < maxLen; k++) split += '-'
                 } else {
                     // Left align for content
-                    int rp = maxLen - 2 - len // right padding
-                    s += '|  ' + col
+                    int rp = maxLen - 1 - len // right padding
+                    s += '| ' + col
                     for (int k = 0; k < rp; k++) s += ' '
                 }
             }

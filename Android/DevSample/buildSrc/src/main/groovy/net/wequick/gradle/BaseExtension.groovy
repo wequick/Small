@@ -31,7 +31,9 @@ public class BaseExtension {
     /** Index of building loop */
     int buildIndex
 
-    public BaseExtension(Project project) {
+    Project project
 
+    public BaseExtension(Project project) {
+        this.project = project
     }
 }

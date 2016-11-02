@@ -22,3 +22,11 @@ task clean(type: Delete) {
 }
 
 apply plugin: 'net.wequick.small'
+
+small {
+    android {
+        compileSdkVersion = 24
+        buildToolsVersion = "23.0.3"
+        supportVersion = "23.4.0"
+    }
+}
