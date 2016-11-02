@@ -131,11 +131,12 @@ class RootPlugin extends BasePlugin {
         project.task('small') << {
 
             println()
-            println '------------------------------------------------------------'
-            println 'Small: A small framework to split your app into small parts '
+            println '### Compile-time'
+            println ''
+            println '```'
 
             // gradle-small
-            print String.format('%16s', 'gradle-small: ')
+            print String.format('%24s', 'gradle-small plugin : ')
             def pluginVersion
             def pluginProperties = project.file('buildSrc/gradle.properties')
             if (pluginProperties.exists()) {
@@ -148,11 +149,20 @@ class RootPlugin extends BasePlugin {
                 def module = config.resolvedConfiguration.firstLevelModuleDependencies.find {
                     it.moduleGroup == 'net.wequick.tools.build' && it.moduleName == 'gradle-small'
                 }
-                println "$module.moduleVersion (maven)"
+                File pluginDir = module.moduleArtifacts.first().file.parentFile
+                if (pluginDir.name == module.moduleVersion) {
+                    // local maven:
+                    // ~/.m2/repository/net/wequick/tools/build/gradle-small/1.0.0-beta9/gradle-small-1.0.0-beta9.jar
+                    println "$module.moduleVersion (local maven)"
+                } else {
+                    // remote maven:
+                    // ~/.gradle/caches/modules-2/files-2.1/net.wequick.tools.build/gradle-small/1.0.0-beta9/8db229545a888ab25e210a9e574c0261e6a7a52d/gradle-small-1.0.0-beta9.jar
+                    println "$module.moduleVersion (maven)"
+                }
             }
 
             // small
-            print String.format('%16s', 'small: ')
+            print String.format('%24s', 'small aar : ')
             if (small.smallProject != null) {
                 def prop = new Properties()
                 prop.load(small.smallProject.file('gradle.properties').newDataInputStream())
@@ -164,9 +174,44 @@ class RootPlugin extends BasePlugin {
                 } catch (Exception e) {
                     aarVersion = 'unspecific'
                 }
-                println "$aarVersion (maven)"
+                def module = small.hostProject.configurations.compile
+                        .resolvedConfiguration.firstLevelModuleDependencies.find {
+                    it.moduleGroup == 'net.wequick.small' && it.moduleName == 'small'
+                }
+                File pluginDir = module.moduleArtifacts.first().file.parentFile
+                if (pluginDir.name == module.moduleVersion) {
+                    // local maven:
+                    // ~/.m2/repository/net/wequick/tools/build/gradle-small/1.0.0-beta9/gradle-small-1.0.0-beta9.jar
+                    println "$aarVersion (local maven)"
+                } else {
+                    // remote maven:
+                    // ~/.gradle/caches/modules-2/files-2.1/net.wequick.tools.build/gradle-small/1.0.0-beta9/8db229545a888ab25e210a9e574c0261e6a7a52d/gradle-small-1.0.0-beta9.jar
+                    println "$aarVersion (maven)"
+                }
             }
-            println '------------------------------------------------------------'
+
+            // gradle version
+            print String.format('%24s', 'gradle core : ')
+            println project.gradle.gradleVersion
+
+            // android gradle plugin
+            def androidGradlePlugin = project.buildscript.configurations.classpath
+                    .resolvedConfiguration.firstLevelModuleDependencies.find {
+                it.moduleGroup == 'com.android.tools.build' && it.moduleName == 'gradle'
+            }
+            if (androidGradlePlugin != null)  {
+                print String.format('%24s', 'android plugin : ')
+                println androidGradlePlugin.moduleVersion
+            }
+
+            // OS
+            print String.format('%24s', 'OS : ')
+            println "${System.properties['os.name']} ${System.properties['os.version']} (${System.properties['os.arch']})"
+
+            println '```'
+            println()
+
+            println '### Bundles'
             println()
 
             // modules
@@ -191,7 +236,8 @@ class RootPlugin extends BasePlugin {
                     def pp = AppPlugin.sPackageIds.get(it)
                     pp = (pp == null) ? '' : String.format('0x%02x', pp)
                     if (file != null && file.exists()) {
-                        rows.add([type, it, pp, "$file.name ($out.name)", getFileSize(file)])
+                        def fileName = '*_' + file.name.split('_').last()
+                        rows.add([type, it, pp, "$fileName ($out.name)", getFileSize(file)])
                     } else {
                         rows.add([type, it, pp, '', ''])
                     }
