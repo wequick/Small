@@ -17,9 +17,8 @@ package net.wequick.gradle
 
 import org.gradle.api.Project
 import org.gradle.api.Plugin
-import org.gradle.logging.StyledTextOutput
-import org.gradle.logging.StyledTextOutput.Style
-import org.gradle.logging.StyledTextOutputFactory
+import static org.fusesource.jansi.Ansi.*;
+import static org.fusesource.jansi.Ansi.Color.*;
 
 /**
  *
@@ -37,10 +36,6 @@ public abstract class BasePlugin implements Plugin<Project> {
 
     void apply(Project project) {
         this.project = project
-
-        if (Log.out == null) {
-            Log.out = project.gradle.services.get(StyledTextOutputFactory).create('')
-        }
 
         def sp = project.gradle.startParameter
         def p = sp.projectDir
@@ -71,7 +66,6 @@ public abstract class BasePlugin implements Plugin<Project> {
     protected void configureProject() {
         // Tidy up while gradle build finished
         project.gradle.buildFinished { result ->
-            Log.out = null
             if (result.failure == null) return
             tidyUp()
         }
@@ -95,26 +89,22 @@ public abstract class BasePlugin implements Plugin<Project> {
      */
     public final class Log {
 
-        protected static StyledTextOutput out
-
         public static void header(String text) {
-            out.style(Style.UserInput)
-            out.withStyle(Style.Info).text('[Small] ')
-            out.println(text)
+            println(ansi().fg(YELLOW).a("[Small] ")
+                    .fg(WHITE).a(text).reset());
         }
 
         public static void success(String text) {
-            out.style(Style.Normal).format('\t%-64s', text)
-            out.withStyle(Style.Identifier).text('[  OK  ]')
-            out.println()
+            print(String.format('\t%-64s', text))
+            println(ansi().fg(GREEN).a('[  OK  ]').reset())
         }
 
         public static void warn(String text) {
-            out.style(Style.UserInput).format('\t%s', text).println()
+            println(ansi().fg(RED).a(text).reset());
         }
 
         public static void footer(String text) {
-            out.style(Style.UserInput).format('\t%s', text).println()
+            println(ansi().fg(WHITE).a(String.format('\t%s', text)).reset());
         }
     }
 }
