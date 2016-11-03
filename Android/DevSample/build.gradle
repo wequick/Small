@@ -25,7 +25,7 @@ apply plugin: 'net.wequick.small'
 
 small {
     android {
-        compileSdkVersion = 24
+        compileSdkVersion = 23
         buildToolsVersion = "23.0.3"
         supportVersion = "23.4.0"
     }
