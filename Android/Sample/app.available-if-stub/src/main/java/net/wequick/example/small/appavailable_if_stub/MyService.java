@@ -2,27 +2,41 @@ package net.wequick.example.small.appavailable_if_stub;
 
 import android.app.Service;
 import android.content.Intent;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.support.annotation.Nullable;
-import android.util.Log;
+import android.widget.Toast;
 
 /**
  * Created by galen on 2016/11/4.
  */
 public class MyService extends Service {
 
-    private static final String TAG = "MyService";
+    private Handler mUI;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.i(TAG, "onCreate");
+        mUI = new Handler(Looper.myLooper());
+        mUI.post(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(getApplicationContext(), "MyService is on!", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.i(TAG, "onDestroy");
+        mUI.post(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(getApplicationContext(), "MyService is off!", Toast.LENGTH_SHORT).show();
+                mUI = null;
+            }
+        });
     }
 
     @Nullable
