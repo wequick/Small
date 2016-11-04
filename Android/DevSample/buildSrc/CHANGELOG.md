@@ -1,3 +1,31 @@
+## 1.1.0-beta1 (2016-11-04)
+
+Features:
+
+  - 使用`gradlew small`可打印更多有用的编译信息以方便提issue
+  - 支持Stub模块(宿主分身), 该模块会被打包到宿主, 其他模块可自由引用其中的类与资源
+
+    声明一个分身模块, 你可以:
+    - 模块名以 `app+` 开头
+    - 或者在 根`build.gradle` 里声明 `bundles ('stub', ['any1', 'any2'])`
+
+  - 支持统一配置android环境, 以避免由于环境不同可能导致的资源不匹配问题(AppCompat):
+
+    ```
+    small {
+      android {
+        compileSdkVersion = 23       // 编译sdk版本
+        buildToolsVersion = "23.0.3" // 编译工具版本
+        supportVersion = "23.4.0"    // Support包版本
+      }
+    }
+    ```
+
+Bugfixes:
+
+  - 兼容 Gradle 3.0, 使用 `JANSI` 完成控制台颜色输出 (#326)
+  - 修正 `AssetPlugin` 中对 `android.jar` 的引用路径
+
 ## 1.0.0-alpha2 (2016-10-11)
 
 Bugfixes:

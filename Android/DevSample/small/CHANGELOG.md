@@ -1,3 +1,11 @@
+## 1.1.0-beta6 (2016-11-04)
+
+Features:
+
+  - 支持通过 `TaskStackBuilder` 来透明的创建通知 (与原有代码一致)
+  - 导出 `Small.wrapIntent` 以支持自定义 `PendingIntent` 的插件化封装
+  - 支持在宿主注册插件 `ContentProvider`, 而在插件中实现该类 (#253)
+
 ## 1.1.0-beta5 (2016-08-17)
 
 Bugfixes:

@@ -6,7 +6,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:2.1.2'
-        classpath 'net.wequick.tools.build:gradle-small:1.0.0-alpha2'
+        classpath 'net.wequick.tools.build:gradle-small:1.1.0-beta1'
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
@@ -25,5 +25,5 @@ task clean(type: Delete) {
 apply plugin: 'net.wequick.small'
 
 small {
-    aarVersion = '1.1.0-beta5'
+    aarVersion = '1.1.0-beta6'
 }
