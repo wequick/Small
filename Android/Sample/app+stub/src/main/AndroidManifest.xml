@@ -6,8 +6,21 @@
         android:label="@string/app_name"
         android:supportsRtl="true">
 
-        <!-- Stub for Pending Intent -->
-        <!--<activity android:name="net.wequick.example.small.appavailable_if_stub.NotifyResultActivity"/>-->
+        <!-- Stub ContentProviders -->
+        <provider
+            android:exported="true"
+            android:authorities="net.wequick.example.small"
+            android:name="net.wequick.example.small.appavailable_if_stub.MyProvider"/>
+
+        <!-- Stub Services -->
+        <service android:name="net.wequick.example.small.appavailable_if_stub.MyService"/>
+
+        <!-- Stub BroadcastReceivers -->
+        <receiver android:name="net.wequick.example.small.appavailable_if_stub.MyReceiver">
+            <intent-filter>
+                <action android:name="net.wequick.example.small.MyAction"/>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

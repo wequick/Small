@@ -36,4 +36,36 @@
         android:layout_below="@id/send_notification_special_button"
         app:textAllCaps="false" />
 
+    <android.support.v7.widget.AppCompatButton
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/start_service_button"
+        android:text="@string/start_service"
+        android:layout_below="@id/send_notification_taskstack_button"
+        app:textAllCaps="false" />
+
+    <android.support.v7.widget.AppCompatButton
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/stop_service_button"
+        android:text="@string/stop_service"
+        android:layout_below="@id/start_service_button"
+        app:textAllCaps="false" />
+
+    <android.support.v7.widget.AppCompatButton
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/send_broadcast_button"
+        android:text="@string/send_broadcast"
+        android:layout_below="@id/stop_service_button"
+        app:textAllCaps="false" />
+
+    <android.support.v7.widget.AppCompatButton
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/get_content_button"
+        android:text="@string/get_content"
+        android:layout_below="@id/send_broadcast_button"
+        app:textAllCaps="false" />
+
 </RelativeLayout>

@@ -1,22 +1,30 @@
 package net.wequick.example.small.appavailable_if_stub;
 
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Keep;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.app.TaskStackBuilder;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.RemoteViews;
+import android.widget.Toast;
 
 import net.wequick.small.Small;
 
@@ -115,6 +123,58 @@ public class MainFragment extends Fragment {
 
                 NotificationManagerCompat nm = NotificationManagerCompat.from(context);
                 nm.notify(MY_NOTIFICATION_ID, nb.build());
+            }
+        });
+
+        button = (Button) rootView.findViewById(R.id.start_service_button);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getContext(), MyService.class);
+                getContext().startService(intent);
+            }
+        });
+
+        button = (Button) rootView.findViewById(R.id.stop_service_button);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getContext(), MyService.class);
+                getContext().stopService(intent);
+            }
+        });
+
+        button = (Button) rootView.findViewById(R.id.send_broadcast_button);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent();
+                intent.setAction("net.wequick.example.small.MyAction");
+                getContext().sendBroadcast(intent);
+            }
+        });
+
+        button = (Button) rootView.findViewById(R.id.get_content_button);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ContentResolver resolver = getContext().getContentResolver();
+                Uri uri = Uri.parse("content://net.wequick.example.small/test");
+
+                // Insert
+                ContentValues values = new ContentValues();
+                values.put("name", "T" + System.currentTimeMillis());
+                resolver.insert(uri, values);
+
+                // Query
+                Cursor cursor = resolver.query(uri, null, null, null, "id desc");
+                if (cursor == null) {
+                    return;
+                }
+                if (cursor.moveToFirst()) {
+                    String msg = "name in top record is: " + cursor.getString(1);
+                    Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
