@@ -389,7 +389,7 @@ public class ReflectAccelerator {
         return invoke(sAssetManager_addAssetPaths_method, assets, new Object[]{paths});
     }
 
-    public static void mergeResources(Application app, String[] assetPaths) {
+    public static void mergeResources(Application app, Object activityThread, String[] assetPaths) {
         AssetManager newAssetManager = newAssetManager();
         addAssetPaths(newAssetManager, assetPaths);
 
@@ -419,12 +419,10 @@ public class ReflectAccelerator {
                     references = (Collection) mResourceReferences.get(resourcesManager);
                 }
             } else {
-                Class<?> activityThread = Class.forName("android.app.ActivityThread");
-                Field fMActiveResources = activityThread.getDeclaredField("mActiveResources");
+                Field fMActiveResources = activityThread.getClass().getDeclaredField("mActiveResources");
                 fMActiveResources.setAccessible(true);
-                Object thread = getActivityThread(app, activityThread);
 
-                HashMap<?, WeakReference<Resources>> map = (HashMap)fMActiveResources.get(thread);
+                HashMap<?, WeakReference<Resources>> map = (HashMap)fMActiveResources.get(activityThread);
 
                 references = map.values();
             }
@@ -469,8 +467,9 @@ public class ReflectAccelerator {
         }
     }
 
-    public static Object getActivityThread(Context context, Class<?> activityThread) {
+    public static Object getActivityThread(Context context) {
         try {
+            Class activityThread = Class.forName("android.app.ActivityThread");
             // ActivityThread.currentActivityThread()
             Method m = activityThread.getMethod("currentActivityThread", new Class[0]);
             m.setAccessible(true);
@@ -484,9 +483,9 @@ public class ReflectAccelerator {
             Field mActivityThreadField = apk.getClass().getDeclaredField("mActivityThread");
             mActivityThreadField.setAccessible(true);
             return mActivityThreadField.get(apk);
-        } catch (Throwable ignore) {}
-
-        return null;
+        } catch (Throwable ignore) {
+            throw new RuntimeException("Failed to get mActivityThread from context: " + context);
+        }
     }
 
     public static boolean expandDexPathList(ClassLoader cl, String[] dexPaths, DexFile[] dexFiles) {

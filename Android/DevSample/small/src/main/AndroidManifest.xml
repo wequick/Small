@@ -35,5 +35,11 @@
             android:screenOrientation="portrait"
             android:windowSoftInputMode="stateHidden|adjustPan"
             android:hardwareAccelerated="true"/>
+
+        <!-- SetUp Provider -->
+        <provider
+            android:exported="false"
+            android:authorities="net.wequick.small"
+            android:name=".SetUpProvider"/>
     </application>
 </manifest>
