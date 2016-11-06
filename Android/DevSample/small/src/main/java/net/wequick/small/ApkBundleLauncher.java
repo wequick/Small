@@ -28,6 +28,7 @@ import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.ProviderInfo;
+import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.os.Handler;
@@ -109,6 +110,8 @@ public class ApkBundleLauncher extends SoBundleLauncher {
     protected static Object sActivityThread;
     protected static List<ProviderInfo> sProviders;
     protected static List<ProviderInfo> mLazyInitProviders;
+
+    private static String[] sBundleAssetPaths;
 
     /**
      * Class for restore activity info from Stub to Real
@@ -531,6 +534,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             paths = Arrays.copyOf(paths, i);
         }
         ReflectAccelerator.mergeResources(app, sActivityThread, paths);
+        sBundleAssetPaths = paths;
 
         // Merge all the dex into host's class loader
         ClassLoader cl = app.getClassLoader();

@@ -390,7 +390,13 @@ public class ReflectAccelerator {
     }
 
     public static void mergeResources(Application app, Object activityThread, String[] assetPaths) {
-        AssetManager newAssetManager = newAssetManager();
+        AssetManager newAssetManager;
+        if (Build.VERSION.SDK_INT < 24) {
+            newAssetManager = newAssetManager();
+        } else {
+            // On Android 7.0+, this should contains a WebView asset as base. #347
+            newAssetManager = app.getAssets();
+        }
         addAssetPaths(newAssetManager, assetPaths);
 
         try {

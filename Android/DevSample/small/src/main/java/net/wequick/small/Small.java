@@ -166,7 +166,6 @@ public final class Small {
             return;
         }
 
-        Bundle.setupLaunchers(context);
         Bundle.loadLaunchableBundles(listener);
         sHasSetUp = true;
     }

@@ -686,6 +686,9 @@ public class Bundle {
 
         @Override
         public void run() {
+            // Set up launchers
+            Bundle.setupLaunchers(mContext);
+
             // Instantiate bundle
             loadBundles(mContext);
             sLoading = false;
@@ -721,6 +724,16 @@ public class Bundle {
             sIOActions = null;
         }
 
+        // Sometimes we need to wait something been done on UI thread, as on 7.0+
+        // we should wait a WebView been initialized. #347
+        while (sRunningUIActionCount != 0) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
         // Notify `postSetUp' to all launchers
         for (BundleLauncher launcher : sBundleLaunchers) {
             launcher.postSetUp();
@@ -739,6 +752,7 @@ public class Bundle {
 
     private static List<Runnable> sIOActions;
     private static List<Runnable> sUIActions;
+    private static int sRunningUIActionCount;
 
     protected static void postIO(Runnable action) {
         if (sIOActions == null) {
@@ -748,7 +762,7 @@ public class Bundle {
     }
 
     protected static void postUI(Runnable action) {
-        if (sHandler.mListener == null) {
+        if (sHandler == null || sHandler.mListener == null) {
             // The UI thread is block, records the actions for lazy run.
             if (sUIActions == null) {
                 sUIActions = new ArrayList<Runnable>();
@@ -758,6 +772,14 @@ public class Bundle {
             Message msg = Message.obtain(sHandler, action);
             msg.sendToTarget();
         }
+    }
+
+    protected static synchronized void beginUI() {
+        sRunningUIActionCount++;
+    }
+
+    protected static synchronized void commitUI() {
+        sRunningUIActionCount--;
     }
 
     private static class LoadBundleHandler extends Handler {
