@@ -67,16 +67,12 @@ public class WebBundleLauncher extends AssetBundleLauncher {
         Bundle.postUI(new Runnable() {
             @Override
             public void run() {
-                Bundle.beginUI();
-
                 // In android 7.0+, on firstly create WebView, it will replace the application
                 // assets with the one who has join the WebView asset path.
                 // If this happens after our assets replacement,
                 // what we have done would be come to naught!
                 // So, we need to push it enOOOgh ahead! (#347)
                 new android.webkit.WebView(Small.getContext());
-
-                Bundle.commitUI();
             }
         });
     }

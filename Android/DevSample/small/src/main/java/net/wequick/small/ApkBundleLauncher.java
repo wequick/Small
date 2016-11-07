@@ -28,7 +28,6 @@ import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.ProviderInfo;
-import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.os.Handler;
@@ -102,16 +101,14 @@ public class ApkBundleLauncher extends SoBundleLauncher {
     private static ConcurrentHashMap<String, ActivityInfo> sLoadedActivities;
     private static ConcurrentHashMap<String, List<IntentFilter>> sLoadedIntentFilters;
 
-    protected static Instrumentation sHostInstrumentation;
-    protected static InstrumentationWrapper sBundleInstrumentation;
+    private static Instrumentation sHostInstrumentation;
+    private static InstrumentationWrapper sBundleInstrumentation;
 
     private static final char REDIRECT_FLAG = '>';
 
-    protected static Object sActivityThread;
-    protected static List<ProviderInfo> sProviders;
-    protected static List<ProviderInfo> mLazyInitProviders;
-
-    private static String[] sBundleAssetPaths;
+    private static Object sActivityThread;
+    private static List<ProviderInfo> sProviders;
+    private static List<ProviderInfo> mLazyInitProviders;
 
     /**
      * Class for restore activity info from Stub to Real
@@ -129,8 +126,44 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             String targetClass = unwrapIntent(intent);
             if (targetClass == null) return false;
 
-            // Replace with the REAL activityInfo
-            ActivityInfo targetInfo = sLoadedActivities.get(targetClass);
+            ActivityInfo targetInfo;
+            if (!Small.hasSetUp()) {
+                // If Small has not yet set up, STUB activities would not be unrecognized.
+                // We need to start the `SetUpActivity` to set up Small first.
+                // This is happens when the application was restarted in the background somehow.
+                Context context = Small.getContext();
+                Intent setupIntent = new Intent(context, SetUpActivity.class);
+                targetInfo = context.getPackageManager()
+                        .resolveActivity(setupIntent, 0).activityInfo;
+                targetInfo.targetActivity = setupIntent.getComponent().getClassName();
+
+                String stubClass = intent.getComponent().getClassName();
+                final String mode = stubClass.substring(STUB_ACTIVITY_PREFIX.length());
+                if (mode.length() == 2) {
+                    // If the activity has specified a launch mode, we should mark it to be used,
+                    // so that we can dequeue a usable STUB activity for the incoming bundle activity.
+                    // e.g.
+                    // - restarting `net.wequick.small.A30` which wrap `com.bundle.AnyActivity`
+                    // - but we redirect to `SetUpActivity`,
+                    // - now the `A30`(singleInstance) has been mark used in the system process,
+                    // - so we should dequeue `A31` for `com.bundle.AnyActivity`.
+                    Small.registerSetUpActivityLifecycleCallbacks(new Small.ActivityLifecycleCallbacks() {
+                        @Override
+                        public void onActivityCreated(Activity activity, android.os.Bundle savedInstanceState) {
+                            sBundleInstrumentation.setStubQueue(mode, ""); // mark used
+                        }
+
+                        @Override
+                        public void onActivityDestroyed(Activity activity) {
+                            sBundleInstrumentation.setStubQueue(mode, null); // mark unused
+                        }
+                    });
+                }
+            } else {
+                // Replace with the REAL activityInfo
+                targetInfo = sLoadedActivities.get(targetClass);
+            }
+
             ReflectAccelerator.setActivityInfo(r, targetInfo);
             return false;
         }
@@ -311,14 +344,25 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             ComponentName component = intent.getComponent();
             String realClazz;
             if (component == null) {
-                // Implicit way to start an activity
+                // Try to resolve the implicit action which has registered in host.
                 component = intent.resolveActivity(Small.getContext().getPackageManager());
-                if (component != null) return; // ignore system or host action
+                if (component != null) {
+                    // A system or host action, nothing to be done.
+                    return;
+                }
 
+                // Try to resolve the implicit action which has registered in bundles.
                 realClazz = resolveActivity(intent);
-                if (realClazz == null) return;
+                if (realClazz == null) {
+                    // Cannot resolved, nothing to be done.
+                    return;
+                }
             } else {
                 realClazz = component.getClassName();
+                if (realClazz.startsWith(STUB_ACTIVITY_PREFIX)) {
+                    // Re-wrap to ensure the launch mode works.
+                    realClazz = unwrapIntent(intent);
+                }
             }
 
             if (sLoadedActivities == null) return;
@@ -416,6 +460,16 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 }
             }
         }
+
+        private void setStubQueue(String mode, String realActivityClazz) {
+            int launchMode = mode.charAt(0) - '0';
+            int stubIndex = mode.charAt(1) - '0';
+            int offset = (launchMode - 1) * STUB_ACTIVITIES_COUNT + stubIndex;
+            if (mStubQueue == null) {
+                mStubQueue = new String[STUB_ACTIVITIES_COUNT * 3];
+            }
+            mStubQueue[offset] = realActivityClazz;
+        }
     }
 
     public static void wrapIntent(Intent intent) {
@@ -469,22 +523,64 @@ public class ApkBundleLauncher extends SoBundleLauncher {
     }
 
     @Override
+    public void onCreate(Application app) {
+        super.onCreate(app);
+
+        Object/*ActivityThread*/ thread;
+        List<ProviderInfo> providers;
+        Instrumentation base;
+        ApkBundleLauncher.InstrumentationWrapper wrapper;
+        Field f;
+
+        // Get activity thread
+        thread = ReflectAccelerator.getActivityThread(app);
+
+        // Replace instrumentation
+        try {
+            f = thread.getClass().getDeclaredField("mInstrumentation");
+            f.setAccessible(true);
+            base = (Instrumentation) f.get(thread);
+            wrapper = new ApkBundleLauncher.InstrumentationWrapper(base);
+            f.set(thread, wrapper);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to replace instrumentation for thread: " + thread);
+        }
+
+        // Inject message handler
+        try {
+            f = thread.getClass().getDeclaredField("mH");
+            f.setAccessible(true);
+            Handler ah = (Handler) f.get(thread);
+            f = Handler.class.getDeclaredField("mCallback");
+            f.setAccessible(true);
+            f.set(ah, new ApkBundleLauncher.ActivityThreadHandlerCallback());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to replace message handler for thread: " + thread);
+        }
+
+        // Get providers
+        try {
+            f = thread.getClass().getDeclaredField("mBoundApplication");
+            f.setAccessible(true);
+            Object/*AppBindData*/ data = f.get(thread);
+            f = data.getClass().getDeclaredField("providers");
+            f.setAccessible(true);
+            providers = (List<ProviderInfo>) f.get(data);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to get providers from thread: " + thread);
+        }
+
+        sActivityThread = thread;
+        sProviders = providers;
+        sHostInstrumentation = base;
+        sBundleInstrumentation = wrapper;
+    }
+
+    @Override
     public void setUp(Context context) {
         super.setUp(context);
 
         Field f;
-
-        // Inject message handler
-        try {
-            f = sActivityThread.getClass().getDeclaredField("mH");
-            f.setAccessible(true);
-            Handler ah = (Handler) f.get(sActivityThread);
-            f = Handler.class.getDeclaredField("mCallback");
-            f.setAccessible(true);
-            f.set(ah, new ActivityThreadHandlerCallback());
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to replace message handler for thread: " + sActivityThread);
-        }
 
         // AOP for pending intent
         try {
@@ -534,7 +630,6 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             paths = Arrays.copyOf(paths, i);
         }
         ReflectAccelerator.mergeResources(app, sActivityThread, paths);
-        sBundleAssetPaths = paths;
 
         // Merge all the dex into host's class loader
         ClassLoader cl = app.getClassLoader();

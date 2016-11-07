@@ -16,6 +16,7 @@
 
 package net.wequick.small;
 
+import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -241,12 +242,6 @@ public class Bundle {
                     e.printStackTrace();
                 }
             }
-            if (sUIActions != null) {
-                for (Runnable action : sUIActions) {
-                    action.run();
-                }
-                sUIActions = null;
-            }
         }
     }
 
@@ -358,8 +353,17 @@ public class Bundle {
         sBundleLaunchers.add(launcher);
     }
 
+    protected static void onCreateLaunchers(Application app) {
+        if (sBundleLaunchers == null) return;
+
+        for (BundleLauncher launcher : sBundleLaunchers) {
+            launcher.onCreate(app);
+        }
+    }
+
     protected static void setupLaunchers(Context context) {
         if (sBundleLaunchers == null) return;
+
         for (BundleLauncher launcher : sBundleLaunchers) {
             launcher.setUp(context);
         }
@@ -724,8 +728,8 @@ public class Bundle {
             sIOActions = null;
         }
 
-        // Sometimes we need to wait something been done on UI thread, as on 7.0+
-        // we should wait a WebView been initialized. #347
+        // Wait for the things to be done on UI thread before `postSetUp`,
+        // as on 7.0+ we should wait a WebView been initialized. (#347)
         while (sRunningUIActionCount != 0) {
             try {
                 Thread.sleep(100);
@@ -737,6 +741,16 @@ public class Bundle {
         // Notify `postSetUp' to all launchers
         for (BundleLauncher launcher : sBundleLaunchers) {
             launcher.postSetUp();
+        }
+
+        // Wait for the things to be done on UI thread after `postSetUp`,
+        // like creating a bundle application.
+        while (sRunningUIActionCount != 0) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
 
         // Free all unused temporary variables
@@ -751,7 +765,6 @@ public class Bundle {
     }
 
     private static List<Runnable> sIOActions;
-    private static List<Runnable> sUIActions;
     private static int sRunningUIActionCount;
 
     protected static void postIO(Runnable action) {
@@ -761,17 +774,16 @@ public class Bundle {
         sIOActions.add(action);
     }
 
-    protected static void postUI(Runnable action) {
-        if (sHandler == null || sHandler.mListener == null) {
-            // The UI thread is block, records the actions for lazy run.
-            if (sUIActions == null) {
-                sUIActions = new ArrayList<Runnable>();
+    protected static void postUI(final Runnable action) {
+        beginUI();
+        Message msg = Message.obtain(sHandler, new Runnable() {
+            @Override
+            public void run() {
+                action.run();
+                commitUI();
             }
-            sUIActions.add(action);
-        } else {
-            Message msg = Message.obtain(sHandler, action);
-            msg.sendToTarget();
-        }
+        });
+        msg.sendToTarget();
     }
 
     protected static synchronized void beginUI() {

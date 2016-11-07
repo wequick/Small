@@ -35,6 +35,7 @@ import net.wequick.small.webkit.WebViewClient;
 
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -71,8 +72,15 @@ public final class Small {
 
     private static byte[][] sHostCertificates;
 
+    private static List<ActivityLifecycleCallbacks> sSetUpActivityLifecycleCallbacks;
+
     public interface OnCompleteListener {
         void onComplete();
+    }
+
+    public interface ActivityLifecycleCallbacks {
+        void onActivityCreated(Activity activity, android.os.Bundle savedInstanceState);
+        void onActivityDestroyed(Activity activity);
     }
 
     public static Application getContext() {
@@ -104,12 +112,17 @@ public final class Small {
     }
 
     public static void preSetUp(Application context) {
+        if (sContext != null) {
+            return;
+        }
+
         sContext = context;
 
         // Register default bundle launchers
         registerLauncher(new ActivityLauncher());
         registerLauncher(new ApkBundleLauncher());
         registerLauncher(new WebBundleLauncher());
+        Bundle.onCreateLaunchers(context);
 
         PackageManager pm = context.getPackageManager();
         String packageName = context.getPackageName();
@@ -140,16 +153,6 @@ public final class Small {
         } catch (PackageManager.NameNotFoundException ignored) {
 
         }
-
-        // Check if application is started after unexpected exit (killed in background etc.)
-        ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-        ComponentName launchingComponent = am.getRunningTasks(1).get(0).topActivity;
-        ComponentName launcherComponent = pm.getLaunchIntentForPackage(packageName).getComponent();
-        if (!launchingComponent.equals(launcherComponent)) {
-            // In this case, system launching the last restored activity instead of our launcher
-            // activity. Call `setUp' synchronously to ensure `Small' available.
-            setUp(context, null);
-        }
     }
 
     public static void setUp(Context context, OnCompleteListener listener) {
@@ -170,6 +173,10 @@ public final class Small {
         sHasSetUp = true;
     }
 
+    protected static boolean hasSetUp() {
+        return sHasSetUp;
+    }
+
     public static Bundle getBundle(String bundleName) {
         return Bundle.findByName(bundleName);
     }
@@ -184,6 +191,17 @@ public final class Small {
 
     public static void registerJsHandler(String method, JsHandler handler) {
         WebView.registerJsHandler(method, handler);
+    }
+
+    public static void registerSetUpActivityLifecycleCallbacks(ActivityLifecycleCallbacks callbacks) {
+        if (sSetUpActivityLifecycleCallbacks == null) {
+            sSetUpActivityLifecycleCallbacks = new ArrayList();
+        }
+        sSetUpActivityLifecycleCallbacks.add(callbacks);
+    }
+
+    protected static List<ActivityLifecycleCallbacks> getSetUpActivityLifecycleCallbacks() {
+        return sSetUpActivityLifecycleCallbacks;
     }
 
     public static SharedPreferences getSharedPreferences() {

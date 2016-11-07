@@ -36,6 +36,9 @@
             android:windowSoftInputMode="stateHidden|adjustPan"
             android:hardwareAccelerated="true"/>
 
+        <!-- SetUp Activity -->
+        <activity android:name="net.wequick.small.SetUpActivity"/>
+
         <!-- SetUp Provider -->
         <provider
             android:exported="false"
