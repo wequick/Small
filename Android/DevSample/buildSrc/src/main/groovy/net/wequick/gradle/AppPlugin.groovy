@@ -1230,7 +1230,7 @@ class AppPlugin extends BundlePlugin {
                     Log.success "[${project.name}] remove resources.arsc..."
                 }
 
-                if (small.rJavaFile.delete()) {
+                if (sourceOutputDir.deleteDir()) {
                     Log.success "[${project.name}] remove R.java..."
                 }
 
