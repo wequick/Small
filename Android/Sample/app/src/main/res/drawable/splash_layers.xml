@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/colorSplash"/>
+    <item android:bottom="60dp">
+        <bitmap
+            android:src="@mipmap/ic_small"
+            android:gravity="center"/>
+    </item>
+    <item android:top="140dp">
+        <bitmap android:src="@mipmap/text_loading"
+            android:gravity="center"/>
+    </item>
+    <item android:bottom="88dp">
+        <bitmap android:src="@mipmap/text_copyright"
+            android:gravity="bottom"/>
+    </item>
+</layer-list>
