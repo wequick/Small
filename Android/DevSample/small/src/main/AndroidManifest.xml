@@ -41,6 +41,7 @@
 
         <!-- SetUp Provider -->
         <provider
+            android:exported="false"
             android:authorities="${SMALL_SETUP_PROVIDER_HOST}"
             android:name=".SetUpProvider"/>
     </application>
