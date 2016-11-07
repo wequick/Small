@@ -28,6 +28,15 @@ class HostPlugin extends AndroidPlugin {
             if (releaseSigningConfig != null) {
                 android.buildTypes.debug.signingConfig = releaseSigningConfig
             }
+
+            // Add a manifest placeholder for `SetUpProvider`
+            def providerHolder = ['SMALL_SETUP_PROVIDER_HOST':
+                                          android.defaultConfig.applicationId + ".small.setup"]
+            if (android.defaultConfig.manifestPlaceholders == null) {
+                android.defaultConfig.manifestPlaceholders = providerHolder
+            } else {
+                android.defaultConfig.manifestPlaceholders.putAll(providerHolder)
+            }
         }
     }
 
