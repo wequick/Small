@@ -1,10 +1,11 @@
-  
-// ------------------------------------------------------------------
-// Small plugin
 //
-// Cannot automatically merge the buildscript in Android Studio 2.0,
-// uncomment following to go into force.
-// ------------------------------------------------------------------
+//
+////-------------------------------------------------------------------
+//// Small plugin
+////
+//// Cannot automatically merge the buildscript in Android Studio 2.0+,
+//// uncomment this section to go into force.
+////-------------------------------------------------------------------
 //
 //buildscript  {
 //    dependencies {
@@ -15,5 +16,10 @@
 //apply plugin: 'net.wequick.small'
 //
 //small {
-//    aarVersion = '${smallAarVersion}'
+//    aarVersion = "${smallAarVersion}"
+//    android {
+//        compileSdkVersion = <#if buildApiString?matches("^\\d+$")>${buildApiString}<#else>'${buildApiString}'</#if>
+//        buildToolsVersion = "${buildToolsVersion}"
+//        supportVersion = "${buildApi}.+" // replace this with an explicit value
+//    }
 //}

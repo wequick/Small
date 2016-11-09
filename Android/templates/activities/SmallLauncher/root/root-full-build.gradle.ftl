@@ -36,5 +36,10 @@ task clean(type: Delete) {
 apply plugin: 'net.wequick.small'
 
 small {
-    aarVersion = '${smallAarVersion}'
+    aarVersion = "${smallAarVersion}"
+    android {
+        compileSdkVersion = <#if buildApiString?matches("^\\d+$")>${buildApiString}<#else>'${buildApiString}'</#if>
+        buildToolsVersion = "${buildToolsVersion}"
+        supportVersion = "${buildApi}.+" // replace this with an explicit value
+    }
 }
