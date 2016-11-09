@@ -128,7 +128,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
             ActivityInfo targetInfo;
             if (!Small.hasSetUp()) {
-                // If Small has not yet set up, STUB activities would not be unrecognized.
+                // If Small has not yet set up, STUB activities would not be recognized.
                 // We need to start the `SetUpActivity` to set up Small first.
                 // This is happens when the application was restarted in the background somehow.
                 Context context = Small.getContext();
