@@ -93,6 +93,112 @@ class AndroidPlugin extends BasePlugin {
                 hookPreDebugBuild()
             }
         }
+        preBuild.doLast {
+            reassignProviderAuthorities()
+        }
+    }
+
+    /**
+     * Reassign `android:authorities` value of a ContentProvider.
+     *
+     * consider that on debug mode:
+     * - `Small` module is compiled to host and each `app.*`
+     * - `Stub` modules are compiled to each `app.*`
+     * we need to ensure each of them have an unique authorities, so that they can be
+     * ran on one device together without namespace conflict.
+     */
+    protected void reassignProviderAuthorities() {
+        if (pluginType == PluginType.Library) return // nothing to do with `lib.*`
+
+        project.tasks.withType(PrepareLibraryTask.class).findAll {
+            def name = it.explodedDir.parentFile.name
+            if (name == 'small') {
+                it.extensions.add('numberOfProviders', 1) // known that only one `SetUpProvider`
+                return true
+            }
+
+            if (pluginType == PluginType.Host) return false // keep the stub authorities for host
+            boolean isStub = (rootSmall.hostStubProjects.find { it.name == name } != null)
+            if (isStub) {
+                it.extensions.add('numberOfProviders', 999) // unknown amount
+                return true
+            }
+            return false
+        }.each {
+            it.doLast { PrepareLibraryTask aar ->
+                File manifest = new File(aar.explodedDir, 'AndroidManifest.xml')
+                def s = ''
+                boolean enteredProvider = false
+                boolean reassigned = false
+                boolean needsReassign
+                int loc
+                int numberOfProviders = (int) aar.extensions.getByName('numberOfProviders')
+                String reassignProviderLines
+                String originalProviderLines
+                manifest.eachLine { line ->
+                    if (numberOfProviders <= 0) {
+                        s += line + '\n'
+                        return null
+                    }
+
+                    if (!enteredProvider) {
+                        loc = line.indexOf('<provider')
+                        if (loc < 0) {
+                            s += line + '\n'
+                            return null
+                        }
+
+                        enteredProvider = true
+                        needsReassign = true
+                        reassignProviderLines = originalProviderLines = ''
+                    }
+
+                    final def appId = android.defaultConfig.applicationId
+                    final def uniqueId = appId.hashCode()
+                    final def nameTag = 'android:name="'
+                    final def authTag = 'android:authorities="'
+                    loc = line.indexOf(nameTag)
+                    if (loc >= 0) {
+                        loc += nameTag.length()
+                        def tail = line.substring(loc)
+                        def nextLoc = tail.indexOf('"')
+                        def name = tail.substring(0, nextLoc)
+                        needsReassign = !name.startsWith(appId) // isn't implemented by self
+                        reassignProviderLines += line + '\n'
+                        originalProviderLines += line + '\n'
+                    } else if ((loc = line.indexOf(authTag)) > 0) {
+                        loc += authTag.length()
+                        def head = line.substring(0, loc)
+                        def tail = line.substring(loc)
+                        def nextLoc = tail.indexOf('"')
+                        def authorities = "${tail.substring(0, nextLoc)}.${uniqueId}"
+                        def reassignLine = "${head}${authorities}${tail.substring(nextLoc)}"
+                        reassignProviderLines += reassignLine + '\n'
+                        originalProviderLines += line + '\n'
+                    } else {
+                        reassignProviderLines += line + '\n'
+                        originalProviderLines += line + '\n'
+                    }
+
+                    loc = line.indexOf('>')
+                    if (loc >= 0) { // end of <provider>
+                        enteredProvider = false
+                        if (needsReassign) {
+                            s += reassignProviderLines
+                            reassigned = true
+                        } else {
+                            s += originalProviderLines
+                        }
+                        numberOfProviders--
+                    }
+                    return null
+                }
+
+                if (reassigned) {
+                    manifest.write(s, 'utf-8')
+                }
+            }
+        }
     }
 
     protected void configureProguard(BaseVariant variant, TransformTask proguard, ProGuardTransform pt) {

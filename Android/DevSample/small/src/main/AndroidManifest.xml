@@ -5,6 +5,12 @@
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <application>
+        <!-- SetUp Provider -->
+        <provider
+            android:name=".SetUpProvider"
+            android:authorities="net.wequick.small.setup"
+            android:exported="false" />
+
         <!-- Stub Activities -->
         <!-- 1 standard mode -->
         <activity android:name=".A" android:launchMode="standard"/>
@@ -33,11 +39,5 @@
 
         <!-- SetUp Activity -->
         <activity android:name="net.wequick.small.SetUpActivity"/>
-
-        <!-- SetUp Provider -->
-        <provider
-            android:exported="false"
-            android:authorities="${SMALL_SETUP_PROVIDER_HOST}"
-            android:name=".SetUpProvider"/>
     </application>
 </manifest>
