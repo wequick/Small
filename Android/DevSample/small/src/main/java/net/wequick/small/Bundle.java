@@ -373,6 +373,10 @@ public class Bundle {
         if (sPreloadBundles != null) {
             for (Bundle bundle : sPreloadBundles) {
                 if (bundle.matchesRule(uri)) {
+                    if (bundle.mApplicableLauncher == null) {
+                        break;
+                    }
+
                     if (!bundle.enabled) return null; // Illegal bundle (invalid signature, etc.)
                     return bundle;
                 }

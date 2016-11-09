@@ -276,11 +276,11 @@ public final class Small {
         return false;
     }
 
-    public static void openUri(String uriString, Context context) {
-        openUri(makeUri(uriString), context);
+    public static boolean openUri(String uriString, Context context) {
+        return openUri(makeUri(uriString), context);
     }
 
-    public static void openUri(Uri uri, Context context) {
+    public static boolean openUri(Uri uri, Context context) {
         // System url schemes
         String scheme = uri.getScheme();
         if (scheme != null
@@ -289,14 +289,16 @@ public final class Small {
                 && !scheme.equals("file")
                 && ApplicationUtils.canOpenUri(uri, context)) {
             ApplicationUtils.openUri(uri, context);
-            return;
+            return true;
         }
 
         // Small url schemes
         Bundle bundle = Bundle.getLaunchableBundle(uri);
         if (bundle != null) {
             bundle.launchFrom(context);
+            return true;
         }
+        return false;
     }
 
     public static Intent getIntentOfUri(String uriString, Context context) {
