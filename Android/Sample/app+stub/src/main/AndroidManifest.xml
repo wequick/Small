@@ -10,13 +10,13 @@
         <provider
             android:exported="true"
             android:authorities="net.wequick.example.small"
-            android:name="net.wequick.example.small.appavailable_if_stub.MyProvider"/>
+            android:name="net.wequick.example.small.appok_if_stub.MyProvider"/>
 
         <!-- Stub Services -->
-        <service android:name="net.wequick.example.small.appavailable_if_stub.MyService"/>
+        <service android:name="net.wequick.example.small.appok_if_stub.MyService"/>
 
         <!-- Stub BroadcastReceivers -->
-        <receiver android:name="net.wequick.example.small.appavailable_if_stub.MyReceiver">
+        <receiver android:name="net.wequick.example.small.appok_if_stub.MyReceiver">
             <intent-filter>
                 <action android:name="net.wequick.example.small.MyAction"/>
             </intent-filter>
