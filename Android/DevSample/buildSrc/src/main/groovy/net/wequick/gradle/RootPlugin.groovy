@@ -69,6 +69,7 @@ class RootPlugin extends BasePlugin {
                     rootExt.hostProject = it
                 } else if (it.name.startsWith('app+')) {
                     rootExt.hostStubProjects.add(it)
+                    return
                 } else {
                     String type = userBundleTypes.get(it.name)
                     if (type == null) {
@@ -85,7 +86,7 @@ class RootPlugin extends BasePlugin {
                             break;
                         case 'stub':
                             rootExt.hostStubProjects.add(it)
-                            break;
+                            return;
                         case 'lib':
                             it.apply plugin: LibraryPlugin
                             rootExt.libProjects.add(it)
