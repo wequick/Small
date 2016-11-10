@@ -6,6 +6,8 @@ import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
@@ -101,6 +103,8 @@ public class BundleParser {
             public static int AndroidManifestData_pathPattern = 6;
         }
     }
+
+    private static byte[][] sHostCerts;
 
     private String mArchiveSourcePath;
     private String mPackageName;
@@ -381,7 +385,25 @@ public class BundleParser {
             }
         }
 
-        byte[][] hostCerts = Small.getHostCertificates();
+        if (sHostCerts == null) {
+            // Collect host certificates
+            PackageManager pm = mContext.getPackageManager();
+            try {
+                Signature[] ss = pm.getPackageInfo(mContext.getPackageName(),
+                        PackageManager.GET_SIGNATURES).signatures;
+                if (ss != null) {
+                    int N = ss.length;
+                    sHostCerts = new byte[N][];
+                    for (int i = 0; i < N; i++) {
+                        sHostCerts[i] = ss[i].toByteArray();
+                    }
+                }
+            } catch (PackageManager.NameNotFoundException ignored) {
+
+            }
+        }
+
+        byte[][] hostCerts = sHostCerts;
         CrcVerifier crcVerifier = new CrcVerifier(mContext, bundle.getPackageName(), hostCerts);
 
         try {

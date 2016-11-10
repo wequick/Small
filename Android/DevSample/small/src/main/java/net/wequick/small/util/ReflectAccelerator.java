@@ -494,6 +494,18 @@ public class ReflectAccelerator {
         }
     }
 
+    public static Application getApplication() {
+        try {
+            Class activityThread = Class.forName("android.app.ActivityThread");
+            // ActivityThread.currentActivityThread()
+            Method m = activityThread.getMethod("currentApplication", new Class[0]);
+            m.setAccessible(true);
+            return (Application) m.invoke(null, new Object[0]);
+        } catch (Throwable ignore) {
+            throw new RuntimeException("Failed to get current application!");
+        }
+    }
+
     public static boolean expandDexPathList(ClassLoader cl, String[] dexPaths, DexFile[] dexFiles) {
         if (Build.VERSION.SDK_INT < 14) {
             return V9_13.expandDexPathList(cl, dexPaths, dexFiles);

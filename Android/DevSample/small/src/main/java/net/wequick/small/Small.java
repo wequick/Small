@@ -17,18 +17,16 @@
 package net.wequick.small;
 
 import android.app.Activity;
-import android.app.ActivityManager;
 import android.app.Application;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.Signature;
 import android.net.Uri;
 
 import net.wequick.small.util.ApplicationUtils;
+import net.wequick.small.util.ReflectAccelerator;
 import net.wequick.small.webkit.JsHandler;
 import net.wequick.small.webkit.WebView;
 import net.wequick.small.webkit.WebViewClient;
@@ -68,9 +66,8 @@ public final class Small {
     private static String sBaseUri = ""; // base url of uri
     private static boolean sIsNewHostApp; // first launched or upgraded
     private static boolean sHasSetUp;
+    private static int sLaunchingHostVersionCode;
     private static int sWebActivityTheme;
-
-    private static byte[][] sHostCertificates;
 
     private static List<ActivityLifecycleCallbacks> sSetUpActivityLifecycleCallbacks;
 
@@ -94,6 +91,11 @@ public final class Small {
     }
 
     public static Application getContext() {
+        if (sContext == null) {
+            // While launching bundle independently, the `Small.setUp` may not be called,
+            // so lazy initialize this if needed.
+            sContext = ReflectAccelerator.getApplication();
+        }
         return sContext;
     }
 
@@ -110,15 +112,37 @@ public final class Small {
      * @return
      */
     public static boolean getIsNewHostApp() {
-        return sIsNewHostApp;
+        int launchingVersion = getLaunchingHostVersionCode();
+        if (getLaunchedHostVersionCode() != launchingVersion) {
+            setLaunchedHostVersionCode(launchingVersion);
+            return true;
+        }
+
+        return false;
+    }
+
+    public static int getLaunchingHostVersionCode() {
+        if (sLaunchingHostVersionCode > 0) {
+            return sLaunchingHostVersionCode;
+        }
+
+        Context context = getContext();
+        PackageManager pm = context.getPackageManager();
+        String packageName = context.getPackageName();
+
+        // Check if host app is first-installed or upgraded
+        try {
+            PackageInfo pi = pm.getPackageInfo(packageName, 0);
+            sLaunchingHostVersionCode = pi.versionCode;
+        } catch (PackageManager.NameNotFoundException ignored) {
+            // Never reach
+        }
+
+        return sLaunchingHostVersionCode;
     }
 
     public static boolean isFirstSetUp() {
-        return sIsNewHostApp && !sHasSetUp;
-    }
-
-    public static byte[][] getHostCertificates() {
-        return sHostCertificates;
+        return getIsNewHostApp() && !sHasSetUp;
     }
 
     public static void preSetUp(Application context) {
@@ -133,36 +157,6 @@ public final class Small {
         registerLauncher(new ApkBundleLauncher());
         registerLauncher(new WebBundleLauncher());
         Bundle.onCreateLaunchers(context);
-
-        PackageManager pm = context.getPackageManager();
-        String packageName = context.getPackageName();
-
-        // Check if host app is first-installed or upgraded
-        try {
-            PackageInfo pi = pm.getPackageInfo(packageName, 0);
-            int launchingVersion = pi.versionCode;
-            if (getLaunchedHostVersionCode() != launchingVersion) {
-                sIsNewHostApp = true;
-                setLaunchedHostVersionCode(launchingVersion);
-            }
-        } catch (PackageManager.NameNotFoundException ignored) {
-            // Never reach
-        }
-
-        // Collect host certificates
-        try {
-            Signature[] ss = pm.getPackageInfo(Small.getContext().getPackageName(),
-                    PackageManager.GET_SIGNATURES).signatures;
-            if (ss != null) {
-                int N = ss.length;
-                sHostCertificates = new byte[N][];
-                for (int i = 0; i < N; i++) {
-                    sHostCertificates[i] = ss[i].toByteArray();
-                }
-            }
-        } catch (PackageManager.NameNotFoundException ignored) {
-
-        }
     }
 
     public static void setUp(Context context, OnCompleteListener listener) {

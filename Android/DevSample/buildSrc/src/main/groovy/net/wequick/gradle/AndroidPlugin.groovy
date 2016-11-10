@@ -94,53 +94,37 @@ class AndroidPlugin extends BasePlugin {
             }
         }
         preBuild.doLast {
-            reassignProviderAuthorities()
+            removeUnimplementedProviders()
         }
     }
 
     /**
-     * Reassign `android:authorities` value of a ContentProvider.
+     * Remove unimplemented content providers in the bundle manifest.
      *
-     * consider that on debug mode:
-     * - `Small` module is compiled to host and each `app.*`
-     * - `Stub` modules are compiled to each `app.*`
-     * we need to ensure each of them have an unique authorities, so that they can be
-     * ran on one device together without namespace conflict.
+     * On debug mode the `Stub` modules are compiled to each bundle by which
+     * the bundles manifest may be contains the `Stub` content provider.
+     * If the bundle wasn't implement the provider class, it would raise an exception
+     * on running the bundle independently.
+     *
+     * So we need to remove all the unimplemented content providers from `Stub`.
      */
-    protected void reassignProviderAuthorities() {
-        if (pluginType == PluginType.Library) return // nothing to do with `lib.*`
+    protected void removeUnimplementedProviders() {
+        if (pluginType == PluginType.Library ||
+                pluginType == PluginType.Host) return // nothing to do with `lib.*` and host
 
         project.tasks.withType(PrepareLibraryTask.class).findAll {
             def name = it.explodedDir.parentFile.name
-            if (name == 'small') {
-                it.extensions.add('numberOfProviders', 1) // known that only one `SetUpProvider`
-                return true
-            }
-
-            if (pluginType == PluginType.Host) return false // keep the stub authorities for host
-            boolean isStub = (rootSmall.hostStubProjects.find { it.name == name } != null)
-            if (isStub) {
-                it.extensions.add('numberOfProviders', 999) // unknown amount
-                return true
-            }
-            return false
+            return (rootSmall.hostStubProjects.find { it.name == name } != null)
         }.each {
             it.doLast { PrepareLibraryTask aar ->
                 File manifest = new File(aar.explodedDir, 'AndroidManifest.xml')
                 def s = ''
                 boolean enteredProvider = false
-                boolean reassigned = false
-                boolean needsReassign
+                boolean removed = false
+                boolean implemented
                 int loc
-                int numberOfProviders = (int) aar.extensions.getByName('numberOfProviders')
-                String reassignProviderLines
-                String originalProviderLines
+                String providerLines
                 manifest.eachLine { line ->
-                    if (numberOfProviders <= 0) {
-                        s += line + '\n'
-                        return null
-                    }
-
                     if (!enteredProvider) {
                         loc = line.indexOf('<provider')
                         if (loc < 0) {
@@ -149,52 +133,37 @@ class AndroidPlugin extends BasePlugin {
                         }
 
                         enteredProvider = true
-                        needsReassign = true
-                        reassignProviderLines = originalProviderLines = ''
+                        implemented = false
+                        providerLines = ''
                     }
 
                     final def appId = android.defaultConfig.applicationId
-                    final def uniqueId = appId.hashCode()
                     final def nameTag = 'android:name="'
-                    final def authTag = 'android:authorities="'
                     loc = line.indexOf(nameTag)
                     if (loc >= 0) {
                         loc += nameTag.length()
                         def tail = line.substring(loc)
                         def nextLoc = tail.indexOf('"')
                         def name = tail.substring(0, nextLoc)
-                        needsReassign = !name.startsWith(appId) // isn't implemented by self
-                        reassignProviderLines += line + '\n'
-                        originalProviderLines += line + '\n'
-                    } else if ((loc = line.indexOf(authTag)) > 0) {
-                        loc += authTag.length()
-                        def head = line.substring(0, loc)
-                        def tail = line.substring(loc)
-                        def nextLoc = tail.indexOf('"')
-                        def authorities = "${tail.substring(0, nextLoc)}.${uniqueId}"
-                        def reassignLine = "${head}${authorities}${tail.substring(nextLoc)}"
-                        reassignProviderLines += reassignLine + '\n'
-                        originalProviderLines += line + '\n'
+                        implemented = name.startsWith(appId) // is implemented by self
+                        providerLines += line + '\n'
                     } else {
-                        reassignProviderLines += line + '\n'
-                        originalProviderLines += line + '\n'
+                        providerLines += line + '\n'
                     }
 
                     loc = line.indexOf('>')
                     if (loc >= 0) { // end of <provider>
                         enteredProvider = false
-                        if (needsReassign) {
-                            s += reassignProviderLines
-                            reassigned = true
+                        if (implemented) {
+                            s += providerLines
                         } else {
-                            s += originalProviderLines
+                            removed = true
                         }
-                        numberOfProviders--
                     }
                     return null
                 }
 
-                if (reassigned) {
+                if (removed) {
                     manifest.write(s, 'utf-8')
                 }
             }
