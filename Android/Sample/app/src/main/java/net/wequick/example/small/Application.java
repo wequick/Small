@@ -13,6 +13,14 @@ import net.wequick.small.webkit.WebViewClient;
  * Created by galen on 15/11/3.
  */
 public class Application extends android.app.Application {
+
+    public Application() {
+        // This should be the very first of the application lifecycle.
+        // It's also ahead of the installing of content providers by what we can avoid
+        // the ClassNotFound exception on the provider is unimplemented in the host.
+        Small.preSetUp(this);
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -21,9 +29,6 @@ public class Application extends android.app.Application {
         Small.setBaseUri("http://m.wequick.net/demo/");
         Small.setWebViewClient(new MyWebViewClient());
         Small.setLoadFromAssets(true);
-
-        // Required
-        Small.preSetUp(this);
     }
 
     private static final class MyWebViewClient extends WebViewClient {
