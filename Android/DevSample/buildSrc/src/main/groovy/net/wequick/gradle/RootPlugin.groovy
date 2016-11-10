@@ -279,12 +279,17 @@ class RootPlugin extends BasePlugin {
 
             // modules
             def rows = []
-            File out = new File(small.outputBundleDir, 'armeabi')
-            if (!out.exists()) {
-                out = new File(small.outputBundleDir, 'x86')
+            def fileTitle = 'file'
+            File out = small.outputBundleDir
+            if (!small.buildToAssets) {
+                out = new File(small.outputBundleDir, 'armeabi')
+                if (!out.exists()) {
+                    out = new File(small.outputBundleDir, 'x86')
+                }
+                if (out.exists()) {
+                    fileTitle += "($out.name)"
+                }
             }
-            def hasOut = out.exists()
-            def fileTitle = hasOut ? "file($out.name)" : 'file';
             rows.add(['type', 'name', 'PP', 'sdk', 'aapt', 'support', fileTitle, 'size'])
             def vs = getVersions(small.hostProject)
             rows.add(['host', small.hostModuleName, '', vs.sdk, vs.aapt, vs.support, '', ''])
@@ -295,18 +300,24 @@ class RootPlugin extends BasePlugin {
             bundleModules.each { type, names ->
                 names.each {
                     def file = null
+                    def fileName = null
                     def prj = project.rootProject.project(":$it")
                     vs = getVersions(prj)
-                    if (hasOut) {
+                    if (out.exists()) {
                         def manifest = new XmlParser().parse(prj.android.sourceSets.main.manifestFile)
                         def pkg = manifest.@package
-                        def so = "lib${pkg.replaceAll('\\.', '_')}.so"
-                        file = new File(out, so)
+                        if (small.buildToAssets) {
+                            file = new File(out, "${pkg}.apk")
+                            fileName = '*.' + pkg.split('\\.').last() + '.apk'
+                        } else {
+                            fileName = "lib${pkg.replaceAll('\\.', '_')}.so"
+                            file = new File(out, fileName)
+                            fileName = '*_' + file.name.split('_').last()
+                        }
                     }
                     def pp = AppPlugin.sPackageIds.get(it)
                     pp = (pp == null) ? '' : String.format('0x%02x', pp)
                     if (file != null && file.exists()) {
-                        def fileName = '*_' + file.name.split('_').last()
                         rows.add([type, it, pp, vs.sdk, vs.aapt, vs.support, fileName, getFileSize(file)])
                     } else {
                         rows.add([type, it, pp, vs.sdk, vs.aapt, vs.support, '', ''])
