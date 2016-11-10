@@ -29,6 +29,10 @@ class HostPlugin extends AndroidPlugin {
             if (releaseSigningConfig != null) {
                 android.buildTypes.debug.signingConfig = releaseSigningConfig
             }
+
+            // Add a build config to specify whether load-from-assets or not.
+            android.defaultConfig.buildConfigField(
+                    "boolean", "LOAD_FROM_ASSETS", rootSmall.buildToAssets ? "true" : "false")
         }
     }
 

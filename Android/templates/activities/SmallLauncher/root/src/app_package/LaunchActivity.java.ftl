@@ -3,6 +3,7 @@ package ${packageName};
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.Window;
+import android.widget.Toast;
 
 import net.wequick.small.Small;
 
@@ -24,10 +25,10 @@ public class ${activityClass} extends Activity {
         Small.setUp(this, new Small.OnCompleteListener() {
             @Override
             public void onComplete() {
-                if (Small.openUri("main", SplashActivity.this)) {
+                if (Small.openUri("main", ${activityClass}.this)) {
                     finish();
                 } else {
-                    Toast.makeText(SplashActivity.this,
+                    Toast.makeText(${activityClass}.this,
                             "Open failed, see log for detail!",
                             Toast.LENGTH_LONG).show();
                 }

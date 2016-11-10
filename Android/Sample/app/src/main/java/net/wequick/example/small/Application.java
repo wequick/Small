@@ -17,7 +17,7 @@ public class Application extends android.app.Application {
     public Application() {
         // This should be the very first of the application lifecycle.
         // It's also ahead of the installing of content providers by what we can avoid
-        // the ClassNotFound exception on the provider is unimplemented in the host.
+        // the ClassNotFound exception on if the provider is unimplemented in the host.
         Small.preSetUp(this);
     }
 
@@ -28,7 +28,7 @@ public class Application extends android.app.Application {
         // Optional
         Small.setBaseUri("http://m.wequick.net/demo/");
         Small.setWebViewClient(new MyWebViewClient());
-        Small.setLoadFromAssets(true);
+        Small.setLoadFromAssets(BuildConfig.LOAD_FROM_ASSETS);
     }
 
     private static final class MyWebViewClient extends WebViewClient {

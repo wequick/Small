@@ -1,3 +1,11 @@
+## 1.1.0-beta7 (2016-11-10)
+
+Features:
+
+  - 取消使用 `SetUpProvider`, 改在宿主Application构造方法中调用 `Small.preSetUp` 来支持ContentProvider (#253)
+  - `Small.openUri` 增加返回值, false表示打开失败
+  - 支持从宿主Assets中加载插件: `Small.setLoadFromAssets(true)`
+
 ## 1.1.0-beta6 (2016-11-04)
 
 Features:

@@ -1,3 +1,26 @@
+## 1.1.0-beta3 (2016-11-10)
+
+Features:
+
+  - 自动为宿主添加 `BuildConfig.LOAD_FROM_ASSETS`, 值等于 `small.buildToAssets`
+
+## 1.1.0-beta2 (2016-11-10)
+
+Features:
+
+  - 支持打包插件到宿主Assets, 在根 `build.gradle` 中开启:
+
+    ```
+    small {
+        buildToAssets = true
+    }
+    ```
+
+Bugfixes:
+
+  - 对于 `app.*` 模块, 移除 `Stub` 模块manifest中可能存在的ContentProvider, 避免命名冲突而无法单独运行
+  - 当插件没有资源时, 移除整个 `generated/source/r/release` 目录, 避免将第三方 `R.class` 打包到插件中
+
 ## 1.1.0-beta1 (2016-11-04)
 
 Features:
