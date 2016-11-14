@@ -116,18 +116,45 @@ public class ApkBundleLauncher extends SoBundleLauncher {
     private static class ActivityThreadHandlerCallback implements Handler.Callback {
 
         private static final int LAUNCH_ACTIVITY = 100;
+        private static final int CREATE_SERVICE = 114;
 
         @Override
         public boolean handleMessage(Message msg) {
-            if (msg.what != LAUNCH_ACTIVITY) return false;
+            switch (msg.what) {
+                case LAUNCH_ACTIVITY:
+                    redirectActivity(msg);
+                    break;
 
+                case CREATE_SERVICE:
+                    ensureServiceClassesAreLoaded(msg);
+                    break;
+
+                default:
+                    break;
+            }
+
+            return false;
+        }
+
+        private void redirectActivity(Message msg) {
             Object/*ActivityClientRecord*/ r = msg.obj;
             Intent intent = ReflectAccelerator.getIntent(r);
             String targetClass = unwrapIntent(intent);
-            if (targetClass == null) return false;
+            boolean hasSetUp = Small.hasSetUp();
+            boolean checkIfStubLaunchMode = true;
+            if (targetClass == null) {
+                // The activity was register in the host.
+                if (hasSetUp || intent.hasCategory(Intent.CATEGORY_LAUNCHER)) {
+                    // The launcher activity will setup Small.
+                    return;
+                }
+
+                // Launching a remote activity who's intent is not yet be wrapped.
+                checkIfStubLaunchMode = false;
+            }
 
             ActivityInfo targetInfo;
-            if (!Small.hasSetUp()) {
+            if (!hasSetUp) {
                 // If Small has not yet set up, STUB activities would not be recognized.
                 // We need to start the `SetUpActivity` to set up Small first.
                 // This is happens when the application was restarted in the background somehow.
@@ -137,27 +164,29 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                         .resolveActivity(setupIntent, 0).activityInfo;
                 targetInfo.targetActivity = setupIntent.getComponent().getClassName();
 
-                String stubClass = intent.getComponent().getClassName();
-                final String mode = stubClass.substring(STUB_ACTIVITY_PREFIX.length());
-                if (mode.length() == 2) {
-                    // If the activity has specified a launch mode, we should mark it to be used,
-                    // so that we can dequeue a usable STUB activity for the incoming bundle activity.
-                    // e.g.
-                    // - restarting `net.wequick.small.A30` which wrap `com.bundle.AnyActivity`
-                    // - but we redirect to `SetUpActivity`,
-                    // - now the `A30`(singleInstance) has been mark used in the system process,
-                    // - so we should dequeue `A31` for `com.bundle.AnyActivity`.
-                    Small.registerSetUpActivityLifecycleCallbacks(new Small.ActivityLifecycleCallbacks() {
-                        @Override
-                        public void onActivityCreated(Activity activity, android.os.Bundle savedInstanceState) {
-                            sBundleInstrumentation.setStubQueue(mode, ""); // mark used
-                        }
+                // If the activity has specified a launch mode, we should mark it to be used,
+                // so that we can dequeue a usable STUB activity for the incoming bundle activity.
+                // e.g.
+                // - restarting `net.wequick.small.A30` which wrap `com.bundle.AnyActivity`
+                // - but we redirect to `SetUpActivity`,
+                // - now the `A30`(singleInstance) has been mark used in the system process,
+                // - so we should dequeue `A31` for `com.bundle.AnyActivity`.
+                if (checkIfStubLaunchMode) {
+                    String stubClass = intent.getComponent().getClassName();
+                    final String mode = stubClass.substring(STUB_ACTIVITY_PREFIX.length());
+                    if (mode.length() == 2) {
+                        Small.registerSetUpActivityLifecycleCallbacks(new Small.ActivityLifecycleCallbacks() {
+                            @Override
+                            public void onActivityCreated(Activity activity, android.os.Bundle savedInstanceState) {
+                                sBundleInstrumentation.setStubQueue(mode, ""); // mark used
+                            }
 
-                        @Override
-                        public void onActivityDestroyed(Activity activity) {
-                            sBundleInstrumentation.setStubQueue(mode, null); // mark unused
-                        }
-                    });
+                            @Override
+                            public void onActivityDestroyed(Activity activity) {
+                                sBundleInstrumentation.setStubQueue(mode, null); // mark unused
+                            }
+                        });
+                    }
                 }
             } else {
                 // Replace with the REAL activityInfo
@@ -165,7 +194,13 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             }
 
             ReflectAccelerator.setActivityInfo(r, targetInfo);
-            return false;
+        }
+
+        private void ensureServiceClassesAreLoaded(Message msg) {
+            // Cause Small is only setup in current application process, if a service is specified
+            // with a different process('android:process=xx'), then we should also setup Small for
+            // that process so that the service classes can be successfully loaded.
+            Small.setUp(Small.getContext(), null);
         }
     }
 

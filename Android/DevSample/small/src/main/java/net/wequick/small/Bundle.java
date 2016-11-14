@@ -90,7 +90,6 @@ public class Bundle {
     private static final int MSG_COMPLETE = 1;
     private static LoadBundleHandler sHandler;
     private static LoadBundleThread sThread;
-    private static boolean sLoading;
 
     private String mPackageName;
     private String uriString;
@@ -229,7 +228,8 @@ public class Bundle {
 
         boolean synchronous = (listener == null);
         if (synchronous) {
-            sLoading = true;
+            loadBundles(context);
+            return;
         }
 
         // Asynchronous
@@ -237,16 +237,6 @@ public class Bundle {
             sThread = new LoadBundleThread(context);
             sHandler = new LoadBundleHandler(listener);
             sThread.start();
-        }
-
-        if (synchronous) {
-            while (sLoading) {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
         }
     }
 
@@ -302,11 +292,9 @@ public class Bundle {
         Manifest manifest = parseManifest(manifestData);
         if (manifest == null) return;
 
-        loadBundles(manifest.bundles);
-    }
+        setupLaunchers(context);
 
-    protected static Boolean isLoadingAsync() {
-        return (sThread != null);
+        loadBundles(manifest.bundles);
     }
 
     private static Manifest parseManifest(JSONObject data) {
@@ -755,12 +743,7 @@ public class Bundle {
 
         @Override
         public void run() {
-            // Set up launchers
-            Bundle.setupLaunchers(mContext);
-
-            // Instantiate bundle
             loadBundles(mContext);
-            sLoading = false;
             sHandler.obtainMessage(MSG_COMPLETE).sendToTarget();
         }
     }
@@ -840,6 +823,11 @@ public class Bundle {
     }
 
     protected static void postUI(final Runnable action) {
+        if (sHandler == null) {
+            action.run();
+            return;
+        }
+
         beginUI();
         Message msg = Message.obtain(sHandler, new Runnable() {
             @Override
