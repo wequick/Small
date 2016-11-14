@@ -9,9 +9,9 @@ import android.support.annotation.Nullable;
 import android.widget.Toast;
 
 /**
- * Created by galen on 2016/11/4.
+ * Created by galen on 2016/11/14.
  */
-public class MyService extends Service {
+public class MyRemoteService extends Service {
 
     private Handler mUI;
 
@@ -19,29 +19,28 @@ public class MyService extends Service {
     public void onCreate() {
         super.onCreate();
         mUI = new Handler(Looper.myLooper());
-        mUI.post(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(getApplicationContext(), "MyService is on!", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        mUI.post(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(getApplicationContext(), "MyService is off!", Toast.LENGTH_SHORT).show();
-                mUI = null;
-            }
-        });
     }
 
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
+        mUI.post(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(getApplicationContext(), "MyRemoteService is bind!", Toast.LENGTH_SHORT).show();
+            }
+        });
         return null;
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        mUI.post(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(getApplicationContext(), "MyRemoteService is unbind!", Toast.LENGTH_SHORT).show();
+            }
+        });
+        return super.onUnbind(intent);
     }
 }

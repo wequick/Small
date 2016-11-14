@@ -1,15 +1,18 @@
 package net.wequick.example.small.appok_if_stub;
 
 import android.app.PendingIntent;
+import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.annotation.Keep;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NotificationCompat;
@@ -30,6 +33,8 @@ import net.wequick.small.Small;
 public class MainFragment extends Fragment {
 
     public static final int MY_NOTIFICATION_ID = 1000;
+
+    private ServiceConnection mServiceConnection;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -121,11 +126,12 @@ public class MainFragment extends Fragment {
             }
         });
 
+        // 本地服务
         button = (Button) rootView.findViewById(R.id.start_service_button);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getContext(), MyService.class);
+                Intent intent = new Intent(getContext(), MyLocalService.class);
                 getContext().startService(intent);
             }
         });
@@ -134,11 +140,42 @@ public class MainFragment extends Fragment {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getContext(), MyService.class);
+                Intent intent = new Intent(getContext(), MyLocalService.class);
                 getContext().stopService(intent);
             }
         });
 
+        // 远程服务
+        mServiceConnection = new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder service) {
+
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+
+            }
+        };
+
+        button = (Button) rootView.findViewById(R.id.bind_remote_service_button);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getContext(), MyRemoteService.class);
+                getContext().bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+            }
+        });
+
+        button = (Button) rootView.findViewById(R.id.unbind_remote_service_button);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getContext().unbindService(mServiceConnection);
+            }
+        });
+
+        // 广播
         button = (Button) rootView.findViewById(R.id.send_broadcast_button);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -170,6 +207,15 @@ public class MainFragment extends Fragment {
                     String msg = "name in top record is: " + cursor.getString(1);
                     Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
                 }
+            }
+        });
+
+        button = (Button) rootView.findViewById(R.id.start_remote_activity_button);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getContext(), MyRemoteActivity.class);
+                startActivity(intent);
             }
         });
 

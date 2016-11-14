@@ -55,9 +55,25 @@
     <android.support.v7.widget.AppCompatButton
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:id="@+id/bind_remote_service_button"
+        android:text="@string/bind_service"
+        android:layout_below="@id/stop_service_button"
+        app:textAllCaps="false" />
+
+    <android.support.v7.widget.AppCompatButton
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/unbind_remote_service_button"
+        android:text="@string/unbind_service"
+        android:layout_below="@id/bind_remote_service_button"
+        app:textAllCaps="false" />
+
+    <android.support.v7.widget.AppCompatButton
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:id="@+id/send_broadcast_button"
         android:text="@string/send_broadcast"
-        android:layout_below="@id/stop_service_button"
+        android:layout_below="@id/unbind_remote_service_button"
         app:textAllCaps="false" />
 
     <android.support.v7.widget.AppCompatButton
@@ -68,4 +84,11 @@
         android:layout_below="@id/send_broadcast_button"
         app:textAllCaps="false" />
 
+    <android.support.v7.widget.AppCompatButton
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/start_remote_activity_button"
+        android:text="@string/start_remote_activity"
+        android:layout_below="@id/get_content_button"
+        app:textAllCaps="false" />
 </RelativeLayout>
