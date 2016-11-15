@@ -1,3 +1,9 @@
+## 1.1.0-beta8 (2016-11-15)
+
+Bugfixes:
+
+  - 修正指定了 `android:process` 的Activity/Service启动时闪退的问题 (#354, #355)
+
 ## 1.1.0-beta7 (2016-11-10)
 
 Features:

@@ -47,7 +47,7 @@ apply plugin: 'net.wequick.small'
 
 ```groovy
 small {
-    aarVersion = '1.1.0-beta7'
+    aarVersion = '1.1.0-beta8'
 }
 ```
 
