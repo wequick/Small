@@ -181,6 +181,15 @@ public final class Small {
         return sHasSetUp;
     }
 
+    protected static void setUp() {
+        setUp(getContext(), null);
+    }
+
+    protected static void setUpOnDemand() {
+        // TODO: load required classes on demand.
+        setUp(getContext(), null);
+    }
+
     public static Bundle getBundle(String bundleName) {
         return Bundle.findByName(bundleName);
     }
