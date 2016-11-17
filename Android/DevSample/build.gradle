@@ -5,7 +5,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.0.0'
+        classpath 'com.android.tools.build:gradle:2.2.2'
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
@@ -24,10 +24,11 @@ task clean(type: Delete) {
 apply plugin: 'net.wequick.small'
 
 small {
-    buildToAssets = true
+    buildToAssets = false
     android {
         compileSdkVersion = 24
         buildToolsVersion = "23.0.3"
         supportVersion = "23.4.0"
     }
+    strictSplitResources=false
 }

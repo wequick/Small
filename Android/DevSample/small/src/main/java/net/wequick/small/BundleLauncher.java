@@ -110,6 +110,8 @@ public abstract class BundleLauncher {
      */
     public void postSetUp() { }
 
+    public void postLazySetUp(){}
+
     /**
      * Called when loading bundles by {@link Bundle#loadLaunchableBundles(Small.OnCompleteListener)}.
      *
@@ -121,7 +123,9 @@ public abstract class BundleLauncher {
      */
     public boolean resolveBundle(Bundle bundle) {
         if (!preloadBundle(bundle)) return false;
-
+        if(bundle.isLazyLoad()){
+            return false;
+        }
         loadBundle(bundle);
         return true;
     }

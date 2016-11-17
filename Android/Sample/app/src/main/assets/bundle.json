@@ -28,6 +28,7 @@
     {
       "uri": "detail",
       "pkg": "net.wequick.example.small.app.detail",
+      "lazyload":true,
       "rules": {
         "sub": "Sub"
       }
