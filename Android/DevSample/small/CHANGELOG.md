@@ -1,3 +1,9 @@
+## 1.1.0-beta9 (2016-11-17)
+
+Bugfixes:
+
+  - 取消使用 `SetUpActivity`, 以避免应用重启后无法传递 `savedInstanceState` 到Activity.
+
 ## 1.1.0-beta8 (2016-11-15)
 
 Bugfixes:
