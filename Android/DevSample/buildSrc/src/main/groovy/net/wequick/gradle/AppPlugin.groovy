@@ -50,6 +50,7 @@ class AppPlugin extends BundlePlugin {
     protected Set<Project> mDependentLibProjects
     protected Set<Project> mTransitiveDependentLibProjects
     protected Set<Map> mUserLibAars
+    protected Set<Map> mUserJniAssetsLibAars
     protected Set<File> mLibraryJars
     protected File mMinifyJar
 
@@ -89,6 +90,7 @@ class AppPlugin extends BundlePlugin {
         Set<DefaultProjectDependency> allLibs = compilesDependencies.withType(DefaultProjectDependency.class)
         Set<DefaultProjectDependency> smallLibs = []
         mUserLibAars = []
+        mUserJniAssetsLibAars = []
         mDependentLibProjects = []
         allLibs.each {
             if (rootSmall.isLibProject(it.dependencyProject)) {
@@ -96,6 +98,7 @@ class AppPlugin extends BundlePlugin {
                 mDependentLibProjects.add(it.dependencyProject)
             } else {
                 mUserLibAars.add(group: it.group, name: it.name, version: it.version)
+                mUserJniAssetsLibAars.add(group: it.group, name: it.name, version: it.version)
             }
         }
 
@@ -418,6 +421,8 @@ class AppPlugin extends BundlePlugin {
         def path = "$group/$name/$version"
         def aar = [path: path, name: node.name, version: version]
         def resDir = new File(small.aarDir, "$path/res")
+        // collect vendor aar for the next mergeJniLib/mergeAssets tasks avoid ignores.fix issue #367
+        mUserJniAssetsLibAars.add(group: group, name:name, version:version)
         // If the dependency has resources, collect it
         if (resDir.exists() && resDir.list().size() > 0) {
             if (outFirstLevelAars != null && !outFirstLevelAars.contains(aar)) {
@@ -932,7 +937,7 @@ class AppPlugin extends BundlePlugin {
                 if (root.name != 'exploded-aar') return
 
                 def aar = [group: group.name, name: name.name, version: version.name]
-                if (mUserLibAars.contains(aar)) return
+                if (mUserJniAssetsLibAars.contains(aar)) return
 
                 paths.add(it)
             }
@@ -953,7 +958,7 @@ class AppPlugin extends BundlePlugin {
                     def name = version.parentFile
                     def group = name.parentFile
                     def aar = [group: group.name, name: name.name, version: version.name]
-                    if (mUserLibAars.contains(aar)) return
+                    if (mUserJniAssetsLibAars.contains(aar)) return
 
                     paths.add(it)
                 }
