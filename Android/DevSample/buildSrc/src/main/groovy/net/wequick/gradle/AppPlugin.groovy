@@ -50,7 +50,7 @@ class AppPlugin extends BundlePlugin {
     protected Set<Project> mDependentLibProjects
     protected Set<Project> mTransitiveDependentLibProjects
     protected Set<Map> mUserLibAars
-    protected Set<Map> mUserJniAssetsLibAars
+    protected Set<Map> mUserVendorAndLibAars
     protected Set<File> mLibraryJars
     protected File mMinifyJar
 
@@ -90,7 +90,7 @@ class AppPlugin extends BundlePlugin {
         Set<DefaultProjectDependency> allLibs = compilesDependencies.withType(DefaultProjectDependency.class)
         Set<DefaultProjectDependency> smallLibs = []
         mUserLibAars = []
-        mUserJniAssetsLibAars = []
+        mUserVendorAndLibAars = []
         mDependentLibProjects = []
         allLibs.each {
             if (rootSmall.isLibProject(it.dependencyProject)) {
@@ -98,7 +98,7 @@ class AppPlugin extends BundlePlugin {
                 mDependentLibProjects.add(it.dependencyProject)
             } else {
                 mUserLibAars.add(group: it.group, name: it.name, version: it.version)
-                mUserJniAssetsLibAars.add(group: it.group, name: it.name, version: it.version)
+                mUserVendorAndLibAars.add(group: it.group, name: it.name, version: it.version)
             }
         }
 
@@ -422,7 +422,7 @@ class AppPlugin extends BundlePlugin {
         def aar = [path: path, name: node.name, version: version]
         def resDir = new File(small.aarDir, "$path/res")
         // collect vendor aar for the next mergeJniLib/mergeAssets tasks avoid ignores.fix issue #367
-        mUserJniAssetsLibAars.add(group: group, name:name, version:version)
+        mUserVendorAndLibAars.add(group: group, name:name, version:version)
         // If the dependency has resources, collect it
         if (resDir.exists() && resDir.list().size() > 0) {
             if (outFirstLevelAars != null && !outFirstLevelAars.contains(aar)) {
@@ -937,7 +937,7 @@ class AppPlugin extends BundlePlugin {
                 if (root.name != 'exploded-aar') return
 
                 def aar = [group: group.name, name: name.name, version: version.name]
-                if (mUserJniAssetsLibAars.contains(aar)) return
+                if (mUserVendorAndLibAars.contains(aar)) return
 
                 paths.add(it)
             }
@@ -958,7 +958,7 @@ class AppPlugin extends BundlePlugin {
                     def name = version.parentFile
                     def group = name.parentFile
                     def aar = [group: group.name, name: name.name, version: version.name]
-                    if (mUserJniAssetsLibAars.contains(aar)) return
+                    if (mUserVendorAndLibAars.contains(aar)) return
 
                     paths.add(it)
                 }
@@ -1051,12 +1051,47 @@ class AppPlugin extends BundlePlugin {
             smallLibAars.add(group: lib.group, name: lib.name, version: lib.version)
         }
 
+        println(project.name+" 's smallLibAars="+smallLibAars)
+        println(project.name+" 's mUserLibAars="+mUserLibAars)
         // Collect aar(s) in host
         File hostAarDependencies = new File(rootSmall.preLinkAarDir, "$rootSmall.hostModuleName-D.txt")
         collectAars(hostAarDependencies, rootSmall.hostProject, smallLibAars)
-
+        println(project.name+" after split from host smallLibAars="+smallLibAars)
         small.splitAars = smallLibAars
         small.retainedAars = mUserLibAars
+
+        // Collect vendor aar(s) in lib.* follow the ignore rules used for split Asstes/jniLibs
+        project.configurations.compile.resolvedConfiguration.firstLevelModuleDependencies.each {
+            collectVendorAars(it);
+        }
+    }
+
+    protected boolean collectVendorAars(ResolvedDependency node) {
+        def group = node.moduleGroup,
+            name = node.moduleName,
+            version = node.moduleVersion
+
+        if (group == '' && version == '') {
+            // Ignores the dependency of local aar
+            return false
+        }
+        if (small.splitAars.find { aar -> group == aar.group && name == aar.name } != null) {
+            // Ignores the dependency which has declared in host or lib.*
+            return false
+        }
+        if (small.retainedAars.find { aar -> group == aar.group && name == aar.name } != null) {
+            // Ignores the dependency of normal modules
+            return false
+        }
+
+        mUserVendorAndLibAars.add(group: group, name: name, version: version)
+        boolean flag = false
+        node.children.each { next ->
+            flag |= collectVendorAars(next)
+        }
+        if (!flag) return false
+
+        return true
     }
 
     private def hookProcessManifest(Task processManifest) {
