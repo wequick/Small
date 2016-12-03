@@ -1051,12 +1051,9 @@ class AppPlugin extends BundlePlugin {
             smallLibAars.add(group: lib.group, name: lib.name, version: lib.version)
         }
 
-        println(project.name+" 's smallLibAars="+smallLibAars)
-        println(project.name+" 's mUserLibAars="+mUserLibAars)
         // Collect aar(s) in host
         File hostAarDependencies = new File(rootSmall.preLinkAarDir, "$rootSmall.hostModuleName-D.txt")
         collectAars(hostAarDependencies, rootSmall.hostProject, smallLibAars)
-        println(project.name+" after split from host smallLibAars="+smallLibAars)
         small.splitAars = smallLibAars
         small.retainedAars = mUserLibAars
 
