@@ -23,18 +23,18 @@ import android.app.Application;
 import android.app.Instrumentation;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.content.pm.ProviderInfo;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.os.Handler;
 import android.os.IBinder;
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageInfo;
 import android.os.Message;
 import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
@@ -612,9 +612,40 @@ public class ApkBundleLauncher extends SoBundleLauncher {
     }
 
     @Override
+    public void postLazySetUp() {
+        super.postLazySetUp();
+        long lStartTime = System.currentTimeMillis();
+        if (sLoadedApks == null) {
+            Log.e(TAG, "Could not find LazyLoad APK bundles!");
+            return;
+        }
+
+        Collection<LoadedApk> apks = sLoadedApks.values();
+
+        // Merge lazy load bundle's resources and replace the host one
+        final Application app = Small.getContext();
+        String[] paths = new String[apks.size() + 1];
+        int i = 0;
+        for (LoadedApk apk : apks) {
+            if (apk.nonResources) continue; // ignores the empty entry to fix #62
+            paths[i++] = apk.path; // add plugin asset path
+        }
+        if (i != paths.length) {
+            paths = Arrays.copyOf(paths, i);
+        }
+        ReflectAccelerator.addAssetPaths(app.getAssets(), paths);
+
+        mergeWithOutAssets(app, apks);
+        long lEndTime = System.currentTimeMillis();
+        long difference = lEndTime - lStartTime;
+        System.out.println("postLazySetUp's Elapsed milliseconds: "
+                + difference);
+    }
+
+    @Override
     public void postSetUp() {
         super.postSetUp();
-
+        long lStartTime = System.currentTimeMillis();
         if (sLoadedApks == null) {
             Log.e(TAG, "Could not find any APK bundles!");
             return;
@@ -636,9 +667,20 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         }
         ReflectAccelerator.mergeResources(app, sActivityThread, paths);
 
+        mergeWithOutAssets(app, apks);
+        long lEndTime = System.currentTimeMillis();
+        long difference = lEndTime - lStartTime;
+        System.out.println("postSetUp's Elapsed milliseconds: "
+                + difference);
+    }
+
+    /**
+     * just put code together
+     */
+    private void mergeWithOutAssets(final Application app, Collection<LoadedApk> apks) {
         // Merge all the dex into host's class loader
         ClassLoader cl = app.getClassLoader();
-        i = 0;
+        int i = 0;
         int N = apks.size();
         String[] dexPaths = new String[N];
         DexFile[] dexFiles = new DexFile[N];
@@ -703,6 +745,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         }
 
         // Free temporary variables
+        mLazyInitProviders=null;
         sLoadedApks = null;
         sProviders = null;
         sActivityThread = null;
@@ -728,7 +771,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
     }
 
     @Override
-    public void loadBundle(Bundle bundle) {
+    public void loadBundle(final Bundle bundle) {
         String packageName = bundle.getPackageName();
 
         BundleParser parser = bundle.getParser();
@@ -756,7 +799,12 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 @Override
                 public void run() {
                     try {
+                        long lStartTime = System.currentTimeMillis();
                         fApk.dexFile = DexFile.loadDex(fApk.path, fApk.optDexFile.getPath(), 0);
+                        long lEndTime = System.currentTimeMillis();
+                        long difference = lEndTime - lStartTime;
+                        System.out.println(bundle.getPackageName() + "'s Elapsed milliseconds: "
+                                + difference);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -777,7 +825,8 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         }
 
         // Record activities for intent redirection
-        if (sLoadedActivities == null) sLoadedActivities = new ConcurrentHashMap<String, ActivityInfo>();
+        if (sLoadedActivities == null)
+            sLoadedActivities = new ConcurrentHashMap<String, ActivityInfo>();
         for (ActivityInfo ai : pluginInfo.activities) {
             sLoadedActivities.put(ai.name, ai);
         }

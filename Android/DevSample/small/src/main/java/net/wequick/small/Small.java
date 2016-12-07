@@ -24,6 +24,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.widget.Toast;
 
 import net.wequick.small.util.ApplicationUtils;
 import net.wequick.small.util.ReflectAccelerator;
@@ -88,6 +89,10 @@ public final class Small {
     public interface ActivityLifecycleCallbacks {
         void onActivityCreated(Activity activity, android.os.Bundle savedInstanceState);
         void onActivityDestroyed(Activity activity);
+    }
+
+    public interface OnLazyCompleteListener {
+        void onComplete();
     }
 
     public static Application getContext() {
@@ -293,7 +298,7 @@ public final class Small {
         return openUri(makeUri(uriString), context);
     }
 
-    public static boolean openUri(Uri uri, Context context) {
+    public static boolean openUri(Uri uri, final Context context) {
         // System url schemes
         String scheme = uri.getScheme();
         if (scheme != null
@@ -306,10 +311,14 @@ public final class Small {
         }
 
         // Small url schemes
-        Bundle bundle = Bundle.getLaunchableBundle(uri);
+        final Bundle bundle = Bundle.getLaunchableBundle(uri);
         if (bundle != null) {
-            bundle.launchFrom(context);
-            return true;
+            if(!bundle.isLoaded()){
+                Toast.makeText(context, "插件包未加载，请稍等", Toast.LENGTH_SHORT).show();
+            }else{
+                bundle.launchFrom(context);
+                return true;
+            }
         }
         return false;
     }

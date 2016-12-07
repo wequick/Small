@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import net.wequick.small.Small;
 import net.wequick.example.small.lib.utils.UIUtils;
+import net.wequick.small.Small.OnLazyCompleteListener;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -77,6 +78,20 @@ public class MainFragment extends Fragment {
                 checkUpgrade();
             }
         });
+
+        button = (Button) rootView.findViewById(R.id.btnLazyLoad);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                net.wequick.small.Bundle.loadLazyBundles(new OnLazyCompleteListener() {
+                    @Override
+                    public void onComplete() {
+                        Toast.makeText(getActivity(), "插件包延时加载成功", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
+
         return rootView;
     }
 

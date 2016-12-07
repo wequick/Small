@@ -33,7 +33,6 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -88,8 +87,11 @@ public class Bundle {
 
     // Thread & Handler
     private static final int MSG_COMPLETE = 1;
+    private static final int MSG_LAZY_LOAD_COMPLETE = 2;
     private static LoadBundleHandler sHandler;
+    private static LazyLoadBundleHandler sLazyHandler;
     private static LoadBundleThread sThread;
+    private static LazyLoadBundleThread sLazyThread;
 
     private String mPackageName;
     private String uriString;
@@ -102,6 +104,7 @@ public class Bundle {
     private HashMap<String, String> rules;
     private int versionCode;
     private String versionName;
+    private boolean isLazyLoad=false;
 
     private BundleLauncher mApplicableLauncher = null;
 
@@ -113,6 +116,7 @@ public class Bundle {
     private boolean launchable = true;
     private boolean enabled = true;
     private boolean patching = false;
+    private boolean loaded=false;
 
     private String entrance = null; // Main activity for `apk bundle', index page for `web bundle'
 
@@ -219,6 +223,22 @@ public class Bundle {
     public static boolean is64bit() {
         return sIs64bit;
     }
+
+    public static void loadLazyBundles(Small.OnLazyCompleteListener listener){
+        boolean synchronous = (listener == null);
+        if (synchronous) {
+            lazyLoadBundles();
+            return;
+        }
+
+        // Asynchronous
+        if (sLazyThread == null) {
+            sLazyThread = new LazyLoadBundleThread();
+            sLazyHandler = new LazyLoadBundleHandler(listener);
+            sLazyThread.start();
+        }
+    }
+
 
     /**
      * Load bundles from manifest
@@ -366,7 +386,7 @@ public class Bundle {
         if (sPreloadBundles != null) {
             for (Bundle bundle : sPreloadBundles) {
                 if (bundle.matchesRule(uri)) {
-                    if (bundle.mApplicableLauncher == null) {
+                    if (bundle.mApplicableLauncher == null&&!bundle.isLazyLoad()) {
                         break;
                     }
 
@@ -538,6 +558,9 @@ public class Bundle {
         if (map.has("type")) {
             this.type = map.getString("type");
         }
+        if (map.has("lazyload")) {
+            this.isLazyLoad = map.getBoolean("lazyload");
+        }
 
         this.rules = new HashMap<String, String>();
         // Default rules to visit entrance page of bundle
@@ -621,6 +644,14 @@ public class Bundle {
         this.mExtractPath = path;
     }
 
+    public boolean isLoaded() {
+        return loaded;
+    }
+
+    public void setLoaded(boolean loaded) {
+        this.loaded = loaded;
+    }
+
     protected String getType() {
         return type;
     }
@@ -676,6 +707,14 @@ public class Bundle {
 
     public String getVersionName() {
         return versionName;
+    }
+
+    public boolean isLazyLoad() {
+        return isLazyLoad;
+    }
+
+    public void setLazyLoad(boolean lazyLoad) {
+        isLazyLoad = lazyLoad;
     }
 
     protected boolean isLaunchable() {
@@ -748,7 +787,32 @@ public class Bundle {
         }
     }
 
+    private static class LazyLoadBundleThread extends Thread {
+        @Override
+        public void run() {
+            lazyLoadBundles();
+            sLazyHandler.obtainMessage(MSG_LAZY_LOAD_COMPLETE).sendToTarget();
+        }
+    }
+
     private static final int LOADING_TIMEOUT_MINUTES = 5;
+
+    private static List<Bundle> unLoadBundle;
+
+    private static void lazyLoadBundles() {
+        if (unLoadBundle == null) {
+            unLoadBundle = new ArrayList<>();
+        }
+        for (Bundle bundle : sPreloadBundles) {
+            if (bundle.isLazyLoad()) {
+                unLoadBundle.add(bundle);
+                bundle.setLazyLoad(false);
+                bundle.prepareForLaunch();
+            }
+        }
+
+        processBundlesLoad(unLoadBundle,true);
+    }
 
     private static void loadBundles(List<Bundle> bundles) {
         sPreloadBundles = bundles;
@@ -758,6 +822,13 @@ public class Bundle {
             bundle.prepareForLaunch();
         }
 
+        processBundlesLoad(bundles,false);
+    }
+
+    /**
+     * just put code together
+     */
+    private static void processBundlesLoad(List<Bundle> bundles, boolean isLazyLoad){
         // Handle I/O
         if (sIOActions != null) {
             ExecutorService executor = Executors.newFixedThreadPool(sIOActions.size());
@@ -788,7 +859,11 @@ public class Bundle {
 
         // Notify `postSetUp' to all launchers
         for (BundleLauncher launcher : sBundleLaunchers) {
-            launcher.postSetUp();
+            if(isLazyLoad){
+                launcher.postLazySetUp();
+            }else{
+                launcher.postSetUp();
+            }
         }
 
         // Wait for the things to be done on UI thread after `postSetUp`,
@@ -803,12 +878,15 @@ public class Bundle {
 
         // Free all unused temporary variables
         for (Bundle bundle : bundles) {
-            if (bundle.parser != null) {
-                bundle.parser.close();
-                bundle.parser = null;
+            if(!bundle.isLazyLoad()){
+                bundle.setLoaded(true);
+                if (bundle.parser != null) {
+                    bundle.parser.close();
+                    bundle.parser = null;
+                }
+                bundle.mBuiltinFile = null;
+                bundle.mExtractPath = null;
             }
-            bundle.mBuiltinFile = null;
-            bundle.mExtractPath = null;
         }
     }
 
@@ -864,6 +942,27 @@ public class Bundle {
                     mListener = null;
                     sThread = null;
                     sHandler = null;
+                    break;
+            }
+        }
+    }
+    private static class LazyLoadBundleHandler extends Handler {
+        private Small.OnLazyCompleteListener mLazyListener;
+
+        public LazyLoadBundleHandler(Small.OnLazyCompleteListener listener) {
+            mLazyListener = listener;
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MSG_LAZY_LOAD_COMPLETE:
+                    if (mLazyListener != null) {
+                        mLazyListener.onComplete();
+                    }
+                    mLazyListener = null;
+                    sLazyThread = null;
+                    sLazyThread = null;
                     break;
             }
         }
