@@ -340,7 +340,7 @@ class AppPlugin extends BundlePlugin {
 
         // Add reference libraries
         proguard.doFirst {
-            getLibraryJars().each {
+            getLibraryJars().findAll{ it.exists() }.each {
                 // FIXME: the `libraryJar' method is protected, may be depreciated
                 pt.libraryJar(it)
             }
@@ -1271,7 +1271,7 @@ class AppPlugin extends BundlePlugin {
     private def hookJavac(Task javac, boolean minifyEnabled) {
         javac.doFirst { JavaCompile it ->
             // Dynamically provided jars
-            it.classpath += project.files(getLibraryJars())
+            it.classpath += project.files(getLibraryJars().findAll{ it.exists() })
         }
         javac.doLast { JavaCompile it ->
             if (minifyEnabled) return // process later in proguard task

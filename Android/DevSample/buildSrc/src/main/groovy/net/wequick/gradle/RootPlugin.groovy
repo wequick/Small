@@ -141,12 +141,12 @@ class RootPlugin extends BasePlugin {
                     }
                     rootExt.appProjects.each {
                         it.afterEvaluate {
-                            it.dependencies.add('debugCompile', stub)
+                            it.dependencies.add('compile', stub)
                         }
                     }
                     rootExt.libProjects.each {
                         it.afterEvaluate {
-                            it.dependencies.add('debugCompile', stub)
+                            it.dependencies.add('compile', stub)
                         }
                     }
                 }
