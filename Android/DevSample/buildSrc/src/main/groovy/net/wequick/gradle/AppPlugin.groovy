@@ -1028,6 +1028,7 @@ class AppPlugin extends BundlePlugin {
         // Resolve dependent AARs
         // ----------------------
         def smallLibAars = new HashSet() // the aars compiled in host or lib.*
+        def smallLibJars= new HashSet() // the jar compiled in host or lib.*
 
         // Collect transitive dependent `lib.*' projects
         mTransitiveDependentLibProjects = new HashSet<>()
@@ -1039,18 +1040,27 @@ class AppPlugin extends BundlePlugin {
         // Collect aar(s) in lib.*
         mTransitiveDependentLibProjects.each { lib ->
             // lib.* dependencies
-            File file = new File(rootSmall.preLinkAarDir, "$lib.name-D.txt")
+            File file = ne  w File(rootSmall.preLinkAarDir, "$lib.name-D.txt")
+            File jar = new File(rootSmall.preLinkJarDir, "$lib.name-D.txt")
             collectAars(file, lib, smallLibAars)
+            collectAars(jar, lib, smallLibJars)
 
             // lib.* self
             smallLibAars.add(group: lib.group, name: lib.name, version: lib.version)
+            smallLibJars.add(group: lib.group, name: lib.name, version: lib.version)
         }
 
         // Collect aar(s) in host
         File hostAarDependencies = new File(rootSmall.preLinkAarDir, "$rootSmall.hostModuleName-D.txt")
+        File hostJarDependencies = new File(rootSmall.preLinkJarDir, "$rootSmall.hostModuleName-D.txt")
         collectAars(hostAarDependencies, rootSmall.hostProject, smallLibAars)
+        collectAars(hostJarDependencies, rootSmall.hostProject, smallLibJars)
 
         small.splitAars = smallLibAars
+        // add aar's jar
+        smallLibJars.addAll(smallLibAars)
+        small.splitJarAars = smallLibJars
+
         small.retainedAars = mUserLibAars
     }
 

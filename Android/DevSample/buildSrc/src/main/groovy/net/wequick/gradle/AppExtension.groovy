@@ -60,6 +60,9 @@ public class AppExtension extends BundleExtension {
     /** Paths of aar to split */
     Set<Map> splitAars
 
+    /** Paths of aar&jar to split */
+    Set<Map> splitJarAars
+
     /** Paths of aar to retain */
     Set<Map> retainedAars
 
