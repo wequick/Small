@@ -62,7 +62,7 @@ public class StripAarTransform extends Transform {
 
         Set<String> splitPaths = []
         small.splitJarAars.each {
-            pathName = "$it.group"+File.separator+"$it.name"
+            def pathName = "$it.group"+File.separator+"$it.name"
             splitPaths.add(pathName)
         }
 
