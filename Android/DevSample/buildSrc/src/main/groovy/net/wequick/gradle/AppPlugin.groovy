@@ -1040,7 +1040,7 @@ class AppPlugin extends BundlePlugin {
         // Collect aar(s) in lib.*
         mTransitiveDependentLibProjects.each { lib ->
             // lib.* dependencies
-            File file = new File(rootSmall.preLinkAarDir, "$lib.name-D.txt")
+            File file = ne  w File(rootSmall.preLinkAarDir, "$lib.name-D.txt")
             File jar = new File(rootSmall.preLinkJarDir, "$lib.name-D.txt")
             collectAars(file, lib, smallLibAars)
             collectAars(jar, lib, smallLibJars)
