@@ -62,7 +62,7 @@ public class StripAarTransform extends Transform {
 
         Set<String> splitPaths = []
         small.splitAars.each { Map<String, String> it ->
-            splitPaths.add(it.group + File.pathSeparator + it.name)
+            splitPaths.add(it.group + File.separator + it.name)
         }
 
         inputs.each {
