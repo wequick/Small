@@ -445,7 +445,13 @@ public class ReflectAccelerator {
                     Field mResourcesImpl = Resources.class.getDeclaredField("mResourcesImpl");
                     mResourcesImpl.setAccessible(true);
                     Object resourceImpl = mResourcesImpl.get(resources);
-                    Field implAssets = resourceImpl.getClass().getDeclaredField("mAssets");
+                    //check if rom change resourceImpl may be a subclass of resourceImpl like miui8
+                    Field implAssets;
+                    try {
+                        implAssets = resourceImpl.getClass().getDeclaredField("mAssets");
+                    } catch (NoSuchFieldException e) {
+                        implAssets = resourceImpl.getClass().getSuperclass().getDeclaredField("mAssets");
+                    }
                     implAssets.setAccessible(true);
                     implAssets.set(resourceImpl, newAssetManager);
                 }
