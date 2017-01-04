@@ -388,7 +388,7 @@ class AppPlugin extends BundlePlugin {
     }
 
     /** Collect the vendor aars (has resources) compiling in current bundle */
-    protected void collectVendorAars(Set<Map> outFirstLevelAars,
+    protected void collectVendorAars(Set<ResolvedDependency> outFirstLevelAars,
                                      Set<Map> outTransitiveAars) {
         project.configurations.compile.resolvedConfiguration.firstLevelModuleDependencies.each {
             collectVendorAars(it, outFirstLevelAars, outTransitiveAars)
@@ -396,7 +396,7 @@ class AppPlugin extends BundlePlugin {
     }
 
     protected boolean collectVendorAars(ResolvedDependency node,
-                                        Set<Map> outFirstLevelAars,
+                                        Set<ResolvedDependency> outFirstLevelAars,
                                         Set<Map> outTransitiveAars) {
         def group = node.moduleGroup,
             name = node.moduleName,
@@ -420,8 +420,8 @@ class AppPlugin extends BundlePlugin {
         def resDir = new File(small.aarDir, "$path/res")
         // If the dependency has resources, collect it
         if (resDir.exists() && resDir.list().size() > 0) {
-            if (outFirstLevelAars != null && !outFirstLevelAars.contains(aar)) {
-                outFirstLevelAars.add(aar)
+            if (outFirstLevelAars != null && !outFirstLevelAars.contains(node)) {
+                outFirstLevelAars.add(node)
             }
             if (!outTransitiveAars.contains(aar)) {
                 outTransitiveAars.add(aar)
@@ -439,10 +439,18 @@ class AppPlugin extends BundlePlugin {
         }
         if (!flag) return false
 
-        if (outFirstLevelAars != null && !outFirstLevelAars.contains(aar)) {
-            outFirstLevelAars.add(aar)
+        if (outFirstLevelAars != null && !outFirstLevelAars.contains(node)) {
+            outFirstLevelAars.add(node)
         }
         return true
+    }
+
+    protected void collectTransitiveAars(ResolvedDependency node,
+                                         Set<ResolvedDependency> outAars) {
+        outAars.add(node)
+        node.children.each {
+            collectTransitiveAars(it, outAars)
+        }
     }
 
     /**
@@ -453,7 +461,7 @@ class AppPlugin extends BundlePlugin {
         if (!idsFile.exists()) return
 
         // Check if has any vendor aars
-        def firstLevelVendorAars = [] as Set<Map>
+        def firstLevelVendorAars = [] as Set<ResolvedDependency>
         def transitiveVendorAars = [] as Set<Map>
         collectVendorAars(firstLevelVendorAars, transitiveVendorAars)
         if (firstLevelVendorAars.size() > 0) {
@@ -469,8 +477,16 @@ class AppPlugin extends BundlePlugin {
                 err.append('    }')
                 throw new UnsupportedOperationException(err.toString())
             } else {
-                def aars = firstLevelVendorAars.collect{ it.name }.join('; ')
-                Log.warn("Using vendor aar(s): $aars")
+                Set<ResolvedDependency> reservedAars = new HashSet<>()
+                firstLevelVendorAars.each {
+                    Log.warn("Using vendor aar '$it.name'")
+
+                    // If we don't split the aar then we should reserved all it's transitive aars.
+                    collectTransitiveAars(it, reservedAars)
+                }
+                reservedAars.each {
+                    mUserLibAars.add(group: it.moduleGroup, name: it.moduleName, version: it.moduleVersion)
+                }
             }
         }
 
@@ -923,7 +939,7 @@ class AppPlugin extends BundlePlugin {
      * TODO: filter the native libraries while exploding aar
      */
     def hookMergeJniLibs(TransformTask t) {
-        stripAarFiles(t, { paths ->
+        stripAarFiles(t, { splitPaths ->
             t.streamInputs.each {
                 def version = it.parentFile
                 def name = version.parentFile
@@ -932,9 +948,12 @@ class AppPlugin extends BundlePlugin {
                 if (root.name != 'exploded-aar') return
 
                 def aar = [group: group.name, name: name.name, version: version.name]
-                if (mUserLibAars.contains(aar)) return
+                if (mUserLibAars.contains(aar)) {
+                    // keep the user libraries
+                    return
+                }
 
-                paths.add(it)
+                splitPaths.add(it)
             }
         })
     }
