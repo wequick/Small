@@ -61,8 +61,8 @@ public class StripAarTransform extends Transform {
         AppExtension small = project.small
 
         Set<String> splitPaths = []
-        small.splitAars.each {
-            splitPaths.add(new File(small.aarDir, "$it.group/$it.name").absolutePath)
+        small.splitAars.each { Map<String, String> it ->
+            splitPaths.add(it.group + File.pathSeparator + it.name)
         }
 
         inputs.each {
@@ -77,7 +77,7 @@ public class StripAarTransform extends Transform {
             // Filter the jars
             it.jarInputs.each {
                 File src = it.file
-                def temp = splitPaths.find { src.absolutePath.indexOf(it) == 0 }
+                def temp = splitPaths.find { src.absolutePath.contains(it) }
                 if (temp != null) {
                     // Ignores the jar that should split
                     return

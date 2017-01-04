@@ -1039,19 +1039,29 @@ class AppPlugin extends BundlePlugin {
         // Collect aar(s) in lib.*
         mTransitiveDependentLibProjects.each { lib ->
             // lib.* dependencies
-            File file = new File(rootSmall.preLinkAarDir, "$lib.name-D.txt")
-            collectAars(file, lib, smallLibAars)
+            collectAarsOfProject(lib, smallLibAars)
 
             // lib.* self
             smallLibAars.add(group: lib.group, name: lib.name, version: lib.version)
         }
 
         // Collect aar(s) in host
-        File hostAarDependencies = new File(rootSmall.preLinkAarDir, "$rootSmall.hostModuleName-D.txt")
-        collectAars(hostAarDependencies, rootSmall.hostProject, smallLibAars)
+        collectAarsOfProject(rootSmall.hostProject, smallLibAars)
 
         small.splitAars = smallLibAars
         small.retainedAars = mUserLibAars
+    }
+
+    protected def collectAarsOfProject(Project project, HashSet outAars) {
+        String dependenciesFileName = "$project.name-D.txt"
+
+        // Pure aars
+        File file = new File(rootSmall.preLinkAarDir, dependenciesFileName)
+        collectAars(file, project, outAars)
+
+        // Jar-only aars
+        file = new File(rootSmall.preLinkJarDir, dependenciesFileName)
+        collectAars(file, project, outAars)
     }
 
     private def hookProcessManifest(Task processManifest) {
