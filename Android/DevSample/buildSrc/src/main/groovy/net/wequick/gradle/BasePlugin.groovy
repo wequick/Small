@@ -100,7 +100,7 @@ public abstract class BasePlugin implements Plugin<Project> {
         }
 
         public static void warn(String text) {
-            println(ansi().fg(RED).a(text).reset());
+            println(ansi().fg(RED).a(String.format('\t%s', text)).reset());
         }
 
         public static void footer(String text) {
