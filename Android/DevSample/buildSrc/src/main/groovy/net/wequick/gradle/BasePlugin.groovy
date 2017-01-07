@@ -17,8 +17,6 @@ package net.wequick.gradle
 
 import org.gradle.api.Project
 import org.gradle.api.Plugin
-import static org.fusesource.jansi.Ansi.*;
-import static org.fusesource.jansi.Ansi.Color.*;
 
 /**
  *
@@ -83,28 +81,4 @@ public abstract class BasePlugin implements Plugin<Project> {
     protected void tidyUp() { }
 
     protected abstract Class<? extends BaseExtension> getExtensionClass()
-
-    /**
-     * This class consists exclusively of static methods for printing colourful text
-     */
-    public final class Log {
-
-        public static void header(String text) {
-            println(ansi().fg(YELLOW).a("[Small] ")
-                    .fg(WHITE).a(text).reset());
-        }
-
-        public static void success(String text) {
-            print(String.format('\t%-64s', text))
-            println(ansi().fg(GREEN).a('[  OK  ]').reset())
-        }
-
-        public static void warn(String text) {
-            println(ansi().fg(RED).a(String.format('\t%s', text)).reset());
-        }
-
-        public static void footer(String text) {
-            println(ansi().fg(WHITE).a(String.format('\t%s', text)).reset());
-        }
-    }
 }

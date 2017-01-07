@@ -2,6 +2,7 @@ package net.wequick.gradle
 
 import net.wequick.gradle.aapt.SymbolParser
 import net.wequick.gradle.util.DependenciesUtils
+import net.wequick.gradle.util.Log
 import org.gradle.api.Project
 import org.gradle.api.tasks.Delete
 
