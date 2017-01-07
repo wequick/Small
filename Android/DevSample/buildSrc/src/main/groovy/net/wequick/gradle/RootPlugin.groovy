@@ -1,6 +1,7 @@
 package net.wequick.gradle
 
 import net.wequick.gradle.aapt.SymbolParser
+import net.wequick.gradle.tasks.LintTask
 import net.wequick.gradle.util.DependenciesUtils
 import net.wequick.gradle.util.Log
 import org.gradle.api.Project
@@ -329,6 +330,23 @@ class RootPlugin extends BasePlugin {
 
             printRows(rows)
             println()
+        }
+
+        project.afterEvaluate {
+            small.hostProject.afterEvaluate {
+                def flavorName = 'Release'
+                com.android.build.gradle.AppExtension android = it.android
+                if (android.productFlavors.size() > 0) {
+                    flavorName = android.productFlavors[0].name.capitalize() + 'Release'
+                }
+
+                def hostDexTaskName = ":app:transformClassesWithDexFor$flavorName"
+                project.task('smallLint',
+                        type: LintTask,
+                        dependsOn: [hostDexTaskName]) {
+                    rootSmall = small
+                }
+            }
         }
     }
 
