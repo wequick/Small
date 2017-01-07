@@ -447,7 +447,13 @@ class AppPlugin extends BundlePlugin {
 
     protected void collectTransitiveAars(ResolvedDependency node,
                                          Set<ResolvedDependency> outAars) {
-        outAars.add(node)
+        def group = node.moduleGroup,
+            name = node.moduleName
+
+        if (small.splitAars.find { aar -> group == aar.group && name == aar.name } == null) {
+            outAars.add(node)
+        }
+
         node.children.each {
             collectTransitiveAars(it, outAars)
         }
