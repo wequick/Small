@@ -522,6 +522,15 @@ class RootPlugin extends BasePlugin {
             def aarPw = new PrintWriter(aarLinkFile.newWriter(true))
             def jarPw = new PrintWriter(jarLinkFile.newWriter(true))
 
+            // Cause the later aar(as fresco) may dependent by 'com.android.support:support-compat'
+            // which would duplicate with the builtin 'appcompat' and 'support-v4' library in host.
+            // Hereby we also mark 'support-compat' has compiled in host.
+            // FIXME: any influence of this?
+            if (lib == small.hostProject) {
+                aarPw.println "com.android.support:support-compat:+"
+                aarPw.println "com.android.support:support-core-utils:+"
+            }
+
             allDependencies.each { d ->
                 def isAar = true
                 d.moduleArtifacts.each { art ->
