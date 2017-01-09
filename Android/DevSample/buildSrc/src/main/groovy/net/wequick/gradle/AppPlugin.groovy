@@ -32,6 +32,7 @@ import net.wequick.gradle.aapt.SymbolParser
 import net.wequick.gradle.transform.StripAarTransform
 import net.wequick.gradle.util.ClassFileUtils
 import net.wequick.gradle.util.JNIUtils
+import net.wequick.gradle.util.Log
 import net.wequick.gradle.util.ZipUtils
 import org.gradle.api.Project
 import org.gradle.api.Task
