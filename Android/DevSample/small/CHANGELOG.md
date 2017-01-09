@@ -1,3 +1,9 @@
+## 1.1.0-alpha1 (2017-01-09)
+
+Bugfixes:
+
+  - 修正 MiUI8 资源无法合并的问题 (@xufan)
+
 ## 1.1.0-beta9 (2016-11-17)
 
 Bugfixes:
