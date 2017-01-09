@@ -348,15 +348,17 @@ class AppPlugin extends BundlePlugin {
         }
         // Split R.class
         proguard.doLast {
-            Log.success("[$project.name] Strip aar classes...")
-
-            if (small.splitRJavaFile == null) return
+            if (small.splitRJavaFile == null || !small.splitRJavaFile.exists()) {
+                return
+            }
 
             def minifyJar = IntermediateFolderUtils.getContentLocation(
                     proguard.streamOutputFolder, 'main', pt.outputTypes, pt.scopes, Format.JAR)
             if (!minifyJar.exists()) return
 
             mMinifyJar = minifyJar // record for `LibraryPlugin'
+
+            Log.success("[$project.name] Strip aar classes...")
 
             // Unpack the minify jar to split the R.class
             File unzipDir = new File(minifyJar.parentFile, 'main')
