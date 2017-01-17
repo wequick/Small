@@ -462,27 +462,16 @@ public class Bundle {
         InputStream in = Small.getContext().getAssets().open(assetName);
         FileOutputStream out;
         if (outFile.exists()) {
-            // Compare the zip time to see if needs re-extract.
-            // @see https://en.wikipedia.org/wiki/Zip_(file_format)
+            // Compare the two input steams to see if needs re-extract.
             FileInputStream fin = new FileInputStream(outFile);
-            final int headerSizeBeforeTime = 10;
-            final int headerSizeOfTime = 4;
-            byte[] inHeader = new byte[headerSizeBeforeTime];
-            byte[] inTime = new byte[headerSizeOfTime];
-            byte[] outTime = new byte[headerSizeOfTime];
-            in.read(inHeader);
-            in.read(inTime);
-            fin.skip(headerSizeBeforeTime);
-            fin.read(outTime);
-            fin.close();
-            if (Arrays.equals(inTime, outTime)) {
-                in.close();
+            int inSize = in.available();
+            long outSize = fin.available();
+            if (inSize == outSize) {
+                // FIXME: What about the size is same but the content is different?
                 return; // UP-TO-DATE
             }
 
             out = new FileOutputStream(outFile);
-            out.write(inHeader, 0, headerSizeBeforeTime);
-            out.write(inTime, 0, headerSizeOfTime);
         } else {
             out = new FileOutputStream(outFile);
         }
