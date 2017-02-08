@@ -367,7 +367,7 @@ public class WebView extends android.webkit.WebView {
         public boolean shouldOverrideUrlLoading(android.webkit.WebView view, String url) {
             WebView wv = (WebView) view;
 
-            if (wv.mLoadingUrl != null && wv.mLoadingUrl.equals(url)) {
+            if (wv.mLoadingUrl != null && isSameUrl(url, wv.mLoadingUrl)) {
                 // reload by window.location.reload or something
                 return super.shouldOverrideUrlLoading(view, url);
             }
@@ -463,6 +463,9 @@ public class WebView extends android.webkit.WebView {
     }
 
     private static boolean isSameUrl(String url1, String url2) {
+        if (url1 == null) return url2 == null;
+        if (url2 == null) return false;
+
         int len1 = url1.length();
         int len2 = url2.length();
         switch (len1 - len2) {

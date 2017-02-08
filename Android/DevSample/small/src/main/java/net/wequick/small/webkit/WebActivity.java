@@ -53,8 +53,9 @@ public class WebActivity extends AppCompatActivity {
     private WebView mWebView;
     private String mUrl;
     private boolean mCanSetTitle = true;
-    private boolean mFullscreen = false;
-    private boolean mHasInitMenu = false;
+    private boolean mFullscreen;
+    private boolean mHasInitMenu;
+    private boolean mHasLoadWebView;
     private Menu mOptionsMenu;
 
     @Override
@@ -118,7 +119,10 @@ public class WebActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        mWebView.loadUrl(mUrl);
+        if (!mHasLoadWebView) {
+            mWebView.loadUrl(mUrl);
+            mHasLoadWebView = true;
+        }
     }
 
     @Override
