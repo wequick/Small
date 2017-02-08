@@ -444,7 +444,7 @@ public class WebView extends android.webkit.WebView {
                 wv.mInjected = true;
             }
 
-            if (sWebViewClient != null && url.equals(wv.mLoadingUrl)) {
+            if (sWebViewClient != null && isSameUrl(url, wv.mLoadingUrl)) {
                 sWebViewClient.onPageFinished(wv.getActivity(), wv, url);
             }
         }
@@ -455,10 +455,21 @@ public class WebView extends android.webkit.WebView {
             super.onReceivedError(view, errorCode, description, failingUrl);
             Log.e("Web", "error: " + description);
             WebView wv = (WebView) view;
-            if (sWebViewClient != null && failingUrl.equals(wv.mLoadingUrl)) {
+            if (sWebViewClient != null && isSameUrl(failingUrl, wv.mLoadingUrl)) {
                 Context context = wv.getActivity();
                 sWebViewClient.onReceivedError(context, wv, errorCode, description, failingUrl);
             }
+        }
+    }
+
+    private static boolean isSameUrl(String url1, String url2) {
+        int len1 = url1.length();
+        int len2 = url2.length();
+        switch (len1 - len2) {
+            case 0: return url1.equals(url2);
+            case 1: return url1.indexOf(url2) == 0 && url1.charAt(len2) == '/';
+            case -1: return url2.indexOf(url1) == 0 && url2.charAt(len1) == '/';
+            default: return false;
         }
     }
 
