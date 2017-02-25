@@ -41,4 +41,12 @@ public abstract class WebViewClient {
      */
     public void onReceivedError(Context context, WebView view, int errorCode,
                                 String description, String failingUrl) {}
+
+    /**
+     * Tell the host application the current progress of loading a page.
+     * @param view The WebView that initiated the callback.
+     * @param newProgress Current page loading progress, represented by
+     *                    an integer between 0 and 100.
+     */
+    public void onProgressChanged(Context context, WebView view, int newProgress) {}
 }

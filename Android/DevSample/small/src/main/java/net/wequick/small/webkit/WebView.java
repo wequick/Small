@@ -253,6 +253,16 @@ public class WebView extends android.webkit.WebView {
         }
 
         @Override
+        public void onProgressChanged(android.webkit.WebView view, int newProgress) {
+            super.onProgressChanged(view, newProgress);
+
+            if (sWebViewClient != null) {
+                WebView wv = (WebView) view;
+                sWebViewClient.onProgressChanged(wv.getActivity(), wv, newProgress);
+            }
+        }
+
+        @Override
         public boolean onJsAlert(android.webkit.WebView view, String url, String message,
                                  final android.webkit.JsResult result) {
             Context context = ((WebView) view).getActivity();
