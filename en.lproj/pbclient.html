@@ -1,0 +1,57 @@
+<h2><a href="/Small/en/pbclient#client-component" id=client-component aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Client Component</h2>
+<p>The client component is implemented by <code>PBClient</code>, used to define the request standard and make it configurable for API sending.</p>
+<h2><a href="/Small/en/pbclient#custom-httpclient" id=custom-httpclient aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Custom HTTPClient</h2>
+<p>This example show you how to create a custom <em>Client</em>.</p>
+
+<p>Firstly we create a class extends <em>PBClient</em> and names as <em>HTTPClient</em>.</p>
+
+<p>Then implement the <code>loadRequest:success:failure:</code> method in the <code>HTTPClient.m</code>:</p>
+<div class="highlight highlight-source-objc"><pre><span class="k">@implementation</span> <span class="nc">HTTPClient</span>
+
+<span class="p">@</span><span class="n">pbclient</span><span class="p">(</span><span class="s">@&quot;&quot;</span><span class="p">)</span>
+<span class="o">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nl">loadRequest</span><span class="p">:(</span><span class="n">PBRequest</span> <span class="o">*</span><span class="p">)</span><span class="n">request</span> <span class="nl">success</span><span class="p">:(</span><span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span><span class="p">))</span><span class="n">success</span> <span class="nl">failure</span><span class="p">:(</span><span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="bp">NSError</span> <span class="o">*</span><span class="p">))</span><span class="n">failure</span> <span class="p">{</span>
+
+<span class="p">}</span>
+
+<span class="k">@end</span>
+</pre></div>
+<p>Thereinto, we use <strong>@pbclient</strong> to register the <em>Client</em> alias, note that the empty string <code>@&quot;&quot;</code> will register the default client that means we will take it as default if we doesn&#39;t configure the <strong>client</strong> in Plist.</p>
+
+<p>Here we just mock the server in memory:</p>
+<div class="highlight highlight-source-objc"><pre><span class="k">static</span> <span class="bp">NSMutableArray</span> <span class="o">*</span><span class="n">HEROES</span><span class="p">;</span>
+
+<span class="p">-</span> <span class="p">(</span><span class="kt">instancetype</span><span class="p">)</span><span class="nf">init</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">self</span> <span class="o">=</span> <span class="p">[</span><span class="nb">super</span> <span class="n">init</span><span class="p">])</span> <span class="p">{</span>
+        <span class="n">HEROES</span> <span class="o">=</span> <span class="p">[[</span><span class="bp">NSMutableArray</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">init</span><span class="p">];</span>
+        <span class="p">[</span><span class="nb">self</span> <span class="nl">addHeroWithName</span><span class="p">:</span><span class="s">@&quot;Mr. Nice&quot;</span> <span class="nl">desc</span><span class="p">:</span><span class="s">@&quot;Nice&quot;</span><span class="p">];</span>
+        <span class="p">[</span><span class="nb">self</span> <span class="nl">addHeroWithName</span><span class="p">:</span><span class="s">@&quot;Mr. Nice&quot;</span> <span class="nl">desc</span><span class="p">:</span><span class="s">@&quot;Nice&quot;</span><span class="p">];</span>
+        <span class="p">[</span><span class="nb">self</span> <span class="nl">addHeroWithName</span><span class="p">:</span><span class="s">@&quot;Mr. Nice&quot;</span> <span class="nl">desc</span><span class="p">:</span><span class="s">@&quot;Nice&quot;</span><span class="p">];</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nb">self</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="p">-</span> <span class="p">(</span><span class="bp">NSMutableDictionary</span> <span class="o">*</span><span class="p">)</span><span class="nf">heroWithName:</span><span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">name</span> <span class="nf">desc:</span><span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">desc</span> <span class="p">{</span>
+    <span class="bp">NSMutableDictionary</span> <span class="o">*</span><span class="n">hero</span> <span class="o">=</span> <span class="p">[[</span><span class="bp">NSMutableDictionary</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">init</span><span class="p">];</span>
+    <span class="n">hero</span><span class="p">[</span><span class="s">@&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span><span class="p">;</span>
+    <span class="n">hero</span><span class="p">[</span><span class="s">@&quot;desc&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">desc</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">hero</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">addHeroWithName:</span><span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">name</span> <span class="nf">desc:</span><span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">desc</span> <span class="p">{</span>
+    <span class="kt">id</span> <span class="n">hero</span> <span class="o">=</span> <span class="p">[</span><span class="nb">self</span> <span class="nl">heroWithName</span><span class="p">:</span><span class="n">name</span> <span class="nl">desc</span><span class="p">:</span><span class="n">desc</span><span class="p">];</span>
+    <span class="p">[</span><span class="n">HEROES</span> <span class="nl">addObject</span><span class="p">:</span><span class="n">hero</span><span class="p">];</span>
+<span class="p">}</span>
+</pre></div>
+<p>For API:</p>
+<div class="highlight highlight-source-text"><pre>GET heroes
+</pre></div>
+<p>we return the <code>HEROES</code>:</p>
+<div class="highlight highlight-source-objc"><pre><span class="p">@</span><span class="n">pbclient</span><span class="p">(</span><span class="s">@&quot;&quot;</span><span class="p">)</span>
+<span class="o">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nl">loadRequest</span><span class="p">:(</span><span class="n">PBRequest</span> <span class="o">*</span><span class="p">)</span><span class="n">request</span> <span class="nl">success</span><span class="p">:(</span><span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span><span class="p">))</span><span class="n">success</span> <span class="nl">failure</span><span class="p">:(</span><span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="bp">NSError</span> <span class="o">*</span><span class="p">))</span><span class="n">failure</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">([</span><span class="n">request</span><span class="p">.</span><span class="n">method</span> <span class="nl">isEqualToString</span><span class="p">:</span><span class="s">@&quot;GET&quot;</span><span class="p">])</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">([</span><span class="n">request</span><span class="p">.</span><span class="n">action</span> <span class="nl">isEqualToString</span><span class="p">:</span><span class="s">@&quot;heroes&quot;</span><span class="p">])</span> <span class="p">{</span>
+            <span class="n">success</span><span class="p">(</span><span class="n">HEROES</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>

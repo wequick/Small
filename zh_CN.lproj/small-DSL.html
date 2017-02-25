@@ -1,0 +1,79 @@
+<h1><a href="/Small/cn/small-DSL#small-dsl" id=small-dsl aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Small DSL</h1>
+<p>DSL 即 Domain Specific Language，领域专用语言。
+Gradle 编译脚本也定义了一套自己的语言，语法为：</p>
+<div class="highlight highlight-source-groovy"><pre><span class="n">some_tag</span> <span class="o">{</span>
+    <span class="n">some_attribute</span> <span class="o">=</span> <span class="n">xx</span>
+    <span class="n">sub_tag</span> <span class="o">{</span>
+        <span class="n">sub_attribute</span> <span class="o">=</span> <span class="n">xx</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+<blockquote>
+<p>细节可以参考<a href="https://docs.gradle.org/current/dsl/" target="_blank">Gradle DSL</a>。</p>
+</blockquote>
+
+<p>Small 基于该规范，在</p>
+<div class="highlight highlight-source-groovy"><pre><span class="n">small</span> <span class="o">{</span>
+
+<span class="o">}</span>
+</pre></div>
+<p>标记内约定了一些自己的配置以供用户在工程的 <code>build.gralde</code> 里进行自定义，包括：</p>
+<h2><a href="/Small/cn/small-DSL#aarversion" id=aarversion aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>aarVersion</h2>
+<p>Small AAR 库版本。用于指定maven依赖 <code>net.wequick.small:small:$aarVersion</code>，该依赖将被自动添加到宿主即各个插件模块中。</p>
+<h2><a href="/Small/cn/small-DSL#strictsplicresources" id=strictsplicresources aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>strictSplicResources</h2>
+<p>是否严格分离资源。默认为 <em>true</em> ，即不允许插件模块携带包含资源的第三方库。</p>
+<h2><a href="/Small/cn/small-DSL#buildtoassets" id=buildtoassets aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>buildToAssets</h2>
+<p>是否将插件作为 <em>apk文件</em> 打包到宿主apk的 <em>assets</em> 目录下。默认为 <em>false</em> ，即作为 <em>so文件</em> 打包到宿主apk的 <em>lib</em> 目录下。</p>
+
+<p>配套的，你需要在宿主的 Application 里指定是否从 <em>assets</em> 读取插件：</p>
+<div class="highlight highlight-source-java"><pre><span class="nd">@Override</span>
+<span class="kd">public</span> <span class="kt">void</span> <span class="nf">onCreate</span><span class="o">()</span> <span class="o">{</span>
+    <span class="kd">super</span><span class="o">.</span><span class="na">onCreate</span><span class="o">();</span>
+
+    <span class="c1">// ...</span>
+
+    <span class="n">Small</span><span class="o">.</span><span class="na">setLoadFromAssets</span><span class="o">(</span><span class="n">BuildConfig</span><span class="o">.</span><span class="na">LOAD_FROM_ASSETS</span><span class="o">);</span>
+<span class="o">}</span>
+</pre></div>
+<blockquote>
+<p><code>BuildConfig.LOAD_FROM_ASSETS</code> 将会被 Small 自动赋值为你配置的 <code>buildToAssets</code>。</p>
+</blockquote>
+<h2><a href="/Small/cn/small-DSL#android" id=android aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>android</h2>
+<p>子配置：</p>
+<div class="highlight highlight-source-groovy"><pre><span class="n">small</span> <span class="o">{</span>
+    <span class="n">android</span> <span class="o">{</span>
+
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+<p>用于统一各个模块的Android编译环境配置，包括以下子项：</p>
+<h3><a href="/Small/cn/small-DSL#compilesdkversion" id=compilesdkversion aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>compileSdkVersion</h3>
+<p>编译用的 Android SDK 版本。影响到各个子模块的</p>
+<div class="highlight highlight-source-groovy"><pre><span class="n">android</span> <span class="o">{</span>
+    <span class="n">compileSdkVersion</span> <span class="n">$compileSdkVersion</span>
+<span class="o">}</span>
+</pre></div><h3><a href="/Small/cn/small-DSL#buildtoolsversion" id=buildtoolsversion aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>buildToolsVersion</h3>
+<p>编译工具版本。影响到各个子模块的</p>
+<div class="highlight highlight-source-groovy"><pre><span class="n">android</span> <span class="o">{</span>
+    <span class="n">buildToolsVersion</span> <span class="n">$buildToolsVersion</span>
+<span class="o">}</span>
+</pre></div><h3><a href="/Small/cn/small-DSL#supportversion" id=supportversion aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>supportVersion</h3>
+<p>Support包版本（包括 <code>support-v4</code>，<code>appcompat</code>等等）。影响到各个子模块的</p>
+<div class="highlight highlight-source-groovy"><pre><span class="n">dependencies</span> <span class="o">{</span>
+    <span class="n">compile</span> <span class="s1">&#39;com.android.support:xx:$supportVersion&#39;</span>
+<span class="o">}</span>
+</pre></div><h2><a href="/Small/cn/small-DSL#bundles" id=bundles aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>bundles</h2>
+<p>插件类型配置：</p>
+<div class="highlight highlight-source-text"><pre>bundles 类型, 模块名
+</pre></div>
+<p>或</p>
+<div class="highlight highlight-source-text"><pre>bundles 类型, [模块1, 模块2]
+</pre></div>
+<p>允许的类型包括：</p>
+
+<ul>
+<li><strong>host</strong>，宿主模块</li>
+<li><strong>stub</strong>，<a href="/Small/cn/stub-module" name="wq-redirect" data-redirect="cn/stub-module">宿主分身模块</a></li>
+<li><strong>lib</strong>，<a href="/Small/cn/bundle-module#公共库插件模块" name="wq-redirect" data-redirect="cn/bundle-module#公共库插件模块">公共库插件模块</a></li>
+<li><strong>app</strong>，<a href="/Small/cn/bundle-module#应用插件模块" name="wq-redirect" data-redirect="cn/bundle-module#应用插件模块">应用插件模块</a></li>
+</ul>

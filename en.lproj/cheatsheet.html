@@ -1,0 +1,561 @@
+<h2><a href="/Small/en/cheatsheet#key-configuration" id=key-configuration aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Key configuration</h2><div class="highlight highlight-source-text"><pre>usage: [tag][key]
+</pre></div>
+<table><thead>
+<tr>
+<th style="text-align: left">tag</th>
+<th style="text-align: left">refer to</th>
+<th style="text-align: left">note</th>
+<th>e.g.</th>
+</tr>
+</thead><tbody>
+<tr>
+<td style="text-align: left"></td>
+<td style="text-align: left">defined properties</td>
+<td style="text-align: left">for @property or setter</td>
+<td>hidden</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>+</strong></td>
+<td style="text-align: left">undefined properties</td>
+<td style="text-align: left">for <em>UIView</em> extension</td>
+<td>+mykey</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>!</strong></td>
+<td style="text-align: left">events</td>
+<td style="text-align: left">for <em>UIControl</em></td>
+<td>!change (UIControlEventValueChanged)<br/>!click (UIControlEventTouchUpInside)</td>
+</tr>
+</tbody></table>
+<h2><a href="/Small/en/cheatsheet#value-configuration" id=value-configuration aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Value configuration</h2><h3><a href="/Small/en/cheatsheet#constant" id=constant aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Constant</h3>
+<table><thead>
+<tr>
+<th style="text-align: left">tag</th>
+<th style="text-align: left">refer to</th>
+<th>e.g.</th>
+</tr>
+</thead><tbody>
+<tr>
+<td style="text-align: left"><strong>#</strong></td>
+<td style="text-align: left">UIColor</td>
+<td>#FF00FF</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>##</strong></td>
+<td style="text-align: left">CGColor</td>
+<td>##FF00FF</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>@</strong></td>
+<td style="text-align: left">Subscript</td>
+<td>@[1,2,3]; @{title:1}</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>:</strong></td>
+<td style="text-align: left">Enum</td>
+<td>:left = NSTextAlignmentLeft</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>[</strong></td>
+<td style="text-align: left">NSIndexPath[section-row]</td>
+<td>[0-1]</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>{{</strong></td>
+<td style="text-align: left">Rect</td>
+<td>{{0,0},{1080,44}}</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>{</strong></td>
+<td style="text-align: left">Size/Point/EdgeInsets</td>
+<td>{1080,44} / {0,2,0,2}</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>{F:</strong></td>
+<td style="text-align: left">Font</td>
+<td>{F:MicrosoftYaHei,bold,14}<br>{F:itailc,14}<br>{F:14}</td>
+</tr>
+</tbody></table>
+
+<p>By the convenient of KVC, the struct value can be auto-converted by <em>NSValue</em> that means:</p>
+
+<ul>
+<li>{0,0} can assign to <em>CGSize</em>, <em>CGPoint</em> and <em>NSRange</em> properties</li>
+<li>{{0,0},{1080,44}} or {0,2,0,2} can assign to <em>CGRect</em> and <em>UIEdgeInsets</em> properties</li>
+</ul>
+
+<p>For ease of metrics configuring, the numeric value in <em>CGRect</em>, <em>CGSize</em>, <em>CGPoint</em>, <em>UIEdgeInsets</em> and <em>NSFont</em> would be auto-scaled by Pbind for different devices.</p>
+
+<p>You can set the base sketch width by:</p>
+<div class="highlight highlight-source-objc"><pre><span class="p">[</span><span class="n">Pbind</span> <span class="nl">setSketchWidth</span><span class="p">:</span><span class="n">YOUR_SKETCH_WIDTH</span><span class="p">];</span>
+</pre></div>
+<p>If not set, default to 1080.</p>
+<h4><a href="/Small/en/cheatsheet#enumerator" id=enumerator aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Enumerator</h4>
+<table><thead>
+<tr>
+<th style="text-align: left">name</th>
+<th style="text-align: left">refer to</th>
+</tr>
+</thead><tbody>
+<tr>
+<td style="text-align: left">:<strong>nil</strong></td>
+<td style="text-align: left">nil</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>null</strong></td>
+<td style="text-align: left">[NSNull null]</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>none</strong></td>
+<td style="text-align: left">0</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>left</strong></td>
+<td style="text-align: left">NSTextAlignmentLeft</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>right</strong></td>
+<td style="text-align: left">NSTextAlignmentRight</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>center</strong></td>
+<td style="text-align: left">NSTextAlignmentCenter</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>/</strong></td>
+<td style="text-align: left">UITableViewCellAccessoryCheckmark</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>i</strong></td>
+<td style="text-align: left">UITableViewCellAccessoryDetailButton</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>&gt;</strong></td>
+<td style="text-align: left">UITableViewCellAccessoryDisclosureIndicator</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>value1</strong></td>
+<td style="text-align: left">UITableViewCellStyleValue1</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>value2</strong></td>
+<td style="text-align: left">UITableViewCellStyleValue2</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>subtitle</strong></td>
+<td style="text-align: left">UITableViewCellStyleSubtitle</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>normalStyle</strong></td>
+<td style="text-align: left">UITableViewRowActionStyleNormal</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>deleteStyle</strong></td>
+<td style="text-align: left">UITableViewRowActionStyleDestructive</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>auto</strong></td>
+<td style="text-align: left">UITableViewAutomaticDimension</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>save</strong></td>
+<td style="text-align: left">UIBarButtonSystemItemSave</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>add</strong></td>
+<td style="text-align: left">UIBarButtonSystemItemAdd</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>compose</strong></td>
+<td style="text-align: left">UIBarButtonSystemItemCompose</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>reply</strong></td>
+<td style="text-align: left">UIBarButtonSystemItemReply</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>share</strong></td>
+<td style="text-align: left">UIBarButtonSystemItemAction</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>organize</strong></td>
+<td style="text-align: left">UIBarButtonSystemItemOrganize</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>bookmarks</strong></td>
+<td style="text-align: left">UIBarButtonSystemItemBookmarks</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>search</strong></td>
+<td style="text-align: left">UIBarButtonSystemItemSearch</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>refresh</strong></td>
+<td style="text-align: left">UIBarButtonSystemItemRefresh</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>stop</strong></td>
+<td style="text-align: left">UIBarButtonSystemItemStop</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>camera</strong></td>
+<td style="text-align: left">UIBarButtonSystemItemCamera</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>trash</strong></td>
+<td style="text-align: left">UIBarButtonSystemItemTrash</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>play</strong></td>
+<td style="text-align: left">UIBarButtonSystemItemPlay</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>pause</strong></td>
+<td style="text-align: left">UIBarButtonSystemItemPause</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>rewind</strong></td>
+<td style="text-align: left">UIBarButtonSystemItemRewind</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>fastforward</strong></td>
+<td style="text-align: left">UIBarButtonSystemItemFastForward</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>undo</strong></td>
+<td style="text-align: left">UIBarButtonSystemItemUndo</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>redo</strong></td>
+<td style="text-align: left">UIBarButtonSystemItemRedo</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>pagecurl</strong></td>
+<td style="text-align: left">UIBarButtonSystemItemPageCurl</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>plainStyle</strong></td>
+<td style="text-align: left">UIBarButtonItemStylePlain</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>doneStyle</strong></td>
+<td style="text-align: left">UIBarButtonItemStyleDone</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>focus</strong></td>
+<td style="text-align: left">PBFormIndicatingMaskInputFocus</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>invalid</strong></td>
+<td style="text-align: left">PBFormIndicatingMaskInputInvalid</td>
+</tr>
+<tr>
+<td style="text-align: left">:<strong>changed</strong></td>
+<td style="text-align: left">PBFormValidatingChanged</td>
+</tr>
+</tbody></table>
+<h5><a href="/Small/en/cheatsheet#custom-enumerator" id=custom-enumerator aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Custom enumerator</h5><div class="highlight highlight-source-objc"><pre><span class="cm">/* e.g.</span>
+<span class="cm"> *  - plist: :your_enum1</span>
+<span class="cm"> *  - output: 1</span>
+<span class="cm"> *  - plist: :your_enum2</span>
+<span class="cm"> *  - output: 2</span>
+<span class="cm"> */</span>
+<span class="p">[</span><span class="n">PBValueParser</span> <span class="nl">registerEnums</span><span class="p">:</span><span class="l">@{</span><span class="s">@&quot;{your_enum1}&quot;</span><span class="o">:</span> <span class="mi">@1</span><span class="p">,</span>
+                               <span class="s">@&quot;{your_enum2}&quot;</span><span class="o">:</span> <span class="mi">@2</span><span class="l">}</span><span class="p">];</span>
+</pre></div><h3><a href="/Small/en/cheatsheet#expression" id=expression aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Expression</h3><div class="highlight highlight-source-text"><pre>usage: [flag][unary-operator][tag][variable][operator][rvalue][:][rvalueOfNot]
+e.g. :  =     !               $    title
+</pre></div><h4><a href="/Small/en/cheatsheet#binding-flag" id=binding-flag aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Binding flag</h4>
+<table><thead>
+<tr>
+<th style="text-align: left">flag</th>
+<th style="text-align: left">note</th>
+<th>e.g.</th>
+</tr>
+</thead><tbody>
+<tr>
+<td style="text-align: left"><strong>=</strong></td>
+<td style="text-align: left">oneway binding (model  -&gt; view)</td>
+<td>=$selected</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>==</strong></td>
+<td style="text-align: left">twoway binding (model &lt;-&gt; view)</td>
+<td>==$tabIndex</td>
+</tr>
+</tbody></table>
+<h4><a href="/Small/en/cheatsheet#animation-flag" id=animation-flag aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Animation flag</h4>
+<table><thead>
+<tr>
+<th style="text-align: left">flag</th>
+<th style="text-align: left">note</th>
+<th>e.g.</th>
+</tr>
+</thead><tbody>
+<tr>
+<td style="text-align: left"><strong>~</strong></td>
+<td style="text-align: left">set the value with animated</td>
+<td>~$contentSize</td>
+</tr>
+</tbody></table>
+<h4><a href="/Small/en/cheatsheet#datasource-tag" id=datasource-tag aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Datasource tag</h4>
+<table><thead>
+<tr>
+<th style="text-align: left">tag</th>
+<th style="text-align: left">refer to</th>
+<th>e.g.</th>
+</tr>
+</thead><tbody>
+<tr>
+<td style="text-align: left"><strong>$</strong></td>
+<td style="text-align: left">root view data</td>
+<td>$records</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>.</strong></td>
+<td style="text-align: left">the expression owner view</td>
+<td>.frame.size</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>.$</strong></td>
+<td style="text-align: left">the expression owner view data</td>
+<td>.$name</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>@^</strong></td>
+<td style="text-align: left">the active controller</td>
+<td>@^title</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>@[alias].</strong></td>
+<td style="text-align: left">the view with the alias</td>
+<td>@label.text</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>&gt;</strong></td>
+<td style="text-align: left">the text for the input in <em>PBForm</em></td>
+<td>&gt;birth</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>&gt;$</strong></td>
+<td style="text-align: left">the value for the input in <em>PBForm</em></td>
+<td>&gt;$birth</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>&gt;!</strong></td>
+<td style="text-align: left">the error for the input in <em>PBForm</em></td>
+<td>&gt;!birth</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>#.</strong></td>
+<td style="text-align: left">the action state of the default action store</td>
+<td>#.params</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>#$</strong></td>
+<td style="text-align: left">the action state data of the default action store</td>
+<td>#$name (same as #.data.name)</td>
+</tr>
+</tbody></table>
+
+<p>Thereinfo, we can set the alias for the view by:</p>
+<div class="highlight highlight-source-objc"><pre><span class="p">[</span><span class="n">view</span> <span class="nl">setAlias</span><span class="p">:</span><span class="s">@&quot;your_alias&quot;</span><span class="p">];</span>
+</pre></div><h5><a href="/Small/en/cheatsheet#custom-datasource" id=custom-datasource aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Custom datasource</h5>
+<p>We allow configure a custom datasource by defined a tag in one character.</p>
+
+<p>As if you defined <code>D</code>, then you can use <code>$D.</code> to map your datasource, as example:</p>
+<div class="highlight highlight-source-objc"><pre><span class="cm">/* e.g.</span>
+<span class="cm"> *  - plist: $D.userInfo</span>
+<span class="cm"> *  - mapto: [[NSUserDefaults standardDefaults] valueForKey:@&quot;userInfo&quot;]</span>
+<span class="cm"> */</span>
+<span class="p">[</span><span class="n">PBVariableMapper</span> <span class="nl">registerTag</span><span class="p">:</span><span class="sc">&#39;D&#39;</span> <span class="nl">withMapper</span><span class="p">:</span><span class="o">^</span><span class="kt">id</span><span class="p">(</span><span class="kt">id</span> <span class="n">data</span><span class="p">,</span> <span class="kt">id</span> <span class="n">target</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="p">[</span><span class="bp">NSUserDefaults</span> <span class="n">standardDefaults</span><span class="p">];</span>
+<span class="p">}];</span>
+</pre></div><h4><a href="/Small/en/cheatsheet#operators" id=operators aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Operators</h4>
+<table><thead>
+<tr>
+<th style="text-align: left">symbol</th>
+<th style="text-align: left">note</th>
+<th>return type</th>
+<th>e.g.</th>
+</tr>
+</thead><tbody>
+<tr>
+<td style="text-align: left"><strong>!</strong></td>
+<td style="text-align: left">logic not</td>
+<td><em><strong>BOOL</strong></em></td>
+<td>!$success</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>!!</strong></td>
+<td style="text-align: left">force bool</td>
+<td><em><strong>BOOL</strong></em></td>
+<td>!!$list</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>-</strong></td>
+<td style="text-align: left">negative/minus</td>
+<td><em><strong>double</strong></em></td>
+<td>-$height; $count-1</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>&lt;</strong></td>
+<td style="text-align: left">less than</td>
+<td><em><strong>BOOL</strong></em></td>
+<td>$count&lt;2</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>&gt;</strong></td>
+<td style="text-align: left">greater than</td>
+<td><em><strong>BOOL</strong></em></td>
+<td>$count&gt;7</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>=</strong> or <strong>==</strong></td>
+<td style="text-align: left">equal</td>
+<td><em><strong>BOOL</strong></em></td>
+<td>$count=3; $count==3</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>!=</strong></td>
+<td style="text-align: left">not equal</td>
+<td><em><strong>BOOL</strong></em></td>
+<td>$count!=2</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>&lt;=</strong></td>
+<td style="text-align: left">less than or equal</td>
+<td><em><strong>BOOL</strong></em></td>
+<td>$count&lt;=7</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>&gt;=</strong></td>
+<td style="text-align: left">greater than or eauql</td>
+<td><em><strong>BOOL</strong></em></td>
+<td>$count&gt;=3</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>+</strong></td>
+<td style="text-align: left">plus</td>
+<td><em><strong>double</strong></em></td>
+<td>$count+2</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>*</strong></td>
+<td style="text-align: left">times</td>
+<td><em><strong>double</strong></em></td>
+<td>$count*7</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>/</strong></td>
+<td style="text-align: left">devide</td>
+<td><em><strong>double</strong></em></td>
+<td>$count/3</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>?:</strong></td>
+<td style="text-align: left">test</td>
+<td><em><strong>NSString</strong></em></td>
+<td>$value?:2; $flag?1:2</td>
+</tr>
+</tbody></table>
+<h3><a href="/Small/en/cheatsheet#compound-expression" id=compound-expression aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Compound expression</h3><div class="highlight highlight-source-text"><pre>usage: %[tag:option]( format ),$arg1,$arg2,...
+</pre></div><h4><a href="/Small/en/cheatsheet#compound-tag" id=compound-tag aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Compound tag</h4>
+<table><thead>
+<tr>
+<th style="text-align: left">tag</th>
+<th style="text-align: left">note</th>
+<th>e.g.</th>
+</tr>
+</thead><tbody>
+<tr>
+<td style="text-align: left"></td>
+<td style="text-align: left">string format</td>
+<td>%(goods:%@, money:%.2f),$title,$money</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>!</strong></td>
+<td style="text-align: left">assert format(calculated only if args non-nil)</td>
+<td>%!(goods:%@, money:%.2f),$title,$money</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>JS</strong></td>
+<td style="text-align: left">javascript evaluating</td>
+<td>%JS(&#39;goods:&#39; + $1 + &#39;, money:&#39; + $2),$title,$money</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>AT</strong></td>
+<td style="text-align: left">attributed string</td>
+<td>%AT(Hello &#124;%@),$who;#fff-{F:13}&#124;{F:14}</td>
+</tr>
+</tbody></table>
+<h5><a href="/Small/en/cheatsheet#javascript-evaluating" id=javascript-evaluating aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Javascript evaluating</h5>
+<p>We use <em>JavascriptCore</em> to evaluate javascript.</p>
+
+<p>For <code>%JS( scripts ),$arg1,$arg2</code>, we will pass each args to javascript as <code>$1</code>, <code>$2</code> ... <code>$N</code>.</p>
+
+<p>You can configure the return type by configure <code>%JS:type</code>, the type here includes:</p>
+
+<ul>
+<li>bool</li>
+<li>int32</li>
+<li>date</li>
+<li>rect</li>
+<li>size</li>
+</ul>
+
+<p>and so on, if not set we will use <code>[JSValue toObject]</code> to convert the return value. More details of this can refer to the official document of <em>JSValue</em>.</p>
+<h5><a href="/Small/en/cheatsheet#custom-compound-tag" id=custom-compound-tag aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Custom compound tag</h5><div class="highlight highlight-source-objc"><pre><span class="cm">/* e.g.</span>
+<span class="cm"> *  - plist: %S2A(/),$str</span>
+<span class="cm"> *  - input: str=&quot;a/b/c&quot;</span>
+<span class="cm"> *  - output: @[@&quot;a&quot;,@&quot;b&quot;,@&quot;c&quot;]</span>
+<span class="cm"> * @return components separated by string</span>
+<span class="cm"> */</span>
+<span class="p">[</span><span class="n">PBVariableEvaluator</span> <span class="nl">registerTag</span><span class="p">:</span><span class="s">@&quot;S2A&quot;</span> <span class="nl">withFormatterer</span><span class="p">:</span><span class="o">^</span><span class="kt">id</span><span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="n">format</span><span class="p">,</span> <span class="kt">id</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">value</span> <span class="nl">componentsSeparatedByString</span><span class="p">:</span><span class="n">format</span><span class="p">];</span>
+<span class="p">}];</span>
+</pre></div><h5><a href="/Small/en/cheatsheet#string-format" id=string-format aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>String format</h5>
+<p>The string format function is based on <code>[NSString stringWithFormat:]</code> and we extend some tags to format more complicated data:</p>
+
+<table><thead>
+<tr>
+<th style="text-align: left">tag</th>
+<th style="text-align: left">note</th>
+<th>accept argument type</th>
+<th>e.g.</th>
+</tr>
+</thead><tbody>
+<tr>
+<td style="text-align: left"><strong>#</strong></td>
+<td style="text-align: left">number format</td>
+<td><em><strong>NSNumber</strong></em></td>
+<td>%(%#.2f),$number</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>J</strong></td>
+<td style="text-align: left">JSON format</td>
+<td><em><strong>NSDictionary, NSArray</strong></em></td>
+<td>%(%J),$dict</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>&lt;t&gt;</strong></td>
+<td style="text-align: left">date format</td>
+<td><em><strong>NSDate, NSNumber</strong></em></td>
+<td>%(%&lt;t:yyyy-MM-dd&gt;),$date</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>&lt;T&gt;</strong></td>
+<td style="text-align: left">date format by template</td>
+<td><em><strong>NSDate, NSNumber</strong></em></td>
+<td>%(%&lt;T:MMMy&gt;),$date</td>
+</tr>
+</tbody></table>
+<h5><a href="/Small/en/cheatsheet#custom-string-format-tag" id=custom-string-format-tag aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Custom string format tag</h5><div class="highlight highlight-source-objc"><pre><span class="cm">/* e.g.</span>
+<span class="cm"> *  - plist: %(%&lt;A2S:/&gt;),$arr</span>
+<span class="cm"> *  - input: arr=@[@&quot;a&quot;,@&quot;b&quot;,@&quot;c&quot;]</span>
+<span class="cm"> *  - output: &quot;a/b/c&quot;</span>
+<span class="cm"> * return a string from array</span>
+<span class="cm"> */</span>
+<span class="p">[</span><span class="n">PBStringFormatter</span> <span class="nl">registerTag</span><span class="p">:</span><span class="s">@&quot;A2S&quot;</span> <span class="nl">withFormatterer</span><span class="p">:</span><span class="o">^</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="n">format</span><span class="p">,</span> <span class="kt">id</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">value</span> <span class="nl">componentsJoinedByString</span><span class="p">:</span><span class="n">format</span><span class="p">];</span>
+<span class="p">}];</span>
+</pre></div>

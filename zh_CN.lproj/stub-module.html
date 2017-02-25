@@ -1,0 +1,30 @@
+<h1><a href="/Small/cn/stub-module#宿主分身模块" id=宿主分身模块 aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>宿主分身模块</h1>
+<p>什么叫分身？分身是宿主的一部分，最终编译到宿主中，不可被独立更新。但是它提供了能力：可以让插件模块自由访问其中的资源与代码。</p>
+
+<p>因为最终编译到宿主中，使它具备了占坑(stub)的功能，即在宿主中预留特定的(无法插件化的)资源、代码或manifest项目，使系统可以正常识别。
+此外，任何稳定的资源、代码、第三方库也可使用分身下沉到宿主中，以减少插件体积。</p>
+
+<p><img src="/Small/img/stub.jpeg" alt="多重影分身"/></p>
+<h2><a href="/Small/cn/stub-module#模块定义" id=模块定义 aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>模块定义</h2>
+<p>使用 <code>app+*</code> 命名的模块将被自动识别为分身模块并为所有插件模块添加该依赖，如 <code>app+stub</code>、<code>app+fresco</code> 等等。</p>
+<h2><a href="/Small/cn/stub-module#需要占坑的项目" id=需要占坑的项目 aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>需要占坑的项目</h2>
+<p>必须在宿主Manifest注册的项目，包括：</p>
+
+<ol>
+<li>所有权限</li>
+<li>受限 <em>Activity</em> 
+
+<ol>
+<li>包含了暂不支持的属性：process, configChanges 等</li>
+<li>可能使用 <em>FLAG_ACTIVITY_CLEAR_TOP</em> 标签来启动 (<a href="https://github.com/wequick/Small/issues/415" target="_blank">#415</a>)</li>
+</ol></li>
+<li>任何 <em>Provider</em>, <em>Service</em>, <em>BroadcastReceiver</em></li>
+</ol>
+
+<p>必须在宿主占坑的资源，包括：</p>
+
+<ol>
+<li>转场动画</li>
+<li>通知栏图标、自定义视图</li>
+<li>桌面快捷方式图标</li>
+</ol>

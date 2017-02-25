@@ -1,0 +1,88 @@
+{
+  "css": "", 
+  "framework": "duck-10.2.4", 
+  "title": "Pbind", 
+  "build_id": "58013fc6680ce24d7c2ad41f2", 
+  "locale": "zh-cn", 
+  "version": "10.0", 
+  "source_schema": "apd-schema", 
+  "enable_tracking": false, 
+  "printable_page": "static.html", 
+  "platform": "iphone", 
+  "build_date": "2016.10.14-14:17:59", 
+  "landing": "home", 
+  "product": "ios", 
+  "urls": { }, 
+  "copyright": "copyright", 
+  "show_previous_next": true, 
+  "quick_links": [
+    {
+      "name": "快速入门", 
+      "id": "quickstart"
+    }
+  ], 
+  "icon": "", 
+  "birdseed_version": 5, 
+  "toc": [
+    "home", 
+    "feature",
+    "quickstart",
+    "tutorial",
+    "advance"
+  ], 
+  "sections": {
+    "tutorial": {
+      "name": "入门教程",
+      "children": [
+        "tour-lib-bundle"
+      ]
+    },
+    "advance": {
+      "name": "进阶教程",
+      "children": [
+        "bundle-module",
+        "stub-module",
+        "custom-package-id",
+        "compile-options",
+        "small-DSL"
+      ]
+    }
+  },
+  "topics": {
+    "home": {
+      "name": "文档首页", 
+      "href": "home.html", 
+      "categories": [
+        "passionpoints", 
+        "landing"
+      ]
+    },
+    "feature": {
+      "name": "特性与功能", 
+      "href": "feature.html"
+    },
+    "quickstart": {
+      "name": "快速入门", 
+      "href": "quickstart.html"
+    },
+    "tour-lib-bundle": {
+      "name": "提取公共库插件"
+    },
+    "bundle-module": {
+      "name": "插件模块"
+    },
+    "stub-module": {
+      "name": "宿主分身模块"
+    },
+    "small-DSL": {
+      "name": "Small DSL"
+    },
+    "custom-package-id": {
+      "name": "自定义资源ID分段"
+    },
+    "compile-options": {
+      "name": "编译选项"
+    }
+  },
+  "copyright_text": "© 2016 Wequick.net. 保留一切权利。"
+}

@@ -1,0 +1,154 @@
+<h2><a href="/Small/en/quickstart#overview" id=overview aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Overview</h2>
+<p>This quick start introduce the base factor of developing in Pbind, and display a simple text by Plist:</p>
+
+<p><img src="/Small/img/tour-0@2x.png" alt="hello-work"/></p>
+
+<p>You can create a new project according to the following steps or clone the <a href="https://github.com/wequick/Pbind" target="_blank">sample</a> in the GitHub and go to <a href="/Small/en/tour-databinding" name="wq-redirect" data-redirect="en/tour-databinding">next</a>.</p>
+
+<p>Let&#39;s start！</p>
+
+<ul>
+<li><a href="/Small/en/quickstart#prepare:-install-cocoapods">Prepare</a>: Install CocoaPods</li>
+<li><a href="/Small/en/quickstart#step-1:-init-project">Step 1</a>: Init project</li>
+<li><a href="/Small/en/quickstart#step-2:-work-with-plist">Step 2</a>: Work with Plist</li>
+<li><a href="/Small/en/quickstart#step-3:-start-application">Step 3</a>: Start application</li>
+<li><a href="/Small/en/quickstart#step-4:-make-some-instant-changes">Step 4</a>: Make some instant changes</li>
+<li><a href="/Small/en/quickstart#next">Next</a></li>
+</ul>
+<h2><a href="/Small/en/quickstart#prepare:-install-cocoapods" id=prepare:-install-cocoapods aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Prepare: Install CocoaPods</h2>
+<p>If you hadn&#39;t install Cocoapods, <a href="https://cocoapods.org/" target="_blank">install it</a>.</p>
+<h2><a href="/Small/en/quickstart#step-1:-init-project" id=step-1:-init-project aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Step 1: Init project</h2>
+<p>In this step, you will:</p>
+
+<ul>
+<li><a href="/Small/en/quickstart#create-application">Create Application</a></li>
+<li><a href="/Small/en/quickstart#integrate-pbind">Integrate Pbind</a></li>
+<li><a href="/Small/en/quickstart#integrate-pbliveloader">Integrate PBLiveLoader</a></li>
+</ul>
+<h3><a href="/Small/en/quickstart#create-application" id=create-application aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Create Application</h3>
+<p>Open Xcode, Click <code>File-&gt;New-&gt;Project...</code> to create a <code>Single View Application</code>. Set the <code>Product Name</code>, for this sample we set as <code>HeroTour</code> (you can named whatever you want).</p>
+<h3><a href="/Small/en/quickstart#integrate-pbind" id=integrate-pbind aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Integrate Pbind</h3>
+<p>Close the project and go into command line, run the command to initialize a <code>Podfile</code>:</p>
+<div class="highlight highlight-source-text"><pre>pod init
+</pre></div>
+<p>Modify the generated <code>Podfile</code>, add dependency of <code>Pbind</code>:</p>
+<div class="highlight highlight-source-ruby"><pre><span class="n">target</span> <span class="s1">&#39;HeroTour&#39;</span> <span class="k">do</span>
+  <span class="c1"># Uncomment the next line if you&#39;re using Swift or would like to use dynamic frameworks</span>
+  <span class="c1"># use_frameworks!</span>
+
+  <span class="c1"># Pods for HeroTour</span>
+  <span class="n">pod</span> <span class="s1">&#39;Pbind&#39;</span>
+
+<span class="k">end</span>
+</pre></div>
+<p>Run <code>pod install</code> to install <code>Pbind</code>.</p>
+<h4><a href="/Small/en/quickstart#integrate-pbliveloader" id=integrate-pbliveloader aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Integrate PBLiveLoader</h4>
+<p>PBLiveLoader is a directory watchdog, use to reload page instantly.</p>
+
+<p>Firstly, install the <code>Pbind</code> CLI:</p>
+<div class="highlight highlight-source-text"><pre>gem install pbind
+</pre></div>
+<p><code>cd</code> to your project directory and run:</p>
+<div class="highlight highlight-source-text"><pre>pbind watch
+</pre></div>
+<p>After this the project would apply following changes:</p>
+<div class="highlight highlight-source-text"><pre>├── HeroTour
+│   └── Info.plist (Mofify)
+├── PBLocalhost (Add)
+│   └── ignore.h
+└── PBLiveLoader (Add)
+    ├── PBDirectoryWatcher.h
+    ├── PBDirectoryWatcher.m
+    ├── PBLiveLoader.h
+    └── PBLiveLoader.m
+</pre></div>
+<p>Thereinto:</p>
+
+<ul>
+<li><code>PBLocalhost</code> - <strong>Local mock server</strong>, we can add <code>json</code> files under it to mock API response, and the <code>ignore.h</code> use to configure excludes.</li>
+<li><code>PBLiveLoader</code> - <strong>Instant reloader</strong>, watch <code>plist</code>, <code>json</code> file changes and reload instantly.</li>
+<li><code>Info.plist</code> - <strong>Watch path settings</strong>, add two fields:
+
+<ul>
+<li><code>PBResourcesPath</code> - the resources path of current project</li>
+<li><code>PBLocalhost</code> - the local mock server path</li>
+</ul></li>
+</ul>
+<h2><a href="/Small/en/quickstart#step-2:-work-with-plist" id=step-2:-work-with-plist aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Step 2: Work with plist</h2>
+<p>Reopen <code>[your-project].xcworkspace</code>:</p>
+<div class="highlight highlight-source-text"><pre>open HeroTour.xcworkspace
+</pre></div>
+<p>Modify the <code>ViewController.h</code> and make it extends with <code>PBTableViewController</code>:</p>
+<div class="highlight highlight-source-objc"><pre>  <span class="cp">#import &lt;UIKit/UIKit.h&gt;</span>
+  <span class="cp">#import &lt;Pbind/Pbind.h&gt;</span>
+
+  <span class="k">@interface</span> <span class="nc">ViewController</span> : <span class="nc">PBTableViewController</span>
+
+
+  <span class="k">@end</span>
+</pre></div>
+<p>The <code>PBTableViewController</code> takes <code>PBTableView</code> as root view by what we can configure the <code>TableView</code>by Plist.</p>
+
+<p>Modify the <code>ViewController.m</code> and set the plist name:</p>
+<div class="highlight highlight-source-objc"><pre>  <span class="o">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="n">viewDidLoad</span> <span class="p">{</span>
+      <span class="p">[</span><span class="nb">super</span> <span class="n">viewDidLoad</span><span class="p">];</span>
+      <span class="p">[</span><span class="nb">self</span> <span class="nl">setPlist</span><span class="p">:</span><span class="s">@&quot;main.tableview&quot;</span><span class="p">];</span>
+  <span class="p">}</span>
+</pre></div>
+<p>Create the <code>main.tableview.plist</code>, add configurations:</p>
+<div name="plist-content"><table class="plist"><tbody><tr><th style="width: 40%">Key</th><th style="width: 25%">Type</th><th style="width: 35%">Value</th></tr></tbody><tbody><tr class="collapsible" data-level="0"><td><span class="button collapse-button"></span><span>Root</span></td><td><span>Dictionary</span></td><td><span class="sub">(1 item)</span></td></tr><tr class="collapsible" data-level="1"><td><span class="button collapse-button"></span><span>properties</span></td><td><span>Dictionary</span></td><td><span class="sub">(1 item)</span></td></tr><tr class="collapsible" data-level="2"><td><span class="button collapse-button"></span><span>headers</span></td><td><span>Array</span></td><td><span class="sub">(1 item)</span></td></tr><tr class="collapsible" data-level="3"><td><span class="button collapse-button"></span><span>Item 0</span></td><td><span>Dictionary</span></td><td><span class="sub">(3 items)</span></td></tr><tr data-level="4"><td><span class="button collapse-button"></span><span>clazz</span></td><td><span>String</span></td><td><span>UILabel</span></td></tr><tr data-level="4"><td><span class="button collapse-button"></span><span>height</span></td><td><span>String</span></td><td><span>44</span></td></tr><tr class="collapsible" data-level="4"><td><span class="button collapse-button"></span><span>properties</span></td><td><span>Dictionary</span></td><td><span class="sub">(4 items)</span></td></tr><tr data-level="5"><td><span class="button collapse-button"></span><span>text</span></td><td><span>String</span></td><td><span>Hello Pbind!</span></td></tr><tr data-level="5"><td><span class="button collapse-button"></span><span>textColor</span></td><td><span>String</span></td><td><span>#fff</span></td></tr><tr data-level="5"><td><span class="button collapse-button"></span><span>backgroundColor</span></td><td><span>String</span></td><td><span>#333</span></td></tr><tr data-level="5"><td><span class="button collapse-button"></span><span>textAlignment</span></td><td><span>String</span></td><td><span>:center</span></td></tr><tr><td></td><td></td><td></td></tr></tbody></table></div>
+<blockquote>
+<p>If you want to copy above codes, please select the <em>Root</em> node and click the poping [COPY] button to copy. Fold the <em>Root</em> node in Xcode, select it and press [⌘+v] to overwrite.</p>
+</blockquote>
+<h2><a href="/Small/en/quickstart#step-3:-start-application" id=step-3:-start-application aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Step 3: Start application</h2>
+<p>Choose a simulator, press [⌘+R] to run.</p>
+
+<p><img src="/Small/img/tour-0-hello@2x.png" alt="hello-first"/></p>
+<h2><a href="/Small/en/quickstart#step-4:-make-some-instant-changes" id=step-4:-make-some-instant-changes aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Step 4: Make some instant changes</h2>
+<p>Cause there is no navigation bar now, the root view is overlaying the status bar. 
+As we know the status bar is about 20px height, let&#39;s add the <code>margin</code> to resolve it:</p>
+<div name="plist-content"><table class="plist"><tbody><tr><th style="width: 40%">Key</th><th style="width: 25%">Type</th><th style="width: 35%">Value</th></tr></tbody><tbody><tr data-level="1"><td><span class="button collapse-button"></span><span>clazz</span></td><td><span>String</span></td><td><span>UILabel</span></td></tr><tr data-level="1"><td><span class="button collapse-button"></span><span>height</span></td><td><span>String</span></td><td><span>44</span></td></tr><tr data-level="1"><td><span class="button collapse-button"></span><span>margin</span></td><td><span>String</span></td><td><span>{20,0,0,0}</span></td></tr><tr><td></td><td></td><td></td></tr></tbody></table></div>
+<p>[⌘+S] to save:</p>
+
+<p><img src="/Small/img/tour-0-hello-margin-20@2x.png" alt="hello-margin"/></p>
+
+<p>Note that here we displays the 20px correctly cause Pbind takes 320px as the default base width.</p>
+
+<p>If you want to configure the UI metrics in your sketch directly, you can set the base width once by:</p>
+<div class="highlight highlight-source-objc"><pre><span class="p">[</span><span class="n">Pbind</span> <span class="nl">setSketchWidth</span><span class="p">:</span><span class="n">the_width</span><span class="p">];</span> <span class="c1">// The width of the sketch provided by your UI designer</span>
+</pre></div>
+<p>then Pbind will adjust them for devices automatically.</p>
+
+<p>You can try to change the background/foreground color of the text by yourself and enjoy it!</p>
+
+<p>More details about the constants configuration can refer to <a href="/Small/en/cheatsheet#constant" name="wq-redirect" data-redirect="en/cheatsheet#constant">Constants</a> and <a href="/Small/en/pbrowmapper" name="wq-redirect" data-redirect="en/pbrowmapper">Row mapper</a>.</p>
+<h2><a href="/Small/en/quickstart#next" id=next aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Next</h2>
+<p>The final project looks like this:</p>
+<div class="highlight highlight-source-text"><pre>├── HeroTour
+│   ├── AppDelegate.h
+│   ├── AppDelegate.m
+│   ├── Info.plist
+│   ├── ViewController.h
+│   ├── ViewController.m
+│   ├── main.m
+│   └── main.tableview.plist
+├── PBLocalhost
+│   └── ignore.h
+├── PBLiveLoader
+│   ├── PBDirectoryWatcher.h
+│   ├── PBDirectoryWatcher.m
+│   ├── PBLiveLoader.h
+│   └── PBLiveLoader.m
+├── Podfile
+├── Podfile.lock
+└── Pods
+    └── Pbind
+</pre></div>
+<p>By this section we learn the base of developing in Pbind:</p>
+
+<ol>
+<li>Layout a view by Plist</li>
+<li>Instant reload of Plist</li>
+</ol>
+
+<p><a href="/Small/en/tour-databinding" name="wq-redirect" data-redirect="en/tour-databinding">Next step</a> we will bind some data by Plist and finish a <code>Heroes App</code>.</p>

@@ -1,0 +1,114 @@
+<h2><a href="/Small/cn/tour-lib-bundle#前言" id=前言 aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>前言</h2>
+<p>上节我们创建了一个应用插件 <strong>app.main</strong>，这个插件存在以下资源：</p>
+<div class="highlight highlight-source-text"><pre>app.main/src/main/res
+├── values
+│   ├── colors.xml
+│   ├── dimens.xml
+│   └── styles.xml
+└── values-w820dp
+    └── dimens.xml
+</pre></div>
+<p>这些资源定义了该应用的主题、界面边距等样式，在多个应用插件间，这些资源应该是 <em>可被复用</em> 的。</p>
+
+<p>这个时候，我们可以通过提取公共库插件模块来解决这些问题。</p>
+
+<blockquote>
+<p>【进阶】为了便于理解一些细节，我们可以先通过命令：</p>
+<div class="highlight highlight-source-text"><pre>aapt dump --values resources app/smallLibs/x86/libcom_example_appmain.so
+</pre></div>
+<p>来观察下 <strong>app.main</strong> 插件的资源情况：</p>
+<div class="highlight highlight-source-text"><pre>resource 0x77040000 com.example.appmain:style/AppTheme: &lt;bag&gt;
+  Parent=0x7f080103(Resolved=0x7f080103), Count=3
+</pre></div>
+<p>可以看到，AppTheme的ID是 0x77 打头的插件资源，
+同时它的 Parent 指向了 0x7f 打头的资源，即宿主资源。</p>
+</blockquote>
+<h2><a href="/Small/cn/tour-lib-bundle#创建公共库插件模块" id=创建公共库插件模块 aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>创建公共库插件模块</h2>
+<p>右键 <code>app</code> 模块 &gt; New &gt; Module，创建一个 <code>Android Library</code> 模块。
+<code>Application/Library name</code> 设置为 <code>Lib.style</code>，其它项目将默认为：</p>
+
+<ul>
+<li>Module name: lib.style</li>
+<li>Package name: com.example.libstyle</li>
+</ul>
+
+<p>将 app.main/src/main/res/values 下除了 strings.xml 的文件移动到 lib.style/src/main/res/values 目录下；
+将 app.main/src/main/res/values-w820dp 整个目录移动到 lib.style/src/main/res/ 目录下。</p>
+
+<p>为了确认公共库提取成功，我们修改 lib.style/src/main/res/colors.xml，将主色调改为绿色：</p>
+<div class="highlight highlight-source-xml"><pre><span class="nt">&lt;color</span> <span class="na">name=</span><span class="s">&quot;colorPrimary&quot;</span><span class="nt">&gt;</span>#2FA739<span class="nt">&lt;/color&gt;</span>
+</pre></div><h2><a href="/Small/cn/tour-lib-bundle#添加公共库引用" id=添加公共库引用 aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>添加公共库引用</h2>
+<p>修改 app.main/build.gradle，增加对 lib.style 的依赖：</p>
+<div class="highlight highlight-source-text"><pre>dependencies {
+    ...
+    compile project(&#39;:lib.style&#39;)
+}
+</pre></div><h2><a href="/Small/cn/tour-lib-bundle#添加插件路由" id=添加插件路由 aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>添加插件路由</h2>
+<p>修改 app/assets/bundle.json：</p>
+<div class="highlight highlight-source-json"><pre><span class="p">{</span>
+  <span class="nt">&quot;pkg&quot;</span><span class="p">:</span> <span class="s2">&quot;com.example.libstyle&quot;</span>
+<span class="p">}</span>
+</pre></div><h2><a href="/Small/cn/tour-lib-bundle#重新编译插件" id=重新编译插件 aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>重新编译插件</h2>
+<p>清除公共库：</p>
+<div class="highlight highlight-source-text"><pre>./gradlew cleanLib -q
+</pre></div>
+<p>编译公共库：</p>
+<div class="highlight highlight-source-text"><pre>./gradlew buildLib -q -Dbundle.arch=x86
+</pre></div>
+<p>编译业务单元：</p>
+<div class="highlight highlight-source-text"><pre>./gradlew buildBundle -q -Dbundle.arch=x86
+</pre></div><h2><a href="/Small/cn/tour-lib-bundle#重新运行程序" id=重新运行程序 aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>重新运行程序</h2>
+<p>菜单栏上选择 app 模块，运行，将看到绿色的ActionBar：</p>
+
+<p><img src="/Small/img/app-with-lib@2x.png" alt="app-with-lib"/></p>
+
+<blockquote>
+<p>【进阶】以下将帮助你理解公共库资源的实现原理。
+重新检查 <strong>app.main</strong> 的资源情况：</p>
+<div class="highlight highlight-source-text"><pre>aapt dump --values resources app/smallLibs/x86/libcom_example_appmain.so
+</pre></div>
+<p>将输出：</p>
+<div class="highlight highlight-source-text"><pre>Package Groups (1)
+Package Group 0 id=0x77 packageCount=1 name=com.example.appmain
+  DynamicRefTable entryCount=1:
+    0x77 -&gt; com.example.appmain
+  Package 0 id=0x77 name=com.example.appmain
+    type 1 configCount=1 entryCount=1
+      spec resource 0x77020000 com.example.appmain:layout/activity_main: flags=0x00000000
+      config (default):
+        resource 0x77020000 com.example.appmain:layout/activity_main: t=0x03 d=0x00000000 (s=0x0008 r=0x00)
+          (string8) &quot;res/layout/activity_main.xml&quot;
+</pre></div>
+<p>可以看到，关于主题、边距等资源已经被剥离了。
+具体是如何引用到公共库的资源呢，我们来看下 app.main/AndroidManifest.xml 的内容：</p>
+<div class="highlight highlight-source-text"><pre>aapt dump --values xmltree app/smallLibs/x86/libcom_example_appmain.so AndroidManifest.xml
+</pre></div>
+<p>重点关注主题的部分：</p>
+<div class="highlight highlight-source-text"><pre>E: application (line=11)
+      A: android:theme(0x01010000)=@0x79030000
+</pre></div>
+<p>可以看到主题指向了 0x79，我们来确认下这个资源是属于 lib.style 插件的：</p>
+<div class="highlight highlight-source-text"><pre>aapt dump --values resources app/smallLibs/x86/libcom_example_libstyle.so
+</pre></div>
+<p>关注 0x79030000 这个资源项目：</p>
+<div class="highlight highlight-source-text"><pre>spec resource 0x79030000 com.example.libstyle:style/AppTheme: flags=0x00000000
+  config (default):
+    resource 0x79030000 com.example.libstyle:style/AppTheme: &lt;bag&gt;
+      Parent=0x7f080103(Resolved=0x7f080103), Count=3
+</pre></div>
+<p>确实是 AppTheme 主题，同时该主题的 Parent 指向了宿主资源 0x7f080103。
+正是由于 Small 完成了这个资源链路，从而保证系统在合并这些插件的时候可以正确的追溯到主题资源。
+你可以进一步 dump 宿主包查看该资源的定义，该资源就是 AppCompat 包所带的资源，这也是之所以 Small 能支持 AppCompat 的本质原因。</p>
+</blockquote>
+<h2><a href="/Small/cn/tour-lib-bundle#总结与下一步" id=总结与下一步 aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>总结与下一步</h2>
+<p>通过本节，我们学习了如何将公共资源提取到公共库插件，包括以下细节：</p>
+
+<ol>
+<li>使用 <code>lib.*</code> 模块名规范来创建一个公共库插件模块</li>
+<li>使用 <code>cleanLib</code>, <code>buildLib</code>, <code>buildBundle</code> 来重新编译插件</li>
+<li>【进阶】了解资源引用的细节</li>
+</ol>
+
+<blockquote>
+<p>未完待续...</p>
+</blockquote>

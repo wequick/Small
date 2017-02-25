@@ -1,0 +1,289 @@
+<h2><a href="/Small/cn/quickstart#概要" id=概要 aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>概要</h2>
+<p>本快速入门包含了使用Samll开发的基础步骤，并通过启动插件显示一条简单的文本：</p>
+
+<p><img src="/Small/img/new-project-hello-small@2x.png" alt="hello-work"/></p>
+
+<p>开始创建工程！</p>
+
+<ul>
+<li><a href="/Small/cn/quickstart#准备工作:-安装Android-Studio">准备工作</a>: 安装Android Studio</li>
+<li><a href="/Small/cn/quickstart#step-1:-创建与配置工程">Step 1</a>: 创建与配置工程</li>
+<li><a href="/Small/cn/quickstart#step-2:-创建插件模块">Step 2</a>: 创建一个插件模块</li>
+<li><a href="/Small/cn/quickstart#step-3:-编译插件">Step 3</a>: 编译插件</li>
+<li><a href="/Small/cn/quickstart#step-4:-启动插件">Step 4</a>: 启动插件</li>
+<li><a href="/Small/cn/quickstart#step-5:-运行宿主">Step 5</a>: 运行宿主</li>
+<li><a href="/Small/cn/quickstart#总结与下一步">总结与下一步</a></li>
+</ul>
+<h2><a href="/Small/cn/quickstart#准备工作:-安装android-studio" id=准备工作:-安装android-studio aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>准备工作: 安装Android Studio</h2>
+<p>如果你的电脑还未安装Android Studio，<a href="https://developer.android.com/studio/install.html?hl=zh-cn" target="_blank">安装它</a>。本示例使用的版本为：</p>
+<div class="highlight highlight-source-text"><pre>Android Studio 2.2.3
+Build #AI-145.3537739, built on December 2, 2016
+JRE: 1.8.0_112-release-b05 x86_64
+JVM: OpenJDK 64-Bit Server VM by JetBrains s.r.o
+</pre></div><h2><a href="/Small/cn/quickstart#step-1:-创建与配置工程" id=step-1:-创建与配置工程 aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Step 1: 创建与配置工程</h2>
+<p>在本步骤你将：</p>
+
+<ul>
+<li><a href="/Small/cn/quickstart#创建工程">创建工程</a></li>
+<li><a href="/Small/cn/quickstart#集成small">集成Small</a></li>
+<li><a href="/Small/cn/quickstart#配置宿主">配置宿主</a></li>
+</ul>
+<h3><a href="/Small/cn/quickstart#创建工程" id=创建工程 aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>创建工程</h3>
+<p>打开Android Studio，点选 <code>Start a new Android Studio project</code> 创建一个Android工程。<code>Application Name</code> 本示例设置为 <code>MySmall</code> （您可以填写为自己的项目名称）。</p>
+
+<p><img src="/Small/img/new-project@2x.png" alt="my-small"/></p>
+
+<p>设置最小支持 SDK (Small允许支持到 API 9)：</p>
+
+<p><img src="/Small/img/new-project-minsdk@2x.png" alt="new-project-minsdk"/></p>
+
+<p>添加一个 <code>Empty Activity</code>，这个Activity将作为启动画面。</p>
+<h3><a href="/Small/cn/quickstart#集成small" id=集成small aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>集成Small</h3>
+<p>在IDE左侧面板双击工程 build.gradle (<strong>Project</strong>)：</p>
+
+<p><img src="/Small/img/new-project-left-build.gradle@2x.png" alt="new-project-left-build.gradle"/></p>
+
+<p>在 <code>buildscript &gt; dependencies</code> 下添加Small编译插件 <strong>gradle-small</strong>：</p>
+<div class="highlight highlight-source-groovy"><pre><span class="n">classpath</span> <span class="s1">&#39;net.wequick.tools.build:gradle-small:1.1.0-beta4&#39;</span>
+</pre></div>
+<p>在文件末尾引用 <strong>gradle-small</strong> 插件：</p>
+<div class="highlight highlight-source-groovy"><pre><span class="n">apply</span> <span class="nl">plugin:</span> <span class="s1">&#39;net.wequick.small&#39;</span>
+</pre></div>
+<p>紧随其后，设置Small运行库版本：</p>
+<div class="highlight highlight-source-groovy"><pre><span class="n">small</span> <span class="o">{</span>
+    <span class="n">aarVersion</span> <span class="o">=</span> <span class="s1">&#39;1.1.0-alpha1&#39;</span>
+<span class="o">}</span>
+</pre></div>
+<blockquote>
+<p>以上两个库的最新版本参见<a href="https://bintray.com/galenlin/maven" target="_blank">bintray</a>
+有关更多 small { } 中的配置可以参考<a href="/Small/cn/small-DSL" name="wq-redirect" data-redirect="cn/small-DSL">small DSL</a></p>
+</blockquote>
+
+<p>由于我们更改了脚本，需要同步下工程：点击 Android Studio 顶部菜单栏的同步按钮 <img src="/Small/img/as-sync@2x.png" alt="as-sync" width="25px" height="25px" style="width:25px;height:25px"/> ，系统将开始下载上述插件库。</p>
+
+<p>再在底部面板 Terminal 中输入以下命令来验证Small环境：</p>
+<div class="highlight highlight-source-text"><pre>./gradlew small
+</pre></div>
+<blockquote>
+<p>Windows用户为 <code>gradlew small</code>，Linux用户为 <code>gradle small</code>
+如果首次运行，这个过程可能伴随一些(墙外)编译环境的下载，请耐心等待</p>
+</blockquote>
+
+<p>如果一切正常，将成功输出：</p>
+<div class="highlight highlight-source-text"><pre>### Compile-time
+
+```
+  gradle-small plugin : 1.1.0-beta4 (maven)
+            small aar : 1.1.0-alpha1 (maven)
+          gradle core : 2.14.1
+       android plugin : 2.2.3
+                   OS : Mac OS X 10.12.1 (x86_64)
+```
+
+### Bundles
+
+| type | name | PP | sdk |  aapt  | support | file | size |
+|------|------|----|-----|--------|---------|------|------|
+| host | app  |    | 25  | 25.0.2 | 25.1.0  |      |      |
+</pre></div>
+<blockquote>
+<p>不同版本的输出内容可能会有细微差异</p>
+</blockquote>
+<h3><a href="/Small/cn/quickstart#配置宿主" id=配置宿主 aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>配置宿主</h3>
+<p>由于加载插件需要对Application注入一些方法，我们对包名目录 <code>app &gt; java &gt; com.example.mysmall</code> 右键 <code>New &gt; Java Class</code> 来新建一个Application，如<code>SmallApp</code>：</p>
+
+<p><img src="/Small/img/new-project-application@2x.png" alt="new-project-application"/></p>
+
+<p>添加构造方法来初始化Small：</p>
+<div class="highlight highlight-source-java"><pre><span class="kd">public</span> <span class="kd">class</span> <span class="nc">SmallApp</span> <span class="kd">extends</span> <span class="n">Application</span> <span class="o">{</span>
+
+    <span class="kd">public</span> <span class="nf">SmallApp</span><span class="o">()</span> <span class="o">{</span>
+        <span class="n">Small</span><span class="o">.</span><span class="na">preSetUp</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+    <span class="o">}</span>
+
+<span class="o">}</span>
+</pre></div>
+<blockquote>
+<p>由于ContentProvider在onCreate之前被调用，为支持在插件中使用该组件，我们需要提前到构造方法来对之进行懒加载。
+如果不需要支持该组件，你也可以放到 onCreate 方法中。
+这个方法在应用正常启动时只做一些简单的hook，不会影响性能；但在应用异常启动(后台被杀)时会同步加载插件以保证程序正常运行。</p>
+</blockquote>
+
+<p>再在 <code>AndroidManifest.xml</code> 中指定这个 Application。</p>
+<div class="highlight highlight-source-xml"><pre><span class="nt">&lt;application</span>
+    <span class="na">android:name=</span><span class="s">&quot;.SmallApp&quot;</span>
+    <span class="err">...</span><span class="nt">&gt;</span>
+<span class="nt">&lt;/application&gt;</span>
+</pre></div><h2><a href="/Small/cn/quickstart#step-2:-创建插件模块" id=step-2:-创建插件模块 aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Step 2: 创建插件模块</h2>
+<p>右键 <code>app</code> 模块 &gt; New &gt; Module：</p>
+
+<p><img src="/Small/img/new-project-new-module@2x.png" alt="new-project-new-module"/></p>
+
+<p>创建一个应用模块 <code>Phone &amp; Tablet Module</code>，设置 <code>Application/Library name</code> 为 <code>App.main</code>，此时 <code>Module name</code> 自动为 <code>app.main</code>，<code>Package name</code> 自动为 <code>com.example.appmain</code>：</p>
+
+<p><img src="/Small/img/new-project-app-main@2x.png" alt="App.main"/></p>
+
+<blockquote>
+<p><code>Module name</code> 以 <code>app.*</code> 命名的模块将被 Small 在 <em>编译时</em> 识别为应用插件模块。
+<code>Package name</code> 以 <code>app*</code> 结尾的插件将被 Small 在 <em>运行时</em> 识别为应用插件。
+更多有关插件的命名规范与自定义，可以参考<a href="/Small/cn/bundle-module" name="wq-redirect" data-redirect="cn/bundle-module">插件模块</a>。</p>
+</blockquote>
+
+<p>为了确认我们确实启动了插件，我们修改插件的布局文件 <code>app.main &gt; res &gt; layout &gt; activity_main.xml</code>，将 TextView 的内容改为 <code>Hello Small!</code>：</p>
+<div class="highlight highlight-source-xml"><pre><span class="nt">&lt;TextView</span> <span class="na">android:layout_width=</span><span class="s">&quot;wrap_content&quot;</span> <span class="na">android:layout_height=</span><span class="s">&quot;wrap_content&quot;</span>
+        <span class="na">android:text=</span><span class="s">&quot;Hello Small!&quot;</span> <span class="nt">/&gt;</span>
+</pre></div><h2><a href="/Small/cn/quickstart#step-3:-编译插件" id=step-3:-编译插件 aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Step 3: 编译插件</h2>
+<p>在 Terminal 面板，先编译公共库：</p>
+<div class="highlight highlight-source-text"><pre>./gradlew buildLib -q
+</pre></div>
+<blockquote>
+<p>宿主是最基础的一个公共库</p>
+</blockquote>
+
+<p>再编译 app.main 插件：</p>
+<div class="highlight highlight-source-text"><pre>./gradlew buildBundle -q -Dbundle.arch=x86
+</pre></div>
+<blockquote>
+<p>为了方便模拟器运行，本示例指定生成插件到 x86 架构下，关于 <code>bundle.arch</code> 选项的细节可以参考<a href="/Small/cn/compile-options" name="wq-redirect" data-redirect="cn/compile-options">编译选项</a>。
+如果不想打包成 *.so ，可以参考<a href="/Small/cn/small-DSL#buildtoassets" name="wq-redirect" data-redirect="cn/small-DSL#buildtoassets">打包插件为apk</a>。</p>
+</blockquote>
+
+<p>查看编译情况：</p>
+<div class="highlight highlight-source-text"><pre>./gradlew small
+</pre></div>
+<p>应看到生成的 <code>appmain.so</code> 插件：</p>
+
+<table><thead>
+<tr>
+<th>type</th>
+<th>name</th>
+<th>PP</th>
+<th>sdk</th>
+<th>aapt</th>
+<th>support</th>
+<th>file(x86)</th>
+<th>size</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>host</td>
+<td>app</td>
+<td></td>
+<td>25</td>
+<td>25.0.2</td>
+<td>25.1.0</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>app</td>
+<td>app.main</td>
+<td>0x77</td>
+<td>25</td>
+<td>25.0.2</td>
+<td>25.1.0</td>
+<td>*_appmain.so</td>
+<td>5.3 KB</td>
+</tr>
+</tbody></table>
+
+<blockquote>
+<p>PP即插件包的资源ID分段，0x77 是 Small 根据模块名哈希自动指派的，你也可以通过配置来<a href="/Small/cn/custom-package-id" name="wq-redirect" data-redirect="cn/custom-package-id">自定义资源ID分段</a>。</p>
+</blockquote>
+<h2><a href="/Small/cn/quickstart#step-4:-启动插件" id=step-4:-启动插件 aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Step 4: 启动插件</h2>
+<p>现在我们已经生成了插件并内置到宿主包中，要启动插件，我们需要配置一个路由来指向它。</p>
+
+<p>右键 app 模块，<code>New &gt; Folder &gt; Assets Folder</code> 新建 <strong>assets</strong> 目录：</p>
+
+<p><img src="/Small/img/new-project-assets@2x.png" alt="New Assets Folder"/></p>
+
+<p>再右键生成的 assets 目录，<code>New &gt; File</code> 新建路由配置文件 <code>bundle.json</code>：</p>
+
+<p><img src="/Small/img/new-project-bundle.json@2x.png" alt="bundle.json"/></p>
+
+<p>修改 <code>bundle.json</code> 添加路由：</p>
+<div class="highlight highlight-source-json"><pre><span class="p">{</span>
+  <span class="nt">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1.0.0&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;bundles&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="nt">&quot;uri&quot;</span><span class="p">:</span> <span class="s2">&quot;main&quot;</span><span class="p">,</span>
+      <span class="nt">&quot;pkg&quot;</span><span class="p">:</span> <span class="s2">&quot;com.example.appmain&quot;</span>
+    <span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+<p>这里的：</p>
+
+<ul>
+<li><strong>version</strong>，是 <code>bundle.json</code> 文件格式版本，目前始终为 <code>1.0.0</code></li>
+<li><strong>bundles</strong>，插件数组
+
+<ul>
+<li><strong>uri</strong>，插件唯一ID</li>
+<li><strong>pkg</strong>，插件包名</li>
+</ul></li>
+</ul>
+
+<p>通过这个配置，<em>main</em> 将被路由向 <em>com.example.mysmall.appmain#MainActivity</em>，更多配置的细节可以参考<a href="/Small/cn/router" name="wq-redirect" data-redirect="cn/router">路由配置</a>。</p>
+
+<p>回到宿主的 app &gt; java &gt; com.example.mysmall &gt; MainActivity，在 <em>onStart</em> 方法中我们通过上述配置的 <strong>uri</strong> 来启动 <strong>app.main</strong> 插件：</p>
+<div class="highlight highlight-source-java"><pre><span class="nd">@Override</span>
+<span class="kd">protected</span> <span class="kt">void</span> <span class="nf">onStart</span><span class="o">()</span> <span class="o">{</span>
+    <span class="kd">super</span><span class="o">.</span><span class="na">onStart</span><span class="o">();</span>
+    <span class="n">Small</span><span class="o">.</span><span class="na">setUp</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="k">new</span> <span class="n">Small</span><span class="o">.</span><span class="na">OnCompleteListener</span><span class="o">()</span> <span class="o">{</span>
+        <span class="nd">@Override</span>
+        <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onComplete</span><span class="o">()</span> <span class="o">{</span>
+            <span class="n">Small</span><span class="o">.</span><span class="na">openUri</span><span class="o">(</span><span class="s">&quot;main&quot;</span><span class="o">,</span> <span class="n">MainActivity</span><span class="o">.</span><span class="na">this</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">});</span>
+<span class="o">}</span>
+</pre></div><h2><a href="/Small/cn/quickstart#step-5:-运行宿主" id=step-5:-运行宿主 aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Step 5: 运行宿主</h2>
+<p>在顶部菜单栏，我们先选择宿主模块 <code>app</code>，再点击旁边的运行按钮：</p>
+
+<p><img src="/Small/img/new-project-run-host@2x.png" alt="Run host"/></p>
+
+<p>成功运行后，将启动插件模块：</p>
+
+<p><img src="/Small/img/new-project-hello-small@2x.png" alt="hello-work"/></p>
+<h2><a href="/Small/cn/quickstart#总结与下一步" id=总结与下一步 aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>总结与下一步</h2>
+<p>完整的 build.gradle 为：</p>
+<div class="highlight highlight-source-groovy"><pre><span class="n">buildscript</span> <span class="o">{</span>
+    <span class="n">repositories</span> <span class="o">{</span>
+        <span class="n">jcenter</span><span class="o">()</span>
+    <span class="o">}</span>
+    <span class="n">dependencies</span> <span class="o">{</span>
+        <span class="n">classpath</span> <span class="s1">&#39;com.android.tools.build:gradle:2.2.3&#39;</span>
+        <span class="n">classpath</span> <span class="s1">&#39;net.wequick.tools.build:gradle-small:1.1.0-beta4&#39;</span>
+
+        <span class="c1">// NOTE: Do not place your application dependencies here; they belong</span>
+        <span class="c1">// in the individual module build.gradle files</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="n">allprojects</span> <span class="o">{</span>
+    <span class="n">repositories</span> <span class="o">{</span>
+        <span class="n">jcenter</span><span class="o">()</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="n">task</span> <span class="nf">clean</span><span class="o">(</span><span class="nl">type:</span> <span class="n">Delete</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">delete</span> <span class="n">rootProject</span><span class="o">.</span><span class="na">buildDir</span>
+<span class="o">}</span>
+
+<span class="n">apply</span> <span class="nl">plugin:</span> <span class="s1">&#39;net.wequick.small&#39;</span>
+
+<span class="n">small</span> <span class="o">{</span>
+    <span class="n">aarVersion</span> <span class="o">=</span> <span class="s1">&#39;1.1.0-alpha1&#39;</span>
+<span class="o">}</span>
+</pre></div>
+<p>通过本节我们掌握了使用Small开发的基础：</p>
+
+<ol>
+<li>通过 build.gradle 集成 Small</li>
+<li>通过 自定义Application 初始化 Small</li>
+<li>通过 buildLib，buildBundle 编译 Small 插件</li>
+<li>通过 bundle.json 配置插件路由</li>
+<li>通过 Small.openUri 启动插件</li>
+</ol>
+
+<p><a href="/Small/cn/tour-lib-bundle" name="wq-redirect" data-redirect="cn/tour-lib-bundle">下一步</a>我们将创建公共库插件来提供公共的资源与代码。</p>

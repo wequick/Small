@@ -1,0 +1,84 @@
+<h2><a href="/Small/en/tour-databinding#memory-mock" id=memory-mock aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Memory mock</h2>
+<p>Add mock data in <code>ViewController.m</code>&#39;s <code>viewDidLoad</code>:</p>
+<div class="highlight highlight-source-objc"><pre><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">viewDidLoad</span> <span class="p">{</span>
+    <span class="p">[</span><span class="nb">super</span> <span class="n">viewDidLoad</span><span class="p">];</span>
+    <span class="c1">// Do any additional setup after loading the view, typically from a nib.</span>
+    <span class="p">[</span><span class="nb">self</span> <span class="nl">setPlist</span><span class="p">:</span><span class="s">@&quot;main&quot;</span><span class="p">];</span>
+
+    <span class="kt">id</span> <span class="n">data</span> <span class="o">=</span> <span class="l">@{</span><span class="s">@&quot;name&quot;</span><span class="o">:</span> <span class="s">@&quot;My Pbind&quot;</span><span class="l">}</span><span class="p">;</span>
+    <span class="p">[</span><span class="nb">self</span> <span class="nl">setData</span><span class="p">:</span><span class="n">data</span><span class="p">];</span>
+<span class="p">}</span>
+</pre></div><h2><a href="/Small/en/tour-databinding#data-binding" id=data-binding aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Data binding</h2>
+<p>Configure the data binding for the <code>text</code> property of <code>main.tableview.plist</code>:</p>
+<div name="plist-content"><table class="plist"><tbody><tr><th style="width: 40%">Key</th><th style="width: 25%">Type</th><th style="width: 35%">Value</th></tr></tbody><tbody><tr data-level="1"><td><span class="button collapse-button"></span><span>text</span></td><td><span>String</span></td><td><span>%(Hello %@!),$name</span></td></tr><tr><td></td><td></td><td></td></tr></tbody></table></div>
+<p>This expression if for string formating which would be parsed as:</p>
+<div class="highlight highlight-source-objc"><pre><span class="p">[</span><span class="n">PBString</span> <span class="nl">stringWithFormat</span><span class="p">:</span><span class="s">@&quot;Hello %@!&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">controller</span><span class="p">.</span><span class="n">view</span><span class="p">.</span><span class="n">data</span> <span class="nl">valueForKey</span><span class="p">:</span><span class="s">@&quot;name&quot;</span><span class="p">]]</span>
+<span class="c1">//              %           (Hello %@!), $name</span>
+</pre></div>
+<p>Rerun the application then you will see the text changed as: &quot;Hello My Pbind!&quot;.</p>
+
+<p>More details of formating expression can refer to <a href="/Small/en/cheatsheet#string-format" name="wq-redirect" data-redirect="en/cheatsheet#string-format">String format</a>.</p>
+<h2><a href="/Small/en/tour-databinding#json-mock" id=json-mock aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>JSON mock</h2>
+<p>In last section we add the <code>PBLocalhost</code> directory by <code>pbind watch</code>, and now let&#39;s add some JSON files to mock server response.</p>
+
+<p>Run the command in project directory:</p>
+<div class="highlight highlight-source-text"><pre>pbind mock PBClient heroes
+</pre></div>
+<p>And we will got a <code>PBClient/heroes.json</code> under <code>PBLocalhost</code>. Let&#39;s add a key value pair:</p>
+<div class="highlight highlight-source-json"><pre><span class="p">{</span>
+  <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Mock Pbind&quot;</span>
+<span class="p">}</span>
+</pre></div>
+<p>then configure the <code>clients</code> in <code>main.tableview.plist</code> related to <code>PBClient/heroes</code>:</p>
+<div name="plist-content"><table class="plist"><tbody><tr><th style="width: 40%">Key</th><th style="width: 25%">Type</th><th style="width: 35%">Value</th></tr></tbody><tbody><tr class="collapsible" data-level="1"><td><span class="button collapse-button"></span><span>clients</span></td><td><span>Array</span></td><td><span class="sub">(1 item)</span></td></tr><tr class="collapsible" data-level="2"><td><span class="button collapse-button"></span><span>Item 0</span></td><td><span>Dictionary</span></td><td><span class="sub">(2 items)</span></td></tr><tr data-level="3"><td><span class="button collapse-button"></span><span>clazz</span></td><td><span>String</span></td><td><span>PBClient</span></td></tr><tr data-level="3"><td><span class="button collapse-button"></span><span>action</span></td><td><span>String</span></td><td><span>heroes</span></td></tr><tr><td></td><td></td><td></td></tr></tbody></table></div>
+<p>Client is one of Pbind base component, used to fetch data. <code>PBClient</code> is the base class, you can customize your <code>HTTPClient</code>, <code>DatabaseClient</code> and so on by your business.</p>
+
+<p>Here we design as <code>clients</code> array is because a View maybe related to multiable APIs. By this we can fetch all the datas in parallelly.</p>
+
+<p>With the above configuration, Pbind will try to read the <code>PBLocalhost/PBClient/heroes.json</code> data as response in <strong>Debug</strong> mode for <strong>Simulator</strong>.</p>
+
+<p>Now we can comment the memory mocking:</p>
+<div class="highlight highlight-source-objc"><pre><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">viewDidLoad</span> <span class="p">{</span>
+    <span class="p">[</span><span class="nb">super</span> <span class="n">viewDidLoad</span><span class="p">];</span>
+    <span class="c1">// Do any additional setup after loading the view, typically from a nib.</span>
+    <span class="p">[</span><span class="nb">self</span> <span class="nl">setPlist</span><span class="p">:</span><span class="s">@&quot;main&quot;</span><span class="p">];</span>
+
+<span class="c1">//    id data = @{@&quot;name&quot;: @&quot;My Pbind&quot;};</span>
+<span class="c1">//    [self setData:data];</span>
+<span class="p">}</span>
+</pre></div>
+<p>Rerun the application, we will see: &quot;Hello Mock Pbind!&quot;.</p>
+
+<p>Try to make some changes of <code>heroes.json</code> and save:</p>
+<div class="highlight highlight-source-json"><pre><span class="p">{</span>
+  <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Mock Pbind, Good&quot;</span>
+<span class="p">}</span>
+</pre></div>
+<p>The page should be reloaded instantly as: &quot;Hello Mock Pbind, Good!&quot;.</p>
+
+<p><img src="/Small/img/tour-bind-mock@2x.png" alt="bind mock"/></p>
+<h2><a href="/Small/en/tour-databinding#next" id=next aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Next</h2>
+<p>The final project looks like this(excerpt):</p>
+<div class="highlight highlight-source-text"><pre>├── HeroTour
+│   ├── AppDelegate.h
+│   ├── AppDelegate.m
+│   ├── Info.plist
+│   ├── ViewController.h
+│   ├── ViewController.m
+│   ├── main.m
+│   └── main.tableview.plist
+└── PBLocalhost
+    ├── ignore.h
+    └── PBClient
+        └── heroes.json
+</pre></div>
+<p>The complete <code>main.tableview.plist</code>:</p>
+<div name="plist-content"><table class="plist"><tbody><tr><th style="width: 40%">Key</th><th style="width: 25%">Type</th><th style="width: 35%">Value</th></tr></tbody><tbody><tr class="collapsible" data-level="0"><td><span class="button collapse-button"></span><span>Root</span></td><td><span>Dictionary</span></td><td><span class="sub">(1 item)</span></td></tr><tr class="collapsible" data-level="1"><td><span class="button collapse-button"></span><span>properties</span></td><td><span>Dictionary</span></td><td><span class="sub">(2 items)</span></td></tr><tr class="collapsible" data-level="2"><td><span class="button collapse-button"></span><span>clients</span></td><td><span>Array</span></td><td><span class="sub">(1 item)</span></td></tr><tr class="collapsible" data-level="3"><td><span class="button collapse-button"></span><span>Item 0</span></td><td><span>Dictionary</span></td><td><span class="sub">(2 items)</span></td></tr><tr data-level="4"><td><span class="button collapse-button"></span><span>clazz</span></td><td><span>String</span></td><td><span>PBClient</span></td></tr><tr data-level="4"><td><span class="button collapse-button"></span><span>action</span></td><td><span>String</span></td><td><span>name</span></td></tr><tr class="collapsible" data-level="2"><td><span class="button collapse-button"></span><span>headers</span></td><td><span>Array</span></td><td><span class="sub">(1 item)</span></td></tr><tr class="collapsible" data-level="3"><td><span class="button collapse-button"></span><span>Item 0</span></td><td><span>Dictionary</span></td><td><span class="sub">(4 items)</span></td></tr><tr data-level="4"><td><span class="button collapse-button"></span><span>clazz</span></td><td><span>String</span></td><td><span>UILabel</span></td></tr><tr data-level="4"><td><span class="button collapse-button"></span><span>height</span></td><td><span>String</span></td><td><span>44</span></td></tr><tr data-level="4"><td><span class="button collapse-button"></span><span>margin</span></td><td><span>String</span></td><td><span>{20,0,0,0}</span></td></tr><tr class="collapsible" data-level="4"><td><span class="button collapse-button"></span><span>properties</span></td><td><span>Dictionary</span></td><td><span class="sub">(4 items)</span></td></tr><tr data-level="5"><td><span class="button collapse-button"></span><span>text</span></td><td><span>String</span></td><td><span>%(Hello %@!),$name</span></td></tr><tr data-level="5"><td><span class="button collapse-button"></span><span>textColor</span></td><td><span>String</span></td><td><span>#fff</span></td></tr><tr data-level="5"><td><span class="button collapse-button"></span><span>backgroundColor</span></td><td><span>String</span></td><td><span>#333</span></td></tr><tr data-level="5"><td><span class="button collapse-button"></span><span>textAlignment</span></td><td><span>String</span></td><td><span>:center</span></td></tr><tr><td></td><td></td><td></td></tr></tbody></table></div>
+<p>By this section we learn the <em>Data Binding</em> function of Pbind:</p>
+
+<ol>
+<li>Configure the data binding by Plist</li>
+<li>Mock data by JSON and enjoy the instant reload</li>
+</ol>
+
+<p><a href="/Small/en/tour-cell-layout" name="wq-redirect" data-redirect="en/tour-cell-layout">Next</a> we will configure a cell layout to carry out a heroes list.</p>

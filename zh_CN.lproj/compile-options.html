@@ -1,0 +1,17 @@
+<h1><a href="/Small/cn/compile-options#编译选项" id=编译选项 aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>编译选项</h1>
+<p>在运行 <code>./gradlew xx</code> 命令时，可以加入 <code>-Dxx</code> 选项来控制编译方式，包括：</p>
+<h2><a href="/Small/cn/compile-options#bundle.arch" id=bundle.arch aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>bundle.arch</h2>
+<p>在 <code>buildToAssets</code> 为 <em>false</em> 的情况下，使用 <code>-Dbundle.arch=xx</code> 可以指定 <em>so</em> 形式插件生成到 <code>[宿主目录]/smallLibs/xx</code> 目录下。</p>
+
+<p>通常在调试模拟器时，你可以使用 <code>x86</code>，在真机打包时使用 <code>armeabi</code>。</p>
+<h2><a href="/Small/cn/compile-options#bundle.minify" id=bundle.minify aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>bundle.minify</h2>
+<p>用于指定是否混淆插件，如 <code>./gradlew buildLib -Dbundle.minify</code> 将对所有公共库插件进行混淆。</p>
+<h2><a href="/Small/cn/compile-options#org.gradle.parallel" id=org.gradle.parallel aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>org.gradle.parallel</h2>
+<p>这个是系统自带的选项，用于指定是否并行编译。之所以在这里提及是因为 <code>buildLib</code> 的时候不能打开这个选项，因为公共库插件依赖了宿主，需要宿主编译完成才能正确引用资源。</p>
+
+<p>所以如果你使用持续集成的话，可以用以下的命令集合：</p>
+<div class="highlight highlight-source-text"><pre>./gradlew cleanLib -q -Dorg.gradle.parallel=true
+./gradlew buildLib -q -Dorg.gradle.parallel=false -Dbundle.minify=true
+./gradlew cleanBundle -q -Dorg.gradle.parallel=true
+./gradlew buildBundle -q -Dorg.gradle.parallel=true -Dbundle.minify=true
+</pre></div>

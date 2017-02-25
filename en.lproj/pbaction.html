@@ -1,0 +1,325 @@
+<h2><a href="/Small/en/pbaction#action-component" id=action-component aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Action Component</h2>
+<p>the action component is implemented by <code>PBAction</code>, used to define the action standard by what we can configure the interactions.</p>
+
+<p>Base names:</p>
+
+<table><thead>
+<tr>
+<th style="text-align: left">name</th>
+<th style="text-align: left">type</th>
+<th style="text-align: left">note</th>
+</tr>
+</thead><tbody>
+<tr>
+<td style="text-align: left"><strong>type</strong></td>
+<td style="text-align: left">String</td>
+<td style="text-align: left">action type</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>disabled</strong></td>
+<td style="text-align: left">BOOL</td>
+<td style="text-align: left">whether disabled, default is NO, assigned by an expression as usuall</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>params</strong></td>
+<td style="text-align: left">Dictionary</td>
+<td style="text-align: left">parameters for each action</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>next.*</strong></td>
+<td style="text-align: left">Dictionary</td>
+<td style="text-align: left">the next action, the * is determined by different actions, usually is <em>done</em></td>
+</tr>
+</tbody></table>
+<h2><a href="/Small/en/pbaction#pbnotificationaction" id=pbnotificationaction aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>PBNotificationAction</h2>
+<p>Notification action is used to configure the interactions of notification center. 
+Accept <strong>types</strong>:</p>
+<h3><a href="/Small/en/pbaction#notify" id=notify aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>notify</h3>
+<p>Send a notification, extension names:</p>
+
+<table><thead>
+<tr>
+<th style="text-align: left">name</th>
+<th style="text-align: left">type</th>
+<th style="text-align: left">note</th>
+</tr>
+</thead><tbody>
+<tr>
+<td style="text-align: left"><strong>name</strong></td>
+<td style="text-align: left">String</td>
+<td style="text-align: left">the notification name to send</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>target</strong></td>
+<td style="text-align: left">String</td>
+<td style="text-align: left">the <em>object</em> carried by the notification</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>params</strong></td>
+<td style="text-align: left">Dictionary</td>
+<td style="text-align: left">the <em>userInfo</em> carried by the notification</td>
+</tr>
+</tbody></table>
+<h3><a href="/Small/en/pbaction#watch" id=watch aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>watch</h3>
+<p>Observe a notification, extension names:</p>
+
+<table><thead>
+<tr>
+<th style="text-align: left">name</th>
+<th style="text-align: left">type</th>
+<th style="text-align: left">note</th>
+</tr>
+</thead><tbody>
+<tr>
+<td style="text-align: left"><strong>name</strong></td>
+<td style="text-align: left">String</td>
+<td style="text-align: left">the notification name to observe</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>target</strong></td>
+<td style="text-align: left">String</td>
+<td style="text-align: left">the <em>object</em> carried by the notification</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>next.done</strong></td>
+<td style="text-align: left">String</td>
+<td style="text-align: left">the next action triggered by received the specify notification</td>
+</tr>
+</tbody></table>
+<h2><a href="/Small/en/pbaction#pbnavigationaction" id=pbnavigationaction aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>PBNavigationAction</h2>
+<p>Navigation action is used to configure the interactions of page routing.
+Accept <strong>types</strong>:</p>
+<h3><a href="/Small/en/pbaction#push" id=push aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>push</h3>
+<p>Push a new page, extension names:</p>
+
+<table><thead>
+<tr>
+<th style="text-align: left">name</th>
+<th style="text-align: left">type</th>
+<th style="text-align: left">note</th>
+</tr>
+</thead><tbody>
+<tr>
+<td style="text-align: left"><strong>target</strong></td>
+<td style="text-align: left">String</td>
+<td style="text-align: left">the target route, usually is a ViewController class name</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>params</strong></td>
+<td style="text-align: left">Dictionary</td>
+<td style="text-align: left">the properties used to initialize the target controller</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>next.done</strong></td>
+<td style="text-align: left">Dictionary</td>
+<td style="text-align: left">the next action triggered by push done</td>
+</tr>
+</tbody></table>
+<h3><a href="/Small/en/pbaction#pop" id=pop aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>pop</h3>
+<p>Pop page, extension names:</p>
+
+<table><thead>
+<tr>
+<th style="text-align: left">name</th>
+<th style="text-align: left">type</th>
+<th style="text-align: left">note</th>
+</tr>
+</thead><tbody>
+<tr>
+<td style="text-align: left"><strong>target</strong></td>
+<td style="text-align: left">String</td>
+<td style="text-align: left">the target route, if not set, back to the last controller</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>params</strong></td>
+<td style="text-align: left">Dictionary</td>
+<td style="text-align: left">the properties used to update the target controller</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>next.done</strong></td>
+<td style="text-align: left">Dictionary</td>
+<td style="text-align: left">the next action triggered by pop done</td>
+</tr>
+</tbody></table>
+<h3><a href="/Small/en/pbaction#present" id=present aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>present</h3>
+<p>Present a model page, the configurations are same as <strong>push</strong>.</p>
+<h3><a href="/Small/en/pbaction#dismiss" id=dismiss aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>dismiss</h3>
+<p>Dismiss the model page, the configurations are same as <strong>push</strong> except doesn&#39;t accept <strong>target</strong>.</p>
+<h2><a href="/Small/en/pbaction#pbalertaction" id=pbalertaction aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>PBAlertAction</h2>
+<p>Alert action is used to configure the interactions of <em>UIAlertController</em>.
+Accept <strong>types</strong>:</p>
+<h3><a href="/Small/en/pbaction#alert" id=alert aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>alert</h3>
+<p>Display a model dialog, related to <em>UIAlertControllerStyleAlert</em>, accept <strong>params</strong>:</p>
+
+<table><thead>
+<tr>
+<th style="text-align: left">name</th>
+<th style="text-align: left">type</th>
+<th style="text-align: left">note</th>
+</tr>
+</thead><tbody>
+<tr>
+<td style="text-align: left"><strong>title</strong></td>
+<td style="text-align: left">String</td>
+<td style="text-align: left">the title of the dialog</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>message</strong></td>
+<td style="text-align: left">String</td>
+<td style="text-align: left">the content of the dialog</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>buttons</strong></td>
+<td style="text-align: left">Array</td>
+<td style="text-align: left">the button titles for the dialog</td>
+</tr>
+</tbody></table>
+
+<p>and the <strong>next</strong> param format:</p>
+
+<table><thead>
+<tr>
+<th style="text-align: left">name</th>
+<th style="text-align: left">type</th>
+<th style="text-align: left">note</th>
+</tr>
+</thead><tbody>
+<tr>
+<td style="text-align: left"><strong>next.[0-N]</strong></td>
+<td style="text-align: left">Dictionary</td>
+<td style="text-align: left">the next action triggered by click the specified index</td>
+</tr>
+</tbody></table>
+<h3><a href="/Small/en/pbaction#sheet" id=sheet aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>sheet</h3>
+<p>Present a model sheet, related to the style of <em>UIAlertControllerStyleActionSheet</em>.
+All the names are same as <strong>alert</strong>.</p>
+<h2><a href="/Small/en/pbaction#pbclientaction" id=pbclientaction aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>PBClientAction</h2>
+<p>Client action is used to configure the interactions of API sending.
+The accept <strong>types</strong> follow the convention of <code>RESTFul</code> which includes:</p>
+<h3><a href="/Small/en/pbaction#get/post/put/patch/delete/head" id=get/post/put/patch/delete/head aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>get/post/put/patch/delete/head</h3>
+<p>Extension names:</p>
+
+<table><thead>
+<tr>
+<th style="text-align: left">name</th>
+<th style="text-align: left">type</th>
+<th style="text-align: left">note</th>
+</tr>
+</thead><tbody>
+<tr>
+<td style="text-align: left"><strong>target</strong></td>
+<td style="text-align: left">String</td>
+<td style="text-align: left">the target client name or alias</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>name</strong></td>
+<td style="text-align: left">String</td>
+<td style="text-align: left">the action of the API</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>params</strong></td>
+<td style="text-align: left">Dictionary</td>
+<td style="text-align: left">the parameters for the API</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>next.done</strong></td>
+<td style="text-align: left">Dictionary</td>
+<td style="text-align: left">the next action triggered by successful response</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>next.fail</strong></td>
+<td style="text-align: left">Dictionary</td>
+<td style="text-align: left">the next action triggered by error response</td>
+</tr>
+</tbody></table>
+<h2><a href="/Small/en/pbaction#pbtriggeraction" id=pbtriggeraction aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>PBTriggerAction</h2>
+<p>Trigger action is used to configure the interactions of events.
+Accept <strong>types</strong>:</p>
+<h3><a href="/Small/en/pbaction#trigger" id=trigger aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>trigger</h3>
+<p>Method trigger which used to trigger the method(limit in 5 parameters) of the specified object.</p>
+
+<p>Extension names:</p>
+
+<table><thead>
+<tr>
+<th style="text-align: left">name</th>
+<th style="text-align: left">type</th>
+<th style="text-align: left">note</th>
+</tr>
+</thead><tbody>
+<tr>
+<td style="text-align: left"><strong>target</strong></td>
+<td style="text-align: left">String</td>
+<td style="text-align: left">the <em>object</em>, should be an expression refer to <a href="/Small/en/cheatsheet#datasource-tag" name="wq-redirect" data-redirect="en/cheatsheet#datasource-tag">Datasource</a></td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>name</strong></td>
+<td style="text-align: left">String</td>
+<td style="text-align: left">the <em>selector</em> name (as NSStringFromSelector)</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>next.done</strong></td>
+<td style="text-align: left">Dictionary</td>
+<td style="text-align: left">the next action triggered by the trigger done.</td>
+</tr>
+</tbody></table>
+
+<p>and the <strong>params</strong> accept:</p>
+
+<table><thead>
+<tr>
+<th style="text-align: left">name</th>
+<th style="text-align: left">type</th>
+<th style="text-align: left">note</th>
+</tr>
+</thead><tbody>
+<tr>
+<td style="text-align: left"><strong>arg[0-4]</strong></td>
+<td style="text-align: left">String</td>
+<td style="text-align: left">the argument for the specified index</td>
+</tr>
+<tr>
+<td style="text-align: left"><strong>ret</strong></td>
+<td style="text-align: left">String</td>
+<td style="text-align: left">the return type of the selector (default is <em>void</em>)</td>
+</tr>
+</tbody></table>
+<h2><a href="/Small/en/pbaction#custom-action" id=custom-action aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Custom Action</h2>
+<p>You can define your <code>Action</code> with a <strong>type</strong> unmentioned above.</p>
+
+<p>In following example, we try to implement an <code>Action</code> with a <strong>type</strong> of <code>toast</code>.</p>
+
+<p>Firstly, we create a class which extends <em>PBAction</em>, named as <em>PBMyCustomAction</em>.</p>
+
+<p>Then implement the <code>run</code> method in <code>PBMyCustomAction.m</code>:</p>
+<div class="highlight highlight-source-objc"><pre><span class="k">@implementation</span> <span class="nc">PBMyCustomAction</span>
+
+<span class="p">@</span><span class="n">pbaction</span><span class="p">(</span><span class="s">@&quot;toast&quot;</span><span class="p">)</span>
+<span class="o">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nl">run</span><span class="p">:(</span><span class="n">PBActionState</span> <span class="o">*</span><span class="p">)</span><span class="n">state</span> <span class="p">{</span>
+    <span class="bp">UIView</span> <span class="o">*</span><span class="n">rootView</span> <span class="o">=</span> <span class="n">state</span><span class="p">.</span><span class="n">context</span><span class="p">.</span><span class="n">supercontroller</span><span class="p">.</span><span class="n">view</span><span class="p">;</span>
+    <span class="n">MBProgressHUD</span> <span class="o">*</span><span class="n">hud</span> <span class="o">=</span> <span class="p">[</span><span class="n">MBProgressHUD</span> <span class="nl">showHUDAddedTo</span><span class="p">:</span><span class="n">rootView</span> <span class="nl">animated</span><span class="p">:</span><span class="nb">YES</span><span class="p">];</span>
+    <span class="n">hud</span><span class="p">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">MBProgressHUDModeText</span><span class="p">;</span>
+    <span class="n">hud</span><span class="p">.</span><span class="n">bezelView</span><span class="p">.</span><span class="n">backgroundColor</span> <span class="o">=</span> <span class="p">[</span><span class="bp">UIColor</span> <span class="nl">colorWithWhite</span><span class="p">:</span><span class="mi">0</span> <span class="nl">alpha</span><span class="p">:</span><span class="mf">.8f</span><span class="p">];</span>
+    <span class="n">hud</span><span class="p">.</span><span class="n">label</span><span class="p">.</span><span class="n">textColor</span> <span class="o">=</span> <span class="p">[</span><span class="bp">UIColor</span> <span class="n">whiteColor</span><span class="p">];</span>
+    <span class="n">hud</span><span class="p">.</span><span class="n">label</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="nb">self</span><span class="p">.</span><span class="n">params</span><span class="p">[</span><span class="s">@&quot;message&quot;</span><span class="p">];</span>
+    <span class="n">hud</span><span class="p">.</span><span class="n">label</span><span class="p">.</span><span class="n">textColor</span> <span class="o">=</span> <span class="p">[</span><span class="bp">UIColor</span> <span class="n">whiteColor</span><span class="p">];</span>
+    <span class="p">[</span><span class="n">hud</span> <span class="nl">hideAnimated</span><span class="p">:</span><span class="nb">YES</span> <span class="nl">afterDelay</span><span class="p">:</span><span class="mf">1.f</span><span class="p">];</span>
+    <span class="n">dispatch_after</span><span class="p">(</span><span class="n">dispatch_time</span><span class="p">(</span><span class="n">DISPATCH_TIME_NOW</span><span class="p">,</span> <span class="p">(</span><span class="kt">int64_t</span><span class="p">)(</span><span class="mi">1</span> <span class="o">*</span> <span class="n">NSEC_PER_SEC</span><span class="p">)),</span> <span class="n">dispatch_get_main_queue</span><span class="p">(),</span> <span class="o">^</span><span class="p">{</span>
+        <span class="p">[</span><span class="nb">self</span> <span class="nl">dispatchNext</span><span class="p">:</span><span class="s">@&quot;done&quot;</span><span class="p">];</span>
+    <span class="p">});</span>
+<span class="p">}</span>
+
+<span class="k">@end</span>
+</pre></div>
+<p>Note some details:</p>
+
+<ol>
+<li>Use <code>@pbaction</code> annotation to register an action with type of <code>toast</code> (If got a series types, you can use <code>@pbactions</code> like <code>@pbactions(@&quot;get&quot;, @&quot;post&quot;))</code>)</li>
+<li>Use <code>self.params</code> to get the user-defined parameters</li>
+<li>Use <code>[self dispatchNext:@&quot;done&quot;]</code> to trigger the next action configured by <code>next.done</code></li>
+</ol>
+
+<p>Now we can configure this action by the Plist:</p>
+<div name="plist-content"><table class="plist"><tbody><tr><th style="width: 40%">Key</th><th style="width: 25%">Type</th><th style="width: 35%">Value</th></tr></tbody><tbody><tr class="collapsible" data-level="1"><td><span class="button collapse-button"></span><span>action</span></td><td><span>Dictionary</span></td><td><span class="sub">(2 items)</span></td></tr><tr data-level="2"><td><span class="button collapse-button"></span><span>type</span></td><td><span>String</span></td><td><span>toast</span></td></tr><tr class="collapsible" data-level="2"><td><span class="button collapse-button"></span><span>params</span></td><td><span>Dictionary</span></td><td><span class="sub">(1 item)</span></td></tr><tr data-level="3"><td><span class="button collapse-button"></span><span>message</span></td><td><span>String</span></td><td><span>Hello Toast with Pbind Action!</span></td></tr><tr><td></td><td></td><td></td></tr></tbody></table></div>
+<p>And a <code>next.done</code> to link to next action:</p>
+<div name="plist-content"><table class="plist"><tbody><tr><th style="width: 40%">Key</th><th style="width: 25%">Type</th><th style="width: 35%">Value</th></tr></tbody><tbody><tr class="collapsible" data-level="1"><td><span class="button collapse-button"></span><span>action</span></td><td><span>Dictionary</span></td><td><span class="sub">(3 items)</span></td></tr><tr data-level="2"><td><span class="button collapse-button"></span><span>type</span></td><td><span>String</span></td><td><span>toast</span></td></tr><tr class="collapsible" data-level="2"><td><span class="button collapse-button"></span><span>params</span></td><td><span>Dictionary</span></td><td><span class="sub">(1 item)</span></td></tr><tr data-level="3"><td><span class="button collapse-button"></span><span>message</span></td><td><span>String</span></td><td><span>Hello Toast with Pbind Action!</span></td></tr><tr class="collapsible" data-level="2"><td><span class="button collapse-button"></span><span>next.done</span></td><td><span>Dictionary</span></td><td><span class="sub">(2 items)</span></td></tr><tr data-level="3"><td><span class="button collapse-button"></span><span>type</span></td><td><span>String</span></td><td><span>toast</span></td></tr><tr class="collapsible" data-level="3"><td><span class="button collapse-button"></span><span>params</span></td><td><span>Dictionary</span></td><td><span class="sub">(1 item)</span></td></tr><tr data-level="4"><td><span class="button collapse-button"></span><span>message</span></td><td><span>String</span></td><td><span>Toast Done!</span></td></tr><tr><td></td><td></td><td></td></tr></tbody></table></div>

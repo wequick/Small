@@ -1,0 +1,135 @@
+<h2><a href="/Small/en/tour-cell-layout#create-cell-layout" id=create-cell-layout aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Create cell layout</h2>
+<p>Firstly we create a cell layout <code>hero.cell.plist</code>:</p>
+
+<blockquote>
+<p>The propositional naming convention is: [module].[type].plist, the type here is UITableViewCell and we use cell as abbr.</p>
+</blockquote>
+<div name="plist-content"><table class="plist"><tbody><tr><th style="width: 40%">Key</th><th style="width: 25%">Type</th><th style="width: 35%">Value</th></tr></tbody><tbody><tr class="collapsible" data-level="0"><td><span class="button collapse-button"></span><span>Root</span></td><td><span>Dictionary</span></td><td><span class="sub">(2 items)</span></td></tr><tr class="collapsible" data-level="1"><td><span class="button collapse-button"></span><span>views</span></td><td><span>Dictionary</span></td><td><span class="sub">(2 items)</span></td></tr><tr class="collapsible" data-level="2"><td><span class="button collapse-button"></span><span>name</span></td><td><span>Dictionary</span></td><td><span class="sub">(1 item)</span></td></tr><tr data-level="3"><td><span class="button collapse-button"></span><span>clazz</span></td><td><span>String</span></td><td><span>UILabel</span></td></tr><tr class="collapsible" data-level="2"><td><span class="button collapse-button"></span><span>desc</span></td><td><span>Dictionary</span></td><td><span class="sub">(1 item)</span></td></tr><tr data-level="3"><td><span class="button collapse-button"></span><span>clazz</span></td><td><span>String</span></td><td><span>UILabel</span></td></tr><tr class="collapsible" data-level="1"><td><span class="button collapse-button"></span><span>formats</span></td><td><span>Array</span></td><td><span class="sub">(3 items)</span></td></tr><tr data-level="2"><td><span class="button collapse-button"></span><span>Item 0</span></td><td><span>String</span></td><td><span>|-[name]-|</span></td></tr><tr data-level="2"><td><span class="button collapse-button"></span><span>Item 1</span></td><td><span>String</span></td><td><span>|-[desc]-|</span></td></tr><tr data-level="2"><td><span class="button collapse-button"></span><span>Item 2</span></td><td><span>String</span></td><td><span>V:|-[name]-[desc]-|</span></td></tr><tr><td></td><td></td><td></td></tr></tbody></table></div>
+<p>Thereinfo:</p>
+
+<ul>
+<li><p><strong>views</strong> - The views(dictionary) to be created</p>
+
+<ul>
+<li>each key is as the view alias</li>
+<li>each value is used to describe the view properties</li>
+</ul></li>
+<li><p><strong>formats</strong> - The official constraint formats</p></li>
+</ul>
+
+<p>And a <strong>metrics</strong> for view margins which is not configured here.</p>
+
+<p>The above three properties are related the official constraint API:</p>
+<div class="highlight highlight-source-objc"><pre><span class="p">[</span><span class="bp">NSLayoutConstraint</span> <span class="nl">constraintsWithVisualFormat</span><span class="p">:</span><span class="n">formats</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="nl">options</span><span class="p">:</span><span class="mi">0</span> <span class="nl">metrics</span><span class="p">:</span><span class="n">metrics</span> <span class="nl">views</span><span class="p">:</span><span class="n">views</span><span class="p">]</span>
+</pre></div>
+<p>More details of the constraint format language can refer to the official document about <a href="https://developer.apple.com/library/content/documentation/UserExperience/Conceptual/AutolayoutPG/VisualFormatLanguage.html" target="_blank">VFL</a>.</p>
+
+<p>By the way, Pbind introduce a <strong>constraints</strong> to describe the complicated constraint formats which are not supported by <em>VFL</em>. You can also get the details in <a href="/Small/en/pblayoutmapper" name="wq-redirect" data-redirect="en/pblayoutmapper">Layout mapper</a>.</p>
+<h2><a href="/Small/en/tour-cell-layout#use-the-layout" id=use-the-layout aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Use the layout</h2>
+<p>Add a <strong>row</strong> property under the <code>properties</code> node of <code>main.tableview.plist</code>:</p>
+<div name="plist-content"><table class="plist"><tbody><tr><th style="width: 40%">Key</th><th style="width: 25%">Type</th><th style="width: 35%">Value</th></tr></tbody><tbody><tr class="collapsible" data-level="1"><td><span class="button collapse-button"></span><span>row</span></td><td><span>Dictionary</span></td><td><span class="sub">(2 items)</span></td></tr><tr data-level="2"><td><span class="button collapse-button"></span><span>layout</span></td><td><span>String</span></td><td><span>hero.cell</span></td></tr><tr class="collapsible" data-level="2"><td><span class="button collapse-button"></span><span>properties</span></td><td><span>Dictionary</span></td><td><span class="sub">(2 items)</span></td></tr><tr data-level="3"><td><span class="button collapse-button"></span><span>@name.text</span></td><td><span>String</span></td><td><span>.$name</span></td></tr><tr data-level="3"><td><span class="button collapse-button"></span><span>@desc.text</span></td><td><span>String</span></td><td><span>.$desc</span></td></tr><tr><td></td><td></td><td></td></tr></tbody></table></div>
+<p><strong>row</strong> related to <code>PBRowMapper</code> which will map the data for the cell created by <code>PBTableView</code>&#39;s <code>cellForRowAtIndexPath</code>.</p>
+
+<p><strong>layout</strong> here set to the created <code>hero.cell</code> (note that we exclude the &#39;.plist&#39; suffix here).</p>
+
+<p><strong>properties</strong> cell properties which will be map to the created cell.</p>
+
+<p>Here we note that:</p>
+
+<ul>
+<li><strong>@</strong>name and <strong>@</strong>desc refer to the view alias in the <code>layout</code>.</li>
+<li><strong>.$</strong>name and <strong>.$</strong>desc refer to the keyed-value of the related cell data.</li>
+</ul>
+
+<p>The cell data was not ready yet, let&#39;s make it.</p>
+<h2><a href="/Small/en/tour-cell-layout#mock" id=mock aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Mock</h2>
+<p>Add a <code>list</code> in the <code>PBLocalhost/PBClient/heroes.json</code>:</p>
+<div class="highlight highlight-source-json"><pre><span class="p">{</span>
+  <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Mock Pbind, Good&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;list&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Mr. Nice&quot;</span><span class="p">,</span>
+      <span class="nt">&quot;desc&quot;</span><span class="p">:</span> <span class="s2">&quot;This hero is very nice, really nice, sincerely nice! Important things saying 3 times.&quot;</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+      <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Narco&quot;</span><span class="p">,</span>
+      <span class="nt">&quot;desc&quot;</span><span class="p">:</span> <span class="s2">&quot;All these heroes from angular.io. Thanks to it, which brings me the great idea of making a open source project tutorial!&quot;</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+      <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Bombasto&quot;</span><span class="p">,</span>
+      <span class="nt">&quot;desc&quot;</span><span class="p">:</span> <span class="s2">&quot;Bomb! Without bombast, I&#39;m Bombasto.&quot;</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+      <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Celeritas&quot;</span><span class="p">,</span>
+      <span class="nt">&quot;desc&quot;</span><span class="p">:</span> <span class="s2">&quot;This site is built by css(help.apple.com &amp; github.com) + angular2(typescript) + redcarpet(ruby) + jieba(python) + angular-cli(webpack).&quot;</span>
+    <span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+<p>Then we configure the <code>listKey</code> for the <code>main.tableview.plist</code> <code>properties</code>:</p>
+<div name="plist-content"><table class="plist"><tbody><tr><th style="width: 40%">Key</th><th style="width: 25%">Type</th><th style="width: 35%">Value</th></tr></tbody><tbody><tr data-level="1"><td><span class="button collapse-button"></span><span>listKey</span></td><td><span>String</span></td><td><span>list</span></td></tr><tr><td></td><td></td><td></td></tr></tbody></table></div>
+<p>Save all the files then we got the heroes list:</p>
+
+<p><img src="/Small/img/tour-heroes@2x.png" alt="heroes list"/></p>
+
+<p>As you see, the hero description was not totally displayed and we gonna to achieve the <code>auto height</code>.</p>
+<h2><a href="/Small/en/tour-cell-layout#auto-height" id=auto-height aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Auto-height</h2>
+<p>Actually we had restrain the two labels fill the cell vertically by <code>V:|-[name]-[desc]-|</code>.</p>
+
+<p>What we needs to do is to configure line wrap for the <strong>@</strong>desc label.
+Let&#39;s add a <strong>numberOfLines</strong> property and set to <strong>0</strong> for the <code>desc</code> label in the <code>hero.cell.plist</code>:</p>
+<div name="plist-content"><table class="plist"><tbody><tr><th style="width: 40%">Key</th><th style="width: 25%">Type</th><th style="width: 35%">Value</th></tr></tbody><tbody><tr class="collapsible" data-level="1"><td><span class="button collapse-button"></span><span>properties</span></td><td><span>Dictionary</span></td><td><span class="sub">(1 item)</span></td></tr><tr data-level="2"><td><span class="button collapse-button"></span><span>numberOfLines</span></td><td><span>String</span></td><td><span>0</span></td></tr><tr><td></td><td></td><td></td></tr></tbody></table></div>
+<p>The <code>properties</code> is well to known, all the property binding is owe to it.</p>
+
+<p>Save files:</p>
+
+<p><img src="/Small/img/tour-heroes-auto@2x.png" alt="heroes list with auto height"/></p>
+
+<p>In reality, we may needs to make some little tweaking for the UI. With Plist this would be quite easy.</p>
+<h2><a href="/Small/en/tour-cell-layout#tweaking" id=tweaking aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Tweaking</h2><h3><a href="/Small/en/tour-cell-layout#cell-separator" id=cell-separator aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Cell separator</h3>
+<p>Note the system related API:</p>
+<div class="highlight highlight-source-objc"><pre><span class="bp">UITableViewCell</span><span class="p">.</span><span class="n">separatorInset</span> <span class="o">=</span> <span class="bp">UIEdgeInsets</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span> <span class="n">right</span><span class="p">);</span>
+</pre></div>
+<p>Let&#39;s make the <code>left</code> of the edge insets to 0 to let the separator fill the bottom of the cell in <code>main.tableview.plist &gt; row &gt; properties</code>:</p>
+<div name="plist-content"><table class="plist"><tbody><tr><th style="width: 40%">Key</th><th style="width: 25%">Type</th><th style="width: 35%">Value</th></tr></tbody><tbody><tr data-level="1"><td><span class="button collapse-button"></span><span>separatorInset</span></td><td><span>String</span></td><td><span>{0,0,0,0}</span></td></tr><tr><td></td><td></td><td></td></tr></tbody></table></div>
+<p>Save:</p>
+
+<p><img src="/Small/img/tour-heroes-inset@2x.png" alt="heroes list separator insets"/></p>
+<h3><a href="/Small/en/tour-cell-layout#view-margins" id=view-margins aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>View margins</h3>
+<p>Here we configure the <strong>metrics</strong> mentioned above to control the view margins in <code>hero.cell.plist</code>:</p>
+<div name="plist-content"><table class="plist"><tbody><tr><th style="width: 40%">Key</th><th style="width: 25%">Type</th><th style="width: 35%">Value</th></tr></tbody><tbody><tr class="collapsible" data-level="1"><td><span class="button collapse-button"></span><span>metrics</span></td><td><span>Dictionary</span></td><td><span class="sub">(1 item)</span></td></tr><tr data-level="2"><td><span class="button collapse-button"></span><span>left</span></td><td><span>String</span></td><td><span>32</span></td></tr><tr><td></td><td></td><td></td></tr></tbody></table></div>
+<p>And just use the <strong>left</strong> metric in the constraint <strong>formats</strong>:</p>
+<div name="plist-content"><table class="plist"><tbody><tr><th style="width: 40%">Key</th><th style="width: 25%">Type</th><th style="width: 35%">Value</th></tr></tbody><tbody><tr class="collapsible" data-level="1"><td><span class="button collapse-button"></span><span>formats</span></td><td><span>Array</span></td><td><span class="sub">(3 items)</span></td></tr><tr data-level="2"><td><span class="button collapse-button"></span><span>Item 0</span></td><td><span>String</span></td><td><span>|-left-[name]-|</span></td></tr><tr data-level="2"><td><span class="button collapse-button"></span><span>Item 1</span></td><td><span>String</span></td><td><span>|-left-[desc]-|</span></td></tr><tr data-level="2"><td><span class="button collapse-button"></span><span>Item 2</span></td><td><span>String</span></td><td><span>V:|-[name]-[desc]-|</span></td></tr><tr><td></td><td></td><td></td></tr></tbody></table></div>
+<p>Save:</p>
+
+<p><img src="/Small/img/tour-heroes-margin@2x.png" alt="heroes list separator insets"/></p>
+
+<p>Furthermore, you can try to configure the vertical margin of the two label.</p>
+<h2><a href="/Small/en/tour-cell-layout#next" id=next aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Next</h2>
+<p>The final project looks like this:</p>
+<div class="highlight highlight-source-text"><pre>├── HeroTour
+│   ├── AppDelegate.h
+│   ├── AppDelegate.m
+│   ├── Info.plist
+│   ├── ViewController.h
+│   ├── ViewController.m
+│   ├── main.m
+│   ├── main.tableview.plist
+│   └── hero.cell.plist
+└── PBLocalhost
+    ├── ignore.h
+    └── PBClient
+        └── heroes.json
+</pre></div>
+<p>The complete <code>main.tableview.plist</code>:</p>
+<div name="plist-content"><table class="plist"><tbody><tr><th style="width: 40%">Key</th><th style="width: 25%">Type</th><th style="width: 35%">Value</th></tr></tbody><tbody><tr class="collapsible" data-level="0"><td><span class="button collapse-button"></span><span>Root</span></td><td><span>Dictionary</span></td><td><span class="sub">(1 item)</span></td></tr><tr class="collapsible" data-level="1"><td><span class="button collapse-button"></span><span>properties</span></td><td><span>Dictionary</span></td><td><span class="sub">(4 items)</span></td></tr><tr class="collapsible" data-level="2"><td><span class="button collapse-button"></span><span>clients</span></td><td><span>Array</span></td><td><span class="sub">(1 item)</span></td></tr><tr class="collapsible" data-level="3"><td><span class="button collapse-button"></span><span>Item 0</span></td><td><span>Dictionary</span></td><td><span class="sub">(2 items)</span></td></tr><tr data-level="4"><td><span class="button collapse-button"></span><span>clazz</span></td><td><span>String</span></td><td><span>PBClient</span></td></tr><tr data-level="4"><td><span class="button collapse-button"></span><span>action</span></td><td><span>String</span></td><td><span>heroes</span></td></tr><tr class="collapsible" data-level="2"><td><span class="button collapse-button"></span><span>headers</span></td><td><span>Array</span></td><td><span class="sub">(1 item)</span></td></tr><tr class="collapsible" data-level="3"><td><span class="button collapse-button"></span><span>Item 0</span></td><td><span>Dictionary</span></td><td><span class="sub">(4 items)</span></td></tr><tr data-level="4"><td><span class="button collapse-button"></span><span>clazz</span></td><td><span>String</span></td><td><span>UILabel</span></td></tr><tr data-level="4"><td><span class="button collapse-button"></span><span>height</span></td><td><span>String</span></td><td><span>44</span></td></tr><tr data-level="4"><td><span class="button collapse-button"></span><span>margin</span></td><td><span>String</span></td><td><span>{20,0,0,0}</span></td></tr><tr class="collapsible" data-level="4"><td><span class="button collapse-button"></span><span>properties</span></td><td><span>Dictionary</span></td><td><span class="sub">(4 items)</span></td></tr><tr data-level="5"><td><span class="button collapse-button"></span><span>text</span></td><td><span>String</span></td><td><span>%(Hello %@!),$name</span></td></tr><tr data-level="5"><td><span class="button collapse-button"></span><span>textColor</span></td><td><span>String</span></td><td><span>#fff</span></td></tr><tr data-level="5"><td><span class="button collapse-button"></span><span>backgroundColor</span></td><td><span>String</span></td><td><span>#333</span></td></tr><tr data-level="5"><td><span class="button collapse-button"></span><span>textAlignment</span></td><td><span>String</span></td><td><span>:center</span></td></tr><tr class="collapsible" data-level="2"><td><span class="button collapse-button"></span><span>row</span></td><td><span>Dictionary</span></td><td><span class="sub">(2 items)</span></td></tr><tr data-level="3"><td><span class="button collapse-button"></span><span>layout</span></td><td><span>String</span></td><td><span>hero.cell</span></td></tr><tr class="collapsible" data-level="3"><td><span class="button collapse-button"></span><span>properties</span></td><td><span>Dictionary</span></td><td><span class="sub">(3 items)</span></td></tr><tr data-level="4"><td><span class="button collapse-button"></span><span>@name.text</span></td><td><span>String</span></td><td><span>.$name</span></td></tr><tr data-level="4"><td><span class="button collapse-button"></span><span>@desc.text</span></td><td><span>String</span></td><td><span>.$desc</span></td></tr><tr data-level="4"><td><span class="button collapse-button"></span><span>separatorInset</span></td><td><span>String</span></td><td><span>{0,0,0,0}</span></td></tr><tr data-level="2"><td><span class="button collapse-button"></span><span>listKey</span></td><td><span>String</span></td><td><span>list</span></td></tr><tr><td></td><td></td><td></td></tr></tbody></table></div>
+<p>And the complete <code>hero.cell.plist</code>:</p>
+<div name="plist-content"><table class="plist"><tbody><tr><th style="width: 40%">Key</th><th style="width: 25%">Type</th><th style="width: 35%">Value</th></tr></tbody><tbody><tr class="collapsible" data-level="0"><td><span class="button collapse-button"></span><span>Root</span></td><td><span>Dictionary</span></td><td><span class="sub">(3 items)</span></td></tr><tr class="collapsible" data-level="1"><td><span class="button collapse-button"></span><span>views</span></td><td><span>Dictionary</span></td><td><span class="sub">(2 items)</span></td></tr><tr class="collapsible" data-level="2"><td><span class="button collapse-button"></span><span>name</span></td><td><span>Dictionary</span></td><td><span class="sub">(1 item)</span></td></tr><tr data-level="3"><td><span class="button collapse-button"></span><span>clazz</span></td><td><span>String</span></td><td><span>UILabel</span></td></tr><tr class="collapsible" data-level="2"><td><span class="button collapse-button"></span><span>desc</span></td><td><span>Dictionary</span></td><td><span class="sub">(2 items)</span></td></tr><tr data-level="3"><td><span class="button collapse-button"></span><span>clazz</span></td><td><span>String</span></td><td><span>UILabel</span></td></tr><tr class="collapsible" data-level="3"><td><span class="button collapse-button"></span><span>properties</span></td><td><span>Dictionary</span></td><td><span class="sub">(1 item)</span></td></tr><tr data-level="4"><td><span class="button collapse-button"></span><span>numberOfLines</span></td><td><span>String</span></td><td><span>0</span></td></tr><tr class="collapsible" data-level="1"><td><span class="button collapse-button"></span><span>metrics</span></td><td><span>Dictionary</span></td><td><span class="sub">(1 item)</span></td></tr><tr data-level="2"><td><span class="button collapse-button"></span><span>left</span></td><td><span>String</span></td><td><span>32</span></td></tr><tr class="collapsible" data-level="1"><td><span class="button collapse-button"></span><span>formats</span></td><td><span>Array</span></td><td><span class="sub">(3 items)</span></td></tr><tr data-level="2"><td><span class="button collapse-button"></span><span>Item 0</span></td><td><span>String</span></td><td><span>|-left-[name]-|</span></td></tr><tr data-level="2"><td><span class="button collapse-button"></span><span>Item 1</span></td><td><span>String</span></td><td><span>|-left-[desc]-|</span></td></tr><tr data-level="2"><td><span class="button collapse-button"></span><span>Item 2</span></td><td><span>String</span></td><td><span>V:|-[name]-[desc]-|</span></td></tr><tr><td></td><td></td><td></td></tr></tbody></table></div>
+<p>By this section, we learn the layout function of Pbind:</p>
+
+<ol>
+<li>Create a cell from a layout with <em>Auto Layout</em></li>
+<li>Layout and bind data for the general <code>TableView</code> cell</li>
+</ol>
+
+<p><a href="/Small/en/tour-detail-and-route" name="wq-redirect" data-redirect="en/tour-detail-and-route">Next</a> we will configure the router and accomplish a hero detail page.</p>

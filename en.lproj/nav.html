@@ -1,0 +1,238 @@
+<h2><a href="/Small/en/nav#navigation-mapper" id=navigation-mapper aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Navigation mapper</h2>
+<p>We support configure the navigation bar by define a <strong>nav</strong> property under the <em>Root</em> node in Plist.</p>
+
+<p>All the properties defined in <strong>nav</strong> would be map to the current controller&#39;s <em>navigationItem</em>:</p>
+
+<table><thead>
+<tr>
+<th>name</th>
+<th>type</th>
+<th>map to</th>
+<th>note</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>title</strong></td>
+<td><em>String</em></td>
+<td>title</td>
+<td>navigation title</td>
+</tr>
+<tr>
+<td><strong>left</strong></td>
+<td><em>Dictionary</em></td>
+<td>leftBarButtonItem</td>
+<td>the left bar button item for the navigation bar</td>
+</tr>
+<tr>
+<td><strong>lefts</strong></td>
+<td><em>Array<Dictionary></em></td>
+<td>leftBarButtonItems</td>
+<td>the left bar button items for the navigation bar</td>
+</tr>
+<tr>
+<td><strong>right</strong></td>
+<td><em>Dictionary</em></td>
+<td>rightBarButtonItem</td>
+<td>the right bar button item for the navigation bar</td>
+</tr>
+<tr>
+<td><strong>rights</strong></td>
+<td><em>Array<Dictionary></em></td>
+<td>rightsBarButtonItems</td>
+<td>the right bar button items for the navigation bar</td>
+</tr>
+</tbody></table>
+<h3><a href="/Small/en/nav#barbuttonitem" id=barbuttonitem aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>BarButtonItem</h3>
+<p>The item configured by a Dictionay and turns to be a <em>UIBarButtonItem</em> finally.</p>
+
+<p>The dictionary contains two part of parameters, first part is for initializing by what we select the related <em>API</em> to create a <em>UIBarButtonItem</em>.</p>
+
+<table><thead>
+<tr>
+<th>name</th>
+<th>API</th>
+<th>result</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>type</strong></td>
+<td><em>initWithBarButtonSystemItem:target:action:</em></td>
+<td>a system built-in item</td>
+</tr>
+<tr>
+<td><strong>image</strong><br/>&amp; <strong>style</strong></td>
+<td><em>initWithImage:style::target:action:</em></td>
+<td>a custom background image item</td>
+</tr>
+<tr>
+<td><strong>title</strong><br/>&amp; <strong>style</strong></td>
+<td><em>initWithTitle:style::target:action:</em></td>
+<td>a custom title item</td>
+</tr>
+</tbody></table>
+
+<p>Thereinfo we support <strong>type</strong>s:</p>
+
+<table><thead>
+<tr>
+<th>type</th>
+<th>UIBarButtonSystemItem</th>
+<th>effect</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>:<strong>done</strong></td>
+<td>UIBarButtonSystemItemDone</td>
+<td><img src="https://docs-assets.developer.apple.com/published/1b2c2dc9eb/UIBarButtonSystemItemDone_2x_faf853e2-1569-42df-a353-2217d5e5798f.png" alt="done" width="37px" style="width:37px"/></td>
+</tr>
+<tr>
+<td>:<strong>cancel</strong></td>
+<td>UIBarButtonSystemItemCancel</td>
+<td><img src="https://docs-assets.developer.apple.com/published/1b2c2dc9eb/UIBarSystemItemCancel_2x_193aca68-8a37-445f-9300-df5ed61eaebe.png" alt="cancel" width="49px" style="width:49px"/></td>
+</tr>
+<tr>
+<td>:<strong>edit</strong></td>
+<td>UIBarButtonSystemItemEdit</td>
+<td><img src="https://docs-assets.developer.apple.com/published/1b2c2dc9eb/UIBarSystemItemEdit_2x_8e760150-573b-4d16-bc0f-a0a98f59d25f.png" alt="edit" width="26px" style="width:26px"/></td>
+</tr>
+<tr>
+<td>:<strong>save</strong></td>
+<td>UIBarButtonSystemItemSave</td>
+<td><img src="https://docs-assets.developer.apple.com/published/1b2c2dc9eb/UIBarButtonSystemItemSave_2x_74e89675-76ec-42fa-b140-43617c605754.png" alt="save" width="35px" style="width:35px"/></td>
+</tr>
+<tr>
+<td>:<strong>add</strong></td>
+<td>UIBarButtonSystemItemAdd</td>
+<td><img src="https://docs-assets.developer.apple.com/published/1b2c2dc9eb/UIBarButtonAdd_2x_06ceba7f-f447-4e80-8387-99ef94745a90.png" alt="add" width="15px" style="width:15px"/></td>
+</tr>
+<tr>
+<td>:<strong>compose</strong></td>
+<td>UIBarButtonSystemItemCompose</td>
+<td><img src="https://docs-assets.developer.apple.com/published/1b2c2dc9eb/UIBarButtonCompose_2x_cd7e6340-c981-4dc4-85ae-63ae5a64ccfc.png" alt="compose" width="23px" style="width:23px"/></td>
+</tr>
+<tr>
+<td>:<strong>reply</strong></td>
+<td>UIBarButtonSystemItemReply</td>
+<td><img src="https://docs-assets.developer.apple.com/published/1b2c2dc9eb/UIBarButtonReply_2x_ae1b2646-b99b-4828-bb5b-ca4e689169fa.png" alt="reply" width="25px" style="width:25px"/></td>
+</tr>
+<tr>
+<td>:<strong>share</strong></td>
+<td>UIBarButtonSystemItemAction</td>
+<td><img src="https://docs-assets.developer.apple.com/published/1b2c2dc9eb/UIBarButtonAction_2x_823aa32f-53ef-4c8a-9487-0aee63782087.png" alt="share" width="19px" style="width:19px"/></td>
+</tr>
+<tr>
+<td>:<strong>organize</strong></td>
+<td>UIBarButtonSystemItemOrganize</td>
+<td><img src="https://docs-assets.developer.apple.com/published/1b2c2dc9eb/UIBarButtonOrganize_2x_0e37fc64-4d56-4d6b-85a2-7da5483d1f27.png" alt="organize" width="20px" style="width:20px"/></td>
+</tr>
+<tr>
+<td>:<strong>bookmarks</strong></td>
+<td>UIBarButtonSystemItemBookmarks</td>
+<td><img src="https://docs-assets.developer.apple.com/published/1b2c2dc9eb/UIBarButtonBookmarks_2x_01ffb6a4-22bd-48ac-a7d4-46133e1de9a4.png" alt="bookmarks" width="26px" style="width:26px"/></td>
+</tr>
+<tr>
+<td>:<strong>search</strong></td>
+<td>UIBarButtonSystemItemSearch</td>
+<td><img src="https://docs-assets.developer.apple.com/published/1b2c2dc9eb/UIBarButtonSearch_2x_e1da736a-4199-489d-b258-43c6717ac2c1.png" alt="search" width="15px" style="width:15px"/></td>
+</tr>
+<tr>
+<td>:<strong>refresh</strong></td>
+<td>UIBarButtonSystemItemRefresh</td>
+<td><img src="https://docs-assets.developer.apple.com/published/1b2c2dc9eb/UIBarButtonRefresh_2x_932a1c8a-1981-4b5d-8166-d2ffcabdff01.png" alt="refresh" width="18px" style="width:18px"/></td>
+</tr>
+<tr>
+<td>:<strong>stop</strong></td>
+<td>UIBarButtonSystemItemStop</td>
+<td><img src="https://docs-assets.developer.apple.com/published/1b2c2dc9eb/UIBarButtonStop_2x_b0334ee9-f617-46c0-8f05-6a6fd6f223f7.png" alt="stop" width="17px" style="width:17px"/></td>
+</tr>
+<tr>
+<td>:<strong>camera</strong></td>
+<td>UIBarButtonSystemItemCamera</td>
+<td><img src="https://docs-assets.developer.apple.com/published/1b2c2dc9eb/UIBarButtonCamera_2x_87a3ae25-6025-4bd9-8060-8221cafa61ce.png" alt="camera" width="25px" style="width:25px"/></td>
+</tr>
+<tr>
+<td>:<strong>trash</strong></td>
+<td>UIBarButtonSystemItemTrash</td>
+<td><img src="https://docs-assets.developer.apple.com/published/1b2c2dc9eb/UIBarButtonTrash_2x_3e31cb62-8df3-4364-86d8-6b676bcbb38b.png" alt="trash" width="18px" style="width:18px"/></td>
+</tr>
+<tr>
+<td>:<strong>play</strong></td>
+<td>UIBarButtonSystemItemPlay</td>
+<td><img src="https://docs-assets.developer.apple.com/published/1b2c2dc9eb/UIBarButtonPlay_2x_b0a5a395-c1f7-43e3-851f-9f929cba2176.png" alt="play" width="15px" style="width:15px"/></td>
+</tr>
+<tr>
+<td>:<strong>pause</strong></td>
+<td>UIBarButtonSystemItemPause</td>
+<td><img src="https://docs-assets.developer.apple.com/published/1b2c2dc9eb/UIBarButtonPause_2x_c5ad205a-c25f-45fd-8ee8-528b562957ca.png" alt="pause" width="14px" style="width:14px"/></td>
+</tr>
+<tr>
+<td>:<strong>rewind</strong></td>
+<td>UIBarButtonSystemItemRewind</td>
+<td><img src="https://docs-assets.developer.apple.com/published/1b2c2dc9eb/UIBarButtonRewind_2x_ddce5dd2-5072-42e4-bf4a-030b914b5584.png" alt="rewind" width="21px" style="width:21px"/></td>
+</tr>
+<tr>
+<td>:<strong>fastforward</strong></td>
+<td>UIBarButtonSystemItemFastForward</td>
+<td><img src="https://docs-assets.developer.apple.com/published/1b2c2dc9eb/UIBarButtonFastForward_2x_aee52cd9-4b46-4144-8ccb-b280fa9b3147.png" alt="fastforward" width="21px" style="width:21px"/></td>
+</tr>
+<tr>
+<td>:<strong>undo</strong></td>
+<td>UIBarButtonSystemItemUndo</td>
+<td><img src="https://docs-assets.developer.apple.com/published/1b2c2dc9eb/UIBarButtonSystemItemUndo_2x_bb2fa0eb-a241-47e1-9818-bc54370fe33c.png" alt="undo" width="38px" style="width:38px"/></td>
+</tr>
+<tr>
+<td>:<strong>redo</strong></td>
+<td>UIBarButtonSystemItemRedo</td>
+<td><img src="https://docs-assets.developer.apple.com/published/1b2c2dc9eb/UIBarButtonSystemItemRedo_2x_87125ce6-1986-4c7f-9ba8-a7607cf16cc9.png" alt="redo" width="37px" style="width:37px"/></td>
+</tr>
+<tr>
+<td>:<strong>pagecurl</strong></td>
+<td>UIBarButtonSystemItemPageCurl</td>
+<td><img src="https://docs-assets.developer.apple.com/published/1b2c2dc9eb/UIBarButtonSystemItemPageCurl_45da15b0-ec57-41f3-9b3a-692162ffd666.png" alt="pagecurl" width="34px" style="width:34px"/></td>
+</tr>
+</tbody></table>
+
+<p><strong>image</strong> refer to the background image name, we will find the image from <code>[Pbind allResourceBundles]</code>.</p>
+
+<p><strong>style</strong> supports:</p>
+
+<table><thead>
+<tr>
+<th>style</th>
+<th>UIBarButtonItemStyle</th>
+<th>effect</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>:<strong>plainStyle</strong></td>
+<td>UIBarButtonItemStylePlain</td>
+<td>nothing</td>
+</tr>
+<tr>
+<td>:<strong>doneStyle</strong></td>
+<td>UIBarButtonItemStyleDone</td>
+<td>bold font for title</td>
+</tr>
+</tbody></table>
+
+<p>The other part of parameters are used to configure the properties of the created item:</p>
+
+<table><thead>
+<tr>
+<th>name</th>
+<th>note</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>hidden</strong></td>
+<td>Whether hide the item, default is <em>NO</em></td>
+</tr>
+<tr>
+<td><strong>enabled</strong></td>
+<td>Whether the item can be clicked, default is <em>YES</em></td>
+</tr>
+<tr>
+<td><strong>action</strong></td>
+<td>The click action for the item, refer to <a href="/Small/en/pbaction" name="wq-redirect" data-redirect="en/pbaction">Action mapper</a></td>
+</tr>
+</tbody></table>

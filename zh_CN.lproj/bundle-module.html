@@ -1,0 +1,42 @@
+<h1><a href="/Small/cn/bundle-module#插件模块" id=插件模块 aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>插件模块</h1>
+<p>插件模块是 Small 特有的插件化与IDE完美结合的产物。做到了“模块即组件，组件即插件”。
+组件是工程的角度，插件是应用的角度。只有做到了清晰的组件解耦，才能更好的拆分插件模块。</p>
+
+<p>出于业务需求考虑，Small定义了两类插件：公共库插件与应用插件。
+应用插件相对简单，就是用来把大应用拆分成一个个小的业务单元。而公共库插件则是为这些业务单元提供公共的代码与资源。</p>
+
+<p><img src="/Small/img/bundle.jpg" alt="bundle"/></p>
+<h2><a href="/Small/cn/bundle-module#公共库插件模块" id=公共库插件模块 aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>公共库插件模块</h2>
+<p>公共库插件模块在 <em>开发时</em> 可以通过 <code>compile project(&#39;:插件模块名&#39;)</code>来被 应用插件模块 所引用。
+同时在 <em>编译时</em> (<code>buildLib</code>) 会被打包成为一个可独立更新的插件。</p>
+
+<p>定义公共库插件模块有两种方式：</p>
+
+<ol>
+<li>指定 <code>Module name</code> 为 <code>lib.*</code> </li>
+<li>在 <a href="/Small/cn/small-DSL" name="wq-redirect" data-redirect="cn/small-DSL">Small DSL</a> 中显式指明 <code>bundles lib your_module_name</code></li>
+</ol>
+
+<p>要正确读取到打包的公共库插件也有两种方式：</p>
+
+<ol>
+<li>指定 <code>Package name</code> 为 <code>**.lib.*</code> 或 <code>**.lib*</code></li>
+<li>在 <code>bundle.json</code> 中添加描述 <code>&quot;type&quot;: &quot;lib&quot;</code></li>
+</ol>
+<h2><a href="/Small/cn/bundle-module#应用插件模块" id=应用插件模块 aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>应用插件模块</h2>
+<p>应用插件模块在 <em>开发时</em> 可以独立运行。
+同时在 <em>编译时</em> (<code>buildBundle</code> 或 <code>:模块:aR</code> ) 会被打包成一个可独立更新的插件。</p>
+
+<p>定义应用插件模块有两种方式：</p>
+
+<ol>
+<li>指定 <code>Module name</code> 为 <code>app.*</code> </li>
+<li>在 <a href="/Small/cn/small-DSL" name="wq-redirect" data-redirect="cn/small-DSL">Small DSL</a> 中显式指明 <code>bundles app your_module_name</code></li>
+</ol>
+
+<p>要正确读取到打包的公共库插件也有两种方式：</p>
+
+<ol>
+<li>指定 <code>Package name</code> 为 <code>**.app.*</code> 或 <code>**.app*</code></li>
+<li>在 <code>bundle.json</code> 中添加描述 <code>&quot;type&quot;: &quot;app&quot;</code></li>
+</ol>

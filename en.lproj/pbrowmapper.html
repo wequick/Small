@@ -1,0 +1,132 @@
+<h2><a href="/Small/en/pbrowmapper#row-mapper" id=row-mapper aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Row mapper</h2>
+<p>The base controls of Pbind are <code>PBTableView</code>, <code>PBCollectionView</code> and <code>PBScrollView</code>, each of them use row(linear) layout.</p>
+
+<p>Hereby we take <em>row</em> as base element by which we can also achieve the reusability of view.</p>
+
+<p>The names could be configured are:</p>
+<h3><a href="/Small/en/pbrowmapper#clazz" id=clazz aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>clazz</h3>
+<p>The class name for each row, default is <em>UITableViewCell</em>.</p>
+<h3><a href="/Small/en/pbrowmapper#nib" id=nib aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>nib</h3>
+<p>The xib file name for each row, default as <strong>clazz</strong>.</p>
+<h3><a href="/Small/en/pbrowmapper#style" id=style aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>style</h3>
+<p>The style(<em>UITableViewCellStyle</em>) for each cell. If configured, the <strong>clazz</strong> will take <em>PBTableViewCell</em> as default to support it.</p>
+<h3><a href="/Small/en/pbrowmapper#layout" id=layout aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>layout</h3>
+<p>The layout file name by what to create the subviews for the view in the row. </p>
+<h3><a href="/Small/en/pbrowmapper#id" id=id aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>id</h3>
+<p>The resuable identifier for the cell(item) of the row. Default is &quot;<strong>clazz</strong> @<strong>layout</strong> <strong>style</strong>&quot;.
+Supports for <em>PBTableView</em> and <em>PBScrollView`</em>.</p>
+<h3><a href="/Small/en/pbrowmapper#height" id=height aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>height</h3>
+<p>The height for the row. Default is <strong>-1</strong> (auto-height).
+Supports for <em>PBTableView</em> and <em>PBScrollView`</em>.</p>
+<h3><a href="/Small/en/pbrowmapper#estimatedheight" id=estimatedheight aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>estimatedHeight</h3>
+<p>The estimated height for the row. Default is <strong>-1</strong> (do not estimated).
+Supports <em>PBTableView</em>. If the <strong>height</strong> is unset, default to <strong>44</strong>.</p>
+<h3><a href="/Small/en/pbrowmapper#size" id=size aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>size</h3>
+<p>The size for the item(<em>UICollectionViewCell</em>) in the row.
+Supports for <em>PBCollectionView</em>.</p>
+<h3><a href="/Small/en/pbrowmapper#floating-(incubating)" id=floating-(incubating) aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>floating (Incubating)</h3>
+<p>The floating for the row, supports for <em>PBScrollView</em> and usually for the submit button which needs to stick in the bottom.</p>
+
+<p>Accept values:</p>
+
+<ul>
+<li>(1) <strong>PBRowFloatingTop</strong> stick in top for vertical scroll view</li>
+<li>(2) <strong>PBRowFloatingLeft</strong> stick in left for horizontal scroll view</li>
+<li>(3) <strong>PBRowFloatingBottom</strong> stick in bottom for vertical scroll view</li>
+<li>(4) <strong>PBRowFloatingRight</strong> stick in right for horizontal scroll view</li>
+</ul>
+<h3><a href="/Small/en/pbrowmapper#actions" id=actions aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>actions</h3>
+<p>The actions for the row, includes:</p>
+
+<table><thead>
+<tr>
+<th>name</th>
+<th>refer to</th>
+<th>delegate</th>
+<th>note</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>willSelect</strong></td>
+<td><em>PBActionMapper</em></td>
+<td><code>willSelectCellAtIndexPath:</code></td>
+<td>将选中行事件</td>
+</tr>
+<tr>
+<td><strong>select</strong></td>
+<td><em>PBActionMapper</em></td>
+<td><code>didSelectCellAtIndexPath:</code></td>
+<td>已选中行事件</td>
+</tr>
+<tr>
+<td><strong>willDeselect</strong></td>
+<td><em>PBActionMapper</em></td>
+<td><code>willDeselectCellAtIndexPath:</code></td>
+<td>将取消选中行事件</td>
+</tr>
+<tr>
+<td><strong>deselect</strong></td>
+<td><em>PBActionMapper</em></td>
+<td><code>didDeselectCellAtIndexPath:</code></td>
+<td>已取消选中行事件</td>
+</tr>
+<tr>
+<td><strong>delete</strong></td>
+<td><em>PBRowActionMapper</em></td>
+<td><code>editActionsForRowAtIndexPath:</code></td>
+<td>左滑删除按钮事件</td>
+</tr>
+<tr>
+<td><strong>edits</strong></td>
+<td><em>PBRowActionMapper</em></td>
+<td><code>editActionsForRowAtIndexPath:</code></td>
+<td>左滑自定义按钮组事件</td>
+</tr>
+</tbody></table>
+
+<p>Thereinto, the <em>PBRowActionMapper</em> is based on <em>PBActionMapper</em> and extend following names to configure the appearance of the button displayed by swipe-to-left.</p>
+
+<table><thead>
+<tr>
+<th>name</th>
+<th>class</th>
+<th>note</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>style</strong></td>
+<td><em>UITableViewRowActionStyle</em></td>
+<td>the button style</td>
+</tr>
+<tr>
+<td><strong>title</strong></td>
+<td><em>NSString</em></td>
+<td>the title of the button</td>
+</tr>
+<tr>
+<td><strong>backgroundColor</strong></td>
+<td><em>UIColor</em></td>
+<td>the background color of the button</td>
+</tr>
+</tbody></table>
+
+<p><strong>style</strong> 支持：</p>
+
+<table><thead>
+<tr>
+<th>style</th>
+<th>按钮样式</th>
+<th>效果</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>:<strong>normalStyle</strong></td>
+<td><em>UITableViewRowActionStyleNormal</em></td>
+<td>灰色背景</td>
+</tr>
+<tr>
+<td>:<strong>deleteStyle</strong></td>
+<td><em>UITableViewRowActionStyleDestructive</em></td>
+<td>红色背景</td>
+</tr>
+</tbody></table>
