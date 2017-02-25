@@ -59,9 +59,9 @@
 <p>插件的子路由表。假设在 <strong>uri</strong> 为 <strong>home</strong> 的插件下指定：</p>
 <div class="highlight highlight-source-json"><pre><span class="p">{</span>
   <span class="nt">&quot;uri&quot;</span><span class="p">:</span> <span class="s2">&quot;home&quot;</span><span class="p">,</span>
-  <span class="nt">&quot;rules&quot;</span><span class="p">:</span> <span class="p">[</span>
-    <span class="s2">&quot;abc&quot;</span><span class="err">:</span> <span class="s2">&quot;Some&quot;</span>
-  <span class="p">]</span>
+  <span class="nt">&quot;rules&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nt">&quot;abc&quot;</span><span class="p">:</span> <span class="s2">&quot;Some&quot;</span>
+  <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 <p>&quot;home/abc&quot; 将被路由往 <strong>home</strong> 插件下的 Some 界面，在不同平台下的表现为：</p>
