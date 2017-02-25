@@ -1,3 +1,14 @@
+## 1.1.0-alpha2 (2017-02-25)
+
+Bugfixes:
+
+  - 修正打包到assets下的apk包改变时未能正确被解压更新的问题
+  - 修正WebView判断加载相同url的错误
+
+Other:
+
+  - 导出WebView onProgressChanged事件
+
 ## 1.1.0-alpha1 (2017-01-09)
 
 Bugfixes:
