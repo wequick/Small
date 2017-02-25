@@ -44,18 +44,19 @@ JVM: OpenJDK 64-Bit Server VM by JetBrains s.r.o
 <p><img src="/Small/img/new-project-left-build.gradle@2x.png" alt="new-project-left-build.gradle"/></p>
 
 <p>在 <code>buildscript &gt; dependencies</code> 下添加Small编译插件 <strong>gradle-small</strong>：</p>
-<div class="highlight highlight-source-groovy"><pre><span class="n">classpath</span> <span class="s1">&#39;net.wequick.tools.build:gradle-small:1.1.0-beta4&#39;</span>
+<div class="highlight highlight-source-groovy"><pre><span class="n">classpath</span> <span class="s1">&#39;net.wequick.tools.build:gradle-small:1.1.0-alpha2&#39;</span>
 </pre></div>
 <p>在文件末尾引用 <strong>gradle-small</strong> 插件：</p>
 <div class="highlight highlight-source-groovy"><pre><span class="n">apply</span> <span class="nl">plugin:</span> <span class="s1">&#39;net.wequick.small&#39;</span>
 </pre></div>
 <p>紧随其后，设置Small运行库版本：</p>
 <div class="highlight highlight-source-groovy"><pre><span class="n">small</span> <span class="o">{</span>
-    <span class="n">aarVersion</span> <span class="o">=</span> <span class="s1">&#39;1.1.0-alpha1&#39;</span>
+    <span class="n">aarVersion</span> <span class="o">=</span> <span class="s1">&#39;1.1.0-alpha2&#39;</span>
 <span class="o">}</span>
 </pre></div>
 <blockquote>
 <p>以上两个库的最新版本参见<a href="https://bintray.com/galenlin/maven" target="_blank">bintray</a>
+当 gradle-small 在 1.1.0-alpha2 以上版本时可以不指定 aarVersion，默认为 gradle-small 版本。
 有关更多 small { } 中的配置可以参考<a href="/Small/cn/small-DSL" name="wq-redirect" data-redirect="cn/small-DSL">small DSL</a></p>
 </blockquote>
 
@@ -253,7 +254,7 @@ JVM: OpenJDK 64-Bit Server VM by JetBrains s.r.o
     <span class="o">}</span>
     <span class="n">dependencies</span> <span class="o">{</span>
         <span class="n">classpath</span> <span class="s1">&#39;com.android.tools.build:gradle:2.2.3&#39;</span>
-        <span class="n">classpath</span> <span class="s1">&#39;net.wequick.tools.build:gradle-small:1.1.0-beta4&#39;</span>
+        <span class="n">classpath</span> <span class="s1">&#39;net.wequick.tools.build:gradle-small:1.1.0-alpha2&#39;</span>
 
         <span class="c1">// NOTE: Do not place your application dependencies here; they belong</span>
         <span class="c1">// in the individual module build.gradle files</span>
@@ -273,7 +274,7 @@ JVM: OpenJDK 64-Bit Server VM by JetBrains s.r.o
 <span class="n">apply</span> <span class="nl">plugin:</span> <span class="s1">&#39;net.wequick.small&#39;</span>
 
 <span class="n">small</span> <span class="o">{</span>
-    <span class="n">aarVersion</span> <span class="o">=</span> <span class="s1">&#39;1.1.0-alpha1&#39;</span>
+    <span class="n">aarVersion</span> <span class="o">=</span> <span class="s1">&#39;1.1.0-alpha2&#39;</span>
 <span class="o">}</span>
 </pre></div>
 <p>通过本节我们掌握了使用Small开发的基础：</p>
