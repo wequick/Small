@@ -5,7 +5,10 @@ import net.wequick.gradle.tasks.LintTask
 import net.wequick.gradle.util.DependenciesUtils
 import net.wequick.gradle.util.Log
 import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.execution.TaskExecutionListener
 import org.gradle.api.tasks.Delete
+import org.gradle.api.tasks.TaskState
 
 import java.text.DecimalFormat
 
@@ -30,6 +33,8 @@ class RootPlugin extends BasePlugin {
     @Override
     protected void configureProject() {
         super.configureProject()
+
+        injectBuildLog()
 
         def rootExt = small
 
@@ -106,19 +111,6 @@ class RootPlugin extends BasePlugin {
                         bundleModules.put(type, modules)
                     }
                     modules.add(it.name)
-                }
-
-                // Hook on project build started and finished for log
-                // FIXME: any better way to hooks?
-                it.afterEvaluate {
-                    it.tasks['preBuild'].doFirst {
-                        logStartBuild(it.project)
-                        if (it.project.hasProperty('assembleRelease')) {
-                            it.project.tasks['assembleRelease'].doLast {
-                                logFinishBuild(it.project)
-                            }
-                        }
-                    }
                 }
 
                 if (it.hasProperty('buildLib')) {
@@ -581,6 +573,25 @@ class RootPlugin extends BasePlugin {
         }
     }
 
+    /** Hook on project build started and finished for log */
+    private void injectBuildLog() {
+        project.gradle.taskGraph.addTaskExecutionListener(new TaskExecutionListener() {
+            @Override
+            void beforeExecute(Task task) { }
+
+            @Override
+            void afterExecute(Task task, TaskState taskState) {
+                if (taskState.didWork) {
+                    if (task.name == 'preBuild') {
+                        logStartBuild(task.project)
+                    } else if (task.name == 'assembleRelease') {
+                        logFinishBuild(task.project)
+                    }
+                }
+            }
+        })
+    }
+
     private void logStartBuild(Project project) {
         BaseExtension ext = project.small
         switch (ext.type) {
@@ -603,7 +614,7 @@ class RootPlugin extends BasePlugin {
         }
     }
 
-    private void logFinishBuild(Project project) {
+    private static void logFinishBuild(Project project) {
         project.android.applicationVariants.each { variant ->
             if (variant.buildType.name != 'release') return
 
