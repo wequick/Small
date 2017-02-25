@@ -195,12 +195,9 @@ class RootPlugin extends BasePlugin {
 
             // gradle-small
             print String.format('%24s', 'gradle-small plugin : ')
-            def pluginVersion
-            def pluginProperties = project.file('buildSrc/gradle.properties')
+            def pluginVersion = small.PLUGIN_VERSION
+            def pluginProperties = project.file('buildSrc/src/main/resources/META-INF/gradle-plugins/net.wequick.small.properties')
             if (pluginProperties.exists()) {
-                def prop = new Properties()
-                prop.load(pluginProperties.newDataInputStream())
-                pluginVersion = prop.getProperty('version')
                 println "$pluginVersion (project)"
             } else {
                 def config = project.buildscript.configurations['classpath']
