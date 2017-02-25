@@ -33,7 +33,7 @@
     apply plugin: 'net.wequick.small'
     
     small {
-        aarVersion = '1.1.0-alpha1'
+        aarVersion = '1.1.0-alpha2'
     }
     ```
     

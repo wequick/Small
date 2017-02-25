@@ -6,5 +6,5 @@
     <global id="mavenUrl" value="mavenCentral" />
     <global id="copyGradleSupported" type="boolean" value="${(compareVersions(gradlePluginVersion, '2.0') < 0)?string}" />
     <global id="smallPluginVersion" value="1.1.0-beta4" />
-    <global id="smallAarVersion" value="1.1.0-alpha1" />
+    <global id="smallAarVersion" value="1.1.0-alpha2" />
 </globals>
