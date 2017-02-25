@@ -13,7 +13,7 @@ apply from: 'base.gradle'
 // Scripts to install plugin to local repository [~/.m2/repository]
 // > ./gradlew install
 //--------------------------------------------------------------------------------------------------
-task install(type: GradleBuild) {
+task install(type: GradleBuild, dependsOn: 'clean') {
     buildFile = 'install.gradle'
     tasks = ['install']
 }
@@ -22,7 +22,7 @@ task install(type: GradleBuild) {
 // Scripts to upload plugin to Bintray/JCenter [https://bintray.com/]
 // > ./gradlew bintrayUpload
 //--------------------------------------------------------------------------------------------------
-task bintrayUpload(type: GradleBuild) {
+task bintrayUpload(type: GradleBuild, dependsOn: 'clean') {
     buildFile = 'publish.gradle'
     tasks = ['bintrayUpload']
 }

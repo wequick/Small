@@ -21,7 +21,7 @@ apply plugin: 'maven'
 // Scripts to upload plugin to Bintray/JCenter [https://bintray.com/]
 // > ./gradlew bintrayUpload
 //--------------------------------------------------------------------------------------------------
-task bintrayUpload(type: GradleBuild) {
+task bintrayUpload(type: GradleBuild, dependsOn: 'clean') {
     buildFile = 'bintray.gradle'
     tasks = ['bintrayUpload']
 }
@@ -30,7 +30,7 @@ task bintrayUpload(type: GradleBuild) {
 // Scripts to upload plugin to Gradle Plugins Portal [https://plugins.gradle.org/]
 // > ./gradlew publish
 //--------------------------------------------------------------------------------------------------
-task publish(type: GradleBuild) {
+task publish(type: GradleBuild, dependsOn: 'clean') {
     buildFile = 'publish.gradle'
     tasks = ['build']
 }
