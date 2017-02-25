@@ -1,0 +1,130 @@
+<h1><a href="/Small/cn/router#插件路由" id=插件路由 aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>插件路由</h1>
+<p>为了方便插件之间的跨平台调用，Small 提供了 bundle.json 来完成插件路由。</p>
+
+<p>bundle.json 的基本格式为：</p>
+<div class="highlight highlight-source-text"><pre>{
+  &quot;version&quot;: &quot;1.0.0&quot;,
+  &quot;bundles&quot;: [
+    { bundle1 },
+    { bundle2 },
+    {   ...   },
+    { bundleN }
+  ]
+}
+</pre></div>
+<p>其中 <strong>version</strong> 暂为当前文件格式版本，始终为 <em>1.0.0</em>。
+<strong>bundles</strong> 为插件数组。每个插件遵循以下配置。</p>
+<h2><a href="/Small/cn/router#插件配置" id=插件配置 aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>插件配置</h2><h3><a href="/Small/cn/router#pkg" id=pkg aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>pkg</h3>
+<p>当前插件的包名，比如 <strong>net.wequick.example.small.app.main</strong>。</p>
+<h3><a href="/Small/cn/router#uri" id=uri aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>uri</h3>
+<p>指定当前插件的唯一ID，比如 <strong>main</strong>。
+同时这个 ID 也作为插件的主路由。在不同平台下主路由的表现为：</p>
+
+<table><thead>
+<tr>
+<th>平台</th>
+<th>界面</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>Android</td>
+<td><strong>pkg</strong> 插件下的 LauncherActivity</td>
+</tr>
+<tr>
+<td>iOS</td>
+<td><strong>pkg</strong> 插件下的 <strong>uri</strong>Controller</td>
+</tr>
+<tr>
+<td>HTML</td>
+<td><strong>base_uri</strong>/<strong>uri</strong> 或 <strong>base_uri</strong>/<strong>uri</strong>.html</td>
+</tr>
+</tbody></table>
+<h3><a href="/Small/cn/router#type" id=type aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>type</h3>
+<p>插件类型：</p>
+
+<ul>
+<li>lib - 公共库插件</li>
+<li>app - 业务插件</li>
+</ul>
+
+<p>默认从 <strong>pkg</strong> 中解析：</p>
+
+<ul>
+<li>当 <strong>pkg</strong> 包含 <code>.lib.</code> 或以 <code>.libxx</code> 结尾时，取 <code>lib</code></li>
+<li>当 <strong>pkg</strong> 包含 <code>.app.</code> 或以 <code>.appxx</code> 结尾时，取 <code>app</code></li>
+</ul>
+
+<p>如果 <strong>pkg</strong> 不遵循上述格式，需要显式指明。</p>
+<h3><a href="/Small/cn/router#rules" id=rules aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>rules</h3>
+<p>插件的子路由表。假设在 <strong>uri</strong> 为 <strong>home</strong> 的插件下指定：</p>
+<div class="highlight highlight-source-json"><pre><span class="p">{</span>
+  <span class="nt">&quot;uri&quot;</span><span class="p">:</span> <span class="s2">&quot;home&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;rules&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="s2">&quot;abc&quot;</span><span class="err">:</span> <span class="s2">&quot;Some&quot;</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+<p>&quot;home/abc&quot; 将被路由往 <strong>home</strong> 插件下的 Some 界面，在不同平台下的表现为：</p>
+
+<table><thead>
+<tr>
+<th>平台</th>
+<th>界面</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>Android</td>
+<td><strong>pkg</strong>.SomeActivity</td>
+</tr>
+<tr>
+<td>iOS</td>
+<td><strong>pkg</strong>.SomeController</td>
+</tr>
+<tr>
+<td>HTML</td>
+<td><strong>base_uri</strong>/home/Some 或 <strong>base_uri</strong>/home/Some.html</td>
+</tr>
+</tbody></table>
+<h2><a href="/Small/cn/router#插件调用" id=插件调用 aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>插件调用</h2>
+<p>Android:</p>
+<div class="highlight highlight-source-java"><pre><span class="n">Small</span><span class="o">.</span><span class="na">openUri</span><span class="o">(</span><span class="s">&quot;home&quot;</span><span class="o">,</span> <span class="n">context</span><span class="o">);</span>
+</pre></div>
+<p>iOS:</p>
+<div class="highlight highlight-source-objc"><pre><span class="p">[</span><span class="n">Small</span> <span class="nl">openUri</span><span class="p">:</span><span class="s">@&quot;home&quot;</span> <span class="nl">fromController</span><span class="p">:</span><span class="n">controller</span><span class="p">];</span>
+</pre></div>
+<p>HTML:</p>
+<div class="highlight highlight-source-html"><pre><span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">&quot;{{base_uri}}/home&quot;</span><span class="nt">&gt;</span>home<span class="nt">&lt;/a&gt;</span>
+</pre></div>
+<p>这里的 <strong>{{base_uri}}</strong> 通过 Native 指定。</p>
+
+<p>Android:</p>
+<div class="highlight highlight-source-java"><pre><span class="n">Small</span><span class="o">.</span><span class="na">setBaseUri</span><span class="o">(</span><span class="s">&quot;https://your_base_uri&quot;</span><span class="o">);</span>
+</pre></div>
+<p>iOS:</p>
+<div class="highlight highlight-source-objc"><pre><span class="p">[</span><span class="n">Small</span> <span class="nl">setBaseUri</span><span class="p">:</span><span class="s">@&quot;https://your_base_uri&quot;</span><span class="p">];</span>
+</pre></div><h2><a href="/Small/cn/router#参数传递" id=参数传递 aria-hidden="true" class="anchor"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>参数传递</h2>
+<p>使用 <a href="https://en.wikipedia.org/wiki/Query_string" target="_blank">Query标准</a> 来传递参数，即在 <strong>uri</strong> 之后加上 <em>?</em> 再带上键值对，多个键值对用 <em>&amp;</em> 来分开。</p>
+
+<p>如 &quot;detail?id=1000&amp;title=test&quot;。</p>
+
+<p>在接收方取值的方法为：</p>
+
+<p>Android:</p>
+<div class="highlight highlight-source-java"><pre><span class="c1">// app.detail/MainActivity</span>
+<span class="n">Uri</span> <span class="n">uri</span> <span class="o">=</span> <span class="n">Small</span><span class="o">.</span><span class="na">getUri</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+<span class="k">if</span> <span class="o">(</span><span class="n">uri</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">String</span> <span class="n">id</span> <span class="o">=</span> <span class="n">uri</span><span class="o">.</span><span class="na">getQueryParameter</span><span class="o">(</span><span class="s">&quot;id&quot;</span><span class="o">);</span>
+    <span class="c1">// Do stuff by `id&#39;</span>
+<span class="o">}</span>
+</pre></div>
+<p>iOS:</p>
+<div class="highlight highlight-source-objc"><pre><span class="c1">// DetailController.h</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">strong</span><span class="p">)</span> <span class="bp">NSString</span> <span class="o">*</span><span class="kt">id</span><span class="p">;</span>
+
+<span class="c1">// DetailController.m</span>
+<span class="bp">NSString</span> <span class="o">*</span><span class="kt">id</span> <span class="o">=</span> <span class="nb">self</span><span class="p">.</span><span class="kt">id</span><span class="p">;</span>
+</pre></div>
+<p>HTML:</p>
+<div class="highlight highlight-source-javascript"><pre><span class="kd">var</span> <span class="nx">query</span> <span class="o">=</span> <span class="nb">window</span><span class="p">.</span><span class="nx">location</span><span class="p">.</span><span class="nx">search</span><span class="p">.</span><span class="nx">substr</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="c1">// Do stuff by `query&#39;, something like `id=1000&#39;</span>
+</pre></div>

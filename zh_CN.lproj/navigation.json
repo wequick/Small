@@ -43,6 +43,7 @@
         "bundle-module",
         "stub-module",
         "custom-package-id",
+        "router",
         "compile-options",
         "small-DSL"
       ]
@@ -82,6 +83,9 @@
     },
     "compile-options": {
       "name": "编译选项"
+    },
+    "router": {
+      "name": "插件路由"
     }
   },
   "copyright_text": "© 2016 Wequick.net. 保留一切权利。"
