@@ -26,7 +26,7 @@
     ```groovy
     buildscript  {
         dependencies {
-            classpath 'net.wequick.tools.build:gradle-small:1.1.0-beta4'
+            classpath 'net.wequick.tools.build:gradle-small:1.1.0-alpha2'
         }
     }
     

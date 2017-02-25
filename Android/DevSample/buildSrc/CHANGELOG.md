@@ -1,3 +1,24 @@
+## 1.1.0-alpha2 (2017-02-25)
+
+Features:
+
+  - 增加 `gradlew smallLint` 任务用于检查插件问题
+    - 检查是否包含重复类，以避免 pre-verified 与 AppCompat主题闪退问题
+
+  - `aarVersion` 默认与 `gradle-small` 版本保持一致
+
+Bugfixes:
+
+  - 修正第三方jar未被分离的问题 (#378)
+  - 修正第三方so未被正确打包进插件的问题 (#367, #381)
+  - 修正 `support-compat` 与 `support-core-utils` 冲突的问题
+  - 修正不包含资源的插件包在混淆时无法编译的问题
+
+Refactor:
+
+  - 导出 util.Log 类用于打印彩色日志
+  - 使用 taskGraph 监听来完成插件编译开始与结束日志
+
 ## 1.1.0-beta4 (2016-12-12)
 
 Bugfixes:
