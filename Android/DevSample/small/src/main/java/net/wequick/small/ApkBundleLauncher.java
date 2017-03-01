@@ -216,6 +216,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 if (ai == null) break;
 
                 applyActivityInfo(activity, ai);
+                ReflectAccelerator.ensureCacheResources();
             } while (false);
             sHostInstrumentation.callActivityOnCreate(activity, icicle);
 
