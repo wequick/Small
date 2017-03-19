@@ -4,6 +4,8 @@ import com.android.build.gradle.api.BaseVariant
 import com.android.build.gradle.internal.pipeline.TransformTask
 import com.android.build.gradle.internal.transforms.ProGuardTransform
 import com.android.build.gradle.internal.tasks.PrepareLibraryTask
+import com.android.build.gradle.tasks.MergeManifests
+import net.wequick.gradle.util.TaskUtils
 import org.gradle.api.Project
 
 class AndroidPlugin extends BasePlugin {
@@ -109,15 +111,18 @@ class AndroidPlugin extends BasePlugin {
      * So we need to remove all the unimplemented content providers from `Stub`.
      */
     protected void removeUnimplementedProviders() {
-        if (pluginType == PluginType.Library ||
-                pluginType == PluginType.Host) return // nothing to do with `lib.*` and host
+        if (pluginType == PluginType.Host) return // nothing to do with host
+        MergeManifests manifests = project.tasks.withType(MergeManifests.class)[0]
+        if (manifests.hasProperty('providers')) {
+            return
+        }
 
         project.tasks.withType(PrepareLibraryTask.class).findAll {
-            def name = it.explodedDir.parentFile.name
+            def name = TaskUtils.getAarExplodedDir(it).parentFile.name
             return (rootSmall.hostStubProjects.find { it.name == name } != null)
         }.each {
             it.doLast { PrepareLibraryTask aar ->
-                File manifest = new File(aar.explodedDir, 'AndroidManifest.xml')
+                File manifest = new File(TaskUtils.getAarExplodedDir(aar), 'AndroidManifest.xml')
                 def s = ''
                 boolean enteredProvider = false
                 boolean removed = false
@@ -199,7 +204,7 @@ class AndroidPlugin extends BasePlugin {
         small.outputFile = variant.outputs[0].outputFile
         small.explodeAarDirs = project.tasks
                 .withType(PrepareLibraryTask.class)
-                .collect { it.explodedDir }
+                .collect { TaskUtils.getAarExplodedDir(it) }
 
         // Hook variant tasks
         variant.assemble.doLast {

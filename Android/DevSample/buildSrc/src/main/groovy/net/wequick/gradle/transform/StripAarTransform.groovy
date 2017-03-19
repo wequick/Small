@@ -83,6 +83,22 @@ public class StripAarTransform extends Transform {
                     return
                 }
 
+                // Strip from build-cache for android plugin 2.3.0+
+                if (src.absolutePath.contains('build-cache')) {
+                    File input = new File(src.parentFile.parentFile.parentFile, 'inputs')
+                    def prop = new Properties()
+                    prop.load(input.newDataInputStream())
+                    def path = prop.getProperty("FILE_PATH")
+                    temp = small.splitAars.find { Map<String, String> aar ->
+                        def group = aar.group.replaceAll('\\.', File.separator)
+                        def aarPath = "$group$File.separator$aar.name"
+                        path.contains(aarPath)
+                    }
+                    if (temp != null) {
+                        return
+                    }
+                }
+
                 // Copy the jar and rename
                 File version = src.parentFile
                 String versionName = version.name
@@ -99,11 +115,19 @@ public class StripAarTransform extends Transform {
                         // **/support-v4/23.2.1/jars/libs/internal_impl-23.2.1.jar
                         // => support-v4-internal_impl-23.2.1.jar
                         moduleName = version.parentFile.parentFile.parentFile.name
+                    } else if (version.parentFile.name == 'default') {
+                        // Compat for android plugin 2.3.0
+                        // Sample/lib.utils/build/intermediates/bundles/default/libs/mylib.jar
+                        moduleName = version.parentFile.parentFile.parentFile.parentFile.parentFile.name
                     } else {
                         // [projectDir]/libs/mylib.jar
                         // => [projectName]-mylib.jar
                         moduleName = "${project.name}"
                     }
+                } else if (versionName == 'default') {
+                    // Compat for android plugin 2.3.0
+                    // Sample/jni_plugin/intermediates/bundles/default/classes.jar
+                    moduleName = version.parentFile.parentFile.parentFile.parentFile.name
                 } else {
                     moduleName = "${version.parentFile.parentFile.name}-${version.parentFile.name}"
                 }
