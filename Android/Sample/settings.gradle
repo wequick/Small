@@ -1,5 +1,5 @@
 include ':app',
         ':app.main', ':app.home', ':app.detail', ':app.mine',
-        ':lib.utils', ':web.about', ':lib.style',
+        ':lib.utils', ':app.about', ':lib.style',
         ':jni_plugin', ':lib.analytics',
         ':app+stub', ':app.ok-if-stub'
