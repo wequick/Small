@@ -17,8 +17,6 @@ package net.wequick.gradle.util
 
 import com.android.build.gradle.internal.tasks.PrepareLibraryTask
 
-import java.lang.reflect.Field
-
 public class TaskUtils {
 
     public static File getAarExplodedDir(PrepareLibraryTask task) {
@@ -26,15 +24,6 @@ public class TaskUtils {
             return task.explodedDir
         }
 
-        File version = task.bundle.parentFile
-        File name = version.parentFile
-        File module = name.parentFile
-        String dir = "$module.name/$version.name/$name.name"
-        while (module.parentFile != null && module.parentFile.name != 'm2repository') {
-            module = module.parentFile
-            dir = module.name + "." + dir
-        }
-
-        return new File(task.project.buildDir, "intermediates/exploded-aar/$dir")
+        return task.outputs.getFiles().files[0]
     }
 }

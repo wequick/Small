@@ -1,3 +1,9 @@
+## 1.1.0 (2017-03-19)
+
+Features:
+
+  - 兼容 Android Plugin 2.3.0 (@xufun)
+
 ## 1.1.0-alpha2 (2017-02-25)
 
 Features:
