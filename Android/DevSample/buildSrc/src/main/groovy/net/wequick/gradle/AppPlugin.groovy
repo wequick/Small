@@ -172,7 +172,7 @@ class AppPlugin extends BundlePlugin {
 
         rootSmall.hostProject.tasks.withType(TransformTask.class).each {
             if ((it.variantName == 'release' || it.variantName.contains("Release"))
-                    && it.transform.name == 'dex') {
+                    && (it.transform.name == 'dex' || it.transform.name == 'proguard')) {
                 mLibraryJars.addAll(it.streamInputs.findAll { it.name.endsWith('.jar') })
             }
         }
