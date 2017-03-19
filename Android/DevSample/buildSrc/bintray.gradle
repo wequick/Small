@@ -112,8 +112,6 @@ task sourcesJar(type: Jar) {
 
 task javadocJar(type: Jar, dependsOn: groovydoc) {
     classifier = 'javadoc'
-    println groovydoc.destinationDir
-//    assert false
     from groovydoc.destinationDir
 }
 
