@@ -186,7 +186,7 @@ class RootPlugin extends BasePlugin {
         project.task('cleanBundle', group: 'small', description: 'Clean all bundles')
         project.task('buildBundle', group: 'small', description: 'Build all bundles')
 
-        project.task('small') << {
+        project.task('small').doLast {
 
             println()
             println '### Compile-time'

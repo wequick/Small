@@ -38,7 +38,7 @@ task publish(type: GradleBuild, dependsOn: 'clean') {
 //--------------------------------------------------------------------------------------------------
 // Helper scripts
 //--------------------------------------------------------------------------------------------------
-task changes << {
+task('changes').doLast {
     def changelog = project.file('CHANGELOG.md')
     if (!changelog.exists()) return
     def br = new BufferedReader(new FileReader(changelog))
