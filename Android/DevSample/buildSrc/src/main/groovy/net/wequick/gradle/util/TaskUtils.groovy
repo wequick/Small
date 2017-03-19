@@ -30,7 +30,6 @@ public class TaskUtils {
         File name = version.parentFile
         File module = name.parentFile
         String dir = "$module.name/$version.name/$name.name"
-        println "bundle $task.bundle"
         while (module.parentFile != null && module.parentFile.name != 'm2repository') {
             module = module.parentFile
             dir = module.name + "." + dir
