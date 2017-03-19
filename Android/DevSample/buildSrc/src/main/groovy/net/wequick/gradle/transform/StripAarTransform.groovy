@@ -25,6 +25,7 @@ import com.android.build.api.transform.TransformInput
 import com.android.build.api.transform.TransformOutputProvider
 import com.android.build.gradle.internal.pipeline.TransformManager
 import net.wequick.gradle.AppExtension
+import net.wequick.gradle.util.AarPath
 import org.apache.commons.io.FileUtils
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -84,17 +85,9 @@ public class StripAarTransform extends Transform {
                 }
 
                 // Strip from build-cache for android plugin 2.3.0+
-                if (src.absolutePath.contains('build-cache')) {
-                    File input = new File(src.parentFile.parentFile.parentFile, 'inputs')
-                    def prop = new Properties()
-                    prop.load(input.newDataInputStream())
-                    def path = prop.getProperty("FILE_PATH")
-                    temp = small.splitAars.find { Map<String, String> aar ->
-                        def group = aar.group.replaceAll('\\.', File.separator)
-                        def aarPath = "$group$File.separator$aar.name"
-                        path.contains(aarPath)
-                    }
-                    if (temp != null) {
+                AarPath aarPath = new AarPath(src)
+                for (aar in small.splitAars) {
+                    if (aarPath.explodedFromAar(aar)) {
                         return
                     }
                 }

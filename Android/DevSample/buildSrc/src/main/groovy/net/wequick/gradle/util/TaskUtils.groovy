@@ -24,6 +24,8 @@ public class TaskUtils {
             return task.explodedDir
         }
 
-        return task.outputs.getFiles().files[0]
+        def files = task.outputs.files.files
+        if (files != null) return files[0]
+        return null
     }
 }

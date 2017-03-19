@@ -117,12 +117,19 @@ class AndroidPlugin extends BasePlugin {
             return
         }
 
-        project.tasks.withType(PrepareLibraryTask.class).findAll {
-            def name = TaskUtils.getAarExplodedDir(it).parentFile.name
-            return (rootSmall.hostStubProjects.find { it.name == name } != null)
-        }.each {
+        project.tasks.withType(PrepareLibraryTask.class).each {
             it.doLast { PrepareLibraryTask aar ->
-                File manifest = new File(TaskUtils.getAarExplodedDir(aar), 'AndroidManifest.xml')
+                File aarDir = TaskUtils.getAarExplodedDir(aar)
+                if (aarDir == null) {
+                    return
+                }
+
+                def aarName = aarDir.parentFile.name
+                if (rootSmall.hostStubProjects.find { it.name == aarName } != null) {
+                    return
+                }
+
+                File manifest = new File(aarDir, 'AndroidManifest.xml')
                 def s = ''
                 boolean enteredProvider = false
                 boolean removed = false

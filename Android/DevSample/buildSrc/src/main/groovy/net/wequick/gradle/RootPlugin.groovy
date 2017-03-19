@@ -427,6 +427,8 @@ class RootPlugin extends BasePlugin {
         //  - copy dependencies jars
         ext.explodeAarDirs.each {
             // explodedDir: **/exploded-aar/$group/$artifact/$version
+            if (it == null) return
+
             File version = it
             File jarDir = new File(version, 'jars')
             File jarFile = new File(jarDir, 'classes.jar')

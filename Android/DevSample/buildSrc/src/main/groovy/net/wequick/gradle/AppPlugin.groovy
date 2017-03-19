@@ -30,6 +30,7 @@ import groovy.io.FileType
 import net.wequick.gradle.aapt.Aapt
 import net.wequick.gradle.aapt.SymbolParser
 import net.wequick.gradle.transform.StripAarTransform
+import net.wequick.gradle.util.AarPath
 import net.wequick.gradle.util.ClassFileUtils
 import net.wequick.gradle.util.JNIUtils
 import net.wequick.gradle.util.Log
@@ -99,7 +100,7 @@ class AppPlugin extends BundlePlugin {
                 mDependentLibProjects.add(it.dependencyProject)
             } else {
                 mCompiledProjects.add(it.dependencyProject)
-                mUserLibAars.add(group: it.group, name: it.name, version: it.version)
+                collectAarsOfLibrary(it.dependencyProject, mUserLibAars)
             }
         }
 
@@ -154,7 +155,7 @@ class AppPlugin extends BundlePlugin {
 
         mLibraryJars.addAll(libDependentJars)
 
-        // Collect stub and small jars
+        // Collect stub and small jars in host
         Set<Project> sharedProjects = []
         sharedProjects.addAll(rootSmall.hostStubProjects)
         if (rootSmall.smallProject != null) {
@@ -166,6 +167,13 @@ class AppPlugin extends BundlePlugin {
             }
             if (jarTask != null) {
                 mLibraryJars.addAll(jarTask.otherFileOutputs)
+            }
+        }
+
+        rootSmall.hostProject.tasks.withType(TransformTask.class).each {
+            if ((it.variantName == 'release' || it.variantName.contains("Release"))
+                    && it.transform.name == 'dex') {
+                mLibraryJars.addAll(it.streamInputs.findAll { it.name.endsWith('.jar') })
             }
         }
 
@@ -984,16 +992,12 @@ class AppPlugin extends BundlePlugin {
     def hookMergeJniLibs(TransformTask t) {
         stripAarFiles(t, { splitPaths ->
             t.streamInputs.each {
-                def version = it.parentFile
-                def name = version.parentFile
-                def group = name.parentFile
-                def root = group.parentFile
-                if (root.name != 'exploded-aar') return
-
-                def aar = [group: group.name, name: name.name, version: version.name]
-                if (mUserLibAars.contains(aar)) {
-                    // keep the user libraries
-                    return
+                AarPath aarPath = new AarPath(it)
+                for (aar in mUserLibAars) {
+                    if (aarPath.explodedFromAar(aar)) {
+                        // keep the user libraries
+                        return
+                    }
                 }
 
                 splitPaths.add(it)
@@ -1101,23 +1105,25 @@ class AppPlugin extends BundlePlugin {
         // Collect aar(s) in lib.*
         mTransitiveDependentLibProjects.each { lib ->
             // lib.* dependencies
-            collectAarsOfProject(lib, smallLibAars)
-
-            // lib.* self
-            smallLibAars.add(group: lib.group, name: lib.name, version: lib.version)
-            // lib.* self for android plugin 2.3.0+
-            File dir = lib.projectDir
-            smallLibAars.add(group: dir.parentFile.name, name: dir.name, version: lib.version)
+            collectAarsOfProject(lib, true, smallLibAars)
         }
 
         // Collect aar(s) in host
-        collectAarsOfProject(rootSmall.hostProject, smallLibAars)
+        collectAarsOfProject(rootSmall.hostProject, false, smallLibAars)
 
         small.splitAars = smallLibAars
         small.retainedAars = mUserLibAars
     }
 
-    protected def collectAarsOfProject(Project project, HashSet outAars) {
+    protected static def collectAarsOfLibrary(Project lib, HashSet outAars) {
+        // lib.* self
+        outAars.add(group: lib.group, name: lib.name, version: lib.version)
+        // lib.* self for android plugin 2.3.0+
+        File dir = lib.projectDir
+        outAars.add(group: dir.parentFile.name, name: dir.name, version: lib.version)
+    }
+
+    protected def collectAarsOfProject(Project project, boolean isLib, HashSet outAars) {
         String dependenciesFileName = "$project.name-D.txt"
 
         // Pure aars
@@ -1127,6 +1133,10 @@ class AppPlugin extends BundlePlugin {
         // Jar-only aars
         file = new File(rootSmall.preLinkJarDir, dependenciesFileName)
         collectAars(file, project, outAars)
+
+        if (isLib) {
+            collectAarsOfLibrary(project, outAars)
+        }
     }
 
     private def hookProcessManifest(Task processManifest) {
