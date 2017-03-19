@@ -47,11 +47,6 @@ class AssetPlugin extends BundlePlugin {
         // Task for log
         def orgGroup = project.preBuild.group // Keep original task group
         project.task('preBuild', group: orgGroup, overwrite: true)
-
-        orgGroup = project.assembleRelease.group
-        project.task('assembleRelease', group: orgGroup, overwrite: true) << {
-            tidyUp()
-        }
     }
 
     @Override
@@ -68,14 +63,14 @@ class AssetPlugin extends BundlePlugin {
 
             from srcDir
             into destDir
-        } << {
+        }.doLast {
             // Generate AndroidManifest.xml
             Aapt aapt = new Aapt(destDir, null, null, android.buildToolsRevision)
             def aaptTask = project.processReleaseResources
             def aaptExe = aaptTask.buildTools.getPath(BuildToolInfo.PathId.AAPT)
             def cf = android.defaultConfig
             def baseAsset = new File(android.getSdkDirectory(),
-                    "platforms/android-${cf.targetSdkVersion.getApiLevel()}/android.jar")
+                    "platforms/${android.getCompileSdkVersion()}/android.jar")
             aapt.manifest(project, [packageName: cf.applicationId,
                                     versionName: cf.versionName, versionCode: cf.versionCode,
                                     aaptExe: aaptExe, baseAsset: baseAsset.path]
@@ -90,7 +85,7 @@ class AssetPlugin extends BundlePlugin {
             }
             inputs.dir srcDir
             outputs.file destFile
-        } << {
+        }.doLast {
             project.ant.zip(baseDir: srcDir, destFile: destFile)
         }
         if (sc == null) {
@@ -104,13 +99,15 @@ class AssetPlugin extends BundlePlugin {
                 srcFile = project.packageAsset.destFile
                 destFile = small.outputFile
             }
-        } << {
+        }.doLast {
             def dir = destFile.parentFile
             if (!dir.exists()) dir.mkdirs()
             ant.signjar(jar: srcFile, signedjar: destFile, keystore: sc.storeFile.path,
                     storepass: sc.storePassword, alias: sc.keyAlias, keypass: sc.keyPassword,
                     digestalg: 'SHA1', sigalg: 'MD5withRSA') // Fix issue #13
         }
-        project.assembleRelease.dependsOn project.signAsset
+        variant.assemble.setDependsOn([])
+        variant.assemble.deleteAllActions()
+        variant.assemble.dependsOn project.signAsset
     }
 }

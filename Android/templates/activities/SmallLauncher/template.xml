@@ -3,9 +3,9 @@
     format="5"
     revision="6"
     name="@Small"
-    description="Configure the Small host which contains a launcher activity, a host application and the bundle.json."
+    description="Configure the Small host which contains a splash activity, a host application and the bundle.json."
     requireAppTheme="true"
-    minApi="11"
+    minApi="9"
     minBuildApi="16">
     <dependency name="android-support-v4" revision="8" />
     <category value="Activity" />

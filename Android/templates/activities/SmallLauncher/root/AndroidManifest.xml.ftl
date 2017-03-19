@@ -1,14 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" >
 
-    <application android:name="${relativePackage}.HostApp">
+    <application android:name="${relativePackage}.SmallApp">
         <activity android:name="${relativePackage}.${activityClass}"
             <#if isNewProject>
             android:label="@string/app_name"
             <#else>
             android:label="@string/title_${simpleName}"
             </#if>
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:theme="@style/FullscreenTheme"
+            android:theme="@style/SplashTheme"
             <#if buildApi gte 16 && parentActivityClass != "">android:parentActivityName="${parentActivityClass}"</#if>>
             <#if parentActivityClass != "">
             <meta-data android:name="android.support.PARENT_ACTIVITY"

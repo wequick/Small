@@ -17,6 +17,7 @@
 package net.wequick.small;
 
 import android.app.Activity;
+import android.app.Application;
 import android.content.Context;
 import android.net.Uri;
 import android.text.TextUtils;
@@ -84,6 +85,16 @@ import android.text.TextUtils;
  *  </table>
  */
 public abstract class BundleLauncher {
+
+    /**
+     * Called when the launcher is instantiated. This is where most initialization
+     * should go: initialize the application, hook some app-wide fields or methods.
+     * This method is called before the application onCreate method, to make a better performance,
+     * do as less thing in it as possible.
+     *
+     * @param app the starting application.
+     */
+    public void onCreate(Application app) { }
 
     /**
      * Called when Small is setUp by {@link Small#setUp}. This is where most initialization

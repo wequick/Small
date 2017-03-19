@@ -1,13 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="net.wequick.small">
 
-    <!-- permission for accessing plugin apk -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <!-- permission for web view -->
     <uses-permission android:name="android.permission.INTERNET"/>
-    <!-- permission for check if application is started by unexpected exit -->
-    <uses-permission android:name="android.permission.GET_TASKS"/>
 
     <application>
         <!-- Stub Activities -->

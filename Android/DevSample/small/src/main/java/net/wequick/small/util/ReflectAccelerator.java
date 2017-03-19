@@ -23,13 +23,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.AssetManager;
-import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.ArrayMap;
-import android.util.DisplayMetrics;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,7 +39,7 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import java.util.zip.ZipFile;
 
 import dalvik.system.DexClassLoader;
@@ -57,6 +55,9 @@ public class ReflectAccelerator {
     // ActivityClientRecord
     private static Field sActivityClientRecord_intent_field;
     private static Field sActivityClientRecord_activityInfo_field;
+
+    private static ArrayMap<Object, WeakReference<Object>> sResourceImpls;
+    private static Object/*ResourcesImpl*/ sMergedResourcesImpl;
 
     private ReflectAccelerator() { /** cannot be instantiated */ }
 
@@ -389,8 +390,14 @@ public class ReflectAccelerator {
         return invoke(sAssetManager_addAssetPaths_method, assets, new Object[]{paths});
     }
 
-    public static void mergeResources(Application app, String[] assetPaths) {
-        AssetManager newAssetManager = newAssetManager();
+    public static void mergeResources(Application app, Object activityThread, String[] assetPaths) {
+        AssetManager newAssetManager;
+        if (Build.VERSION.SDK_INT < 24) {
+            newAssetManager = newAssetManager();
+        } else {
+            // On Android 7.0+, this should contains a WebView asset as base. #347
+            newAssetManager = app.getAssets();
+        }
         addAssetPaths(newAssetManager, assetPaths);
 
         try {
@@ -418,13 +425,17 @@ public class ReflectAccelerator {
 
                     references = (Collection) mResourceReferences.get(resourcesManager);
                 }
-            } else {
-                Class<?> activityThread = Class.forName("android.app.ActivityThread");
-                Field fMActiveResources = activityThread.getDeclaredField("mActiveResources");
-                fMActiveResources.setAccessible(true);
-                Object thread = getActivityThread(app, activityThread);
 
-                HashMap<?, WeakReference<Resources>> map = (HashMap)fMActiveResources.get(thread);
+                if (Build.VERSION.SDK_INT >= 24) {
+                    Field fMResourceImpls = resourcesManagerClass.getDeclaredField("mResourceImpls");
+                    fMResourceImpls.setAccessible(true);
+                    sResourceImpls = (ArrayMap)fMResourceImpls.get(resourcesManager);
+                }
+            } else {
+                Field fMActiveResources = activityThread.getClass().getDeclaredField("mActiveResources");
+                fMActiveResources.setAccessible(true);
+
+                HashMap<?, WeakReference<Resources>> map = (HashMap)fMActiveResources.get(activityThread);
 
                 references = map.values();
             }
@@ -441,9 +452,21 @@ public class ReflectAccelerator {
                     Field mResourcesImpl = Resources.class.getDeclaredField("mResourcesImpl");
                     mResourcesImpl.setAccessible(true);
                     Object resourceImpl = mResourcesImpl.get(resources);
-                    Field implAssets = resourceImpl.getClass().getDeclaredField("mAssets");
+                    Field implAssets;
+                    try {
+                        implAssets = resourceImpl.getClass().getDeclaredField("mAssets");
+                    } catch (NoSuchFieldException e) {
+                        // Compat for MiUI 8+
+                        implAssets = resourceImpl.getClass().getSuperclass().getDeclaredField("mAssets");
+                    }
                     implAssets.setAccessible(true);
                     implAssets.set(resourceImpl, newAssetManager);
+
+                    if (Build.VERSION.SDK_INT >= 24) {
+                        if (resources == app.getResources()) {
+                            sMergedResourcesImpl = resourceImpl;
+                        }
+                    }
                 }
 
                 resources.updateConfiguration(resources.getConfiguration(), resources.getDisplayMetrics());
@@ -469,8 +492,27 @@ public class ReflectAccelerator {
         }
     }
 
-    public static Object getActivityThread(Context context, Class<?> activityThread) {
+    public static void ensureCacheResources() {
+        if (Build.VERSION.SDK_INT < 24) return;
+        if (sResourceImpls == null || sMergedResourcesImpl == null) return;
+
+        Set<?> resourceKeys = sResourceImpls.keySet();
+        for (Object resourceKey : resourceKeys) {
+            WeakReference resourceImpl = (WeakReference)sResourceImpls.get(resourceKey);
+            if (resourceImpl != null && resourceImpl.get() == null) {
+                // Sometimes? the weak reference for the key was released by what
+                // we can not find the cache resources we had merged before.
+                // And the system will recreate a new one which only build with host resources.
+                // So we needs to restore the cache. Fix #429.
+                // FIXME: we'd better to find the way to KEEP the weak reference.
+                sResourceImpls.put(resourceKey, new WeakReference<Object>(sMergedResourcesImpl));
+            }
+        }
+    }
+
+    public static Object getActivityThread(Context context) {
         try {
+            Class activityThread = Class.forName("android.app.ActivityThread");
             // ActivityThread.currentActivityThread()
             Method m = activityThread.getMethod("currentActivityThread", new Class[0]);
             m.setAccessible(true);
@@ -484,9 +526,21 @@ public class ReflectAccelerator {
             Field mActivityThreadField = apk.getClass().getDeclaredField("mActivityThread");
             mActivityThreadField.setAccessible(true);
             return mActivityThreadField.get(apk);
-        } catch (Throwable ignore) {}
+        } catch (Throwable ignore) {
+            throw new RuntimeException("Failed to get mActivityThread from context: " + context);
+        }
+    }
 
-        return null;
+    public static Application getApplication() {
+        try {
+            Class activityThread = Class.forName("android.app.ActivityThread");
+            // ActivityThread.currentActivityThread()
+            Method m = activityThread.getMethod("currentApplication", new Class[0]);
+            m.setAccessible(true);
+            return (Application) m.invoke(null, new Object[0]);
+        } catch (Throwable ignore) {
+            throw new RuntimeException("Failed to get current application!");
+        }
     }
 
     public static boolean expandDexPathList(ClassLoader cl, String[] dexPaths, DexFile[] dexFiles) {

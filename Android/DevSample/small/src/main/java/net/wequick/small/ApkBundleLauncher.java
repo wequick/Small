@@ -27,6 +27,7 @@ import android.content.ContextWrapper;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.ProviderInfo;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.os.Handler;
@@ -35,6 +36,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.os.Message;
+import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 import android.view.Window;
 
@@ -44,6 +46,9 @@ import net.wequick.small.util.ReflectAccelerator;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -96,10 +101,14 @@ public class ApkBundleLauncher extends SoBundleLauncher {
     private static ConcurrentHashMap<String, ActivityInfo> sLoadedActivities;
     private static ConcurrentHashMap<String, List<IntentFilter>> sLoadedIntentFilters;
 
-    protected static Instrumentation sHostInstrumentation;
-    private static Instrumentation sBundleInstrumentation;
+    private static Instrumentation sHostInstrumentation;
+    private static InstrumentationWrapper sBundleInstrumentation;
 
     private static final char REDIRECT_FLAG = '>';
+
+    private static Object sActivityThread;
+    private static List<ProviderInfo> sProviders;
+    private static List<ProviderInfo> mLazyInitProviders;
 
     /**
      * Class for restore activity info from Stub to Real
@@ -107,32 +116,76 @@ public class ApkBundleLauncher extends SoBundleLauncher {
     private static class ActivityThreadHandlerCallback implements Handler.Callback {
 
         private static final int LAUNCH_ACTIVITY = 100;
+        private static final int CREATE_SERVICE = 114;
 
         @Override
         public boolean handleMessage(Message msg) {
-            if (msg.what != LAUNCH_ACTIVITY) return false;
+            switch (msg.what) {
+                case LAUNCH_ACTIVITY:
+                    redirectActivity(msg);
+                    break;
 
+                case CREATE_SERVICE:
+                    ensureServiceClassesLoadable(msg);
+                    break;
+
+                default:
+                    break;
+            }
+
+            return false;
+        }
+
+        private void redirectActivity(Message msg) {
             Object/*ActivityClientRecord*/ r = msg.obj;
             Intent intent = ReflectAccelerator.getIntent(r);
             String targetClass = unwrapIntent(intent);
-            if (targetClass == null) return false;
+            boolean hasSetUp = Small.hasSetUp();
+            if (targetClass == null) {
+                // The activity was register in the host.
+                if (hasSetUp) return; // nothing to do
+
+                if (intent.hasCategory(Intent.CATEGORY_LAUNCHER)) {
+                    // The launcher activity will setup Small.
+                    return;
+                }
+
+                // Launching an activity in remote process. Set up Small for it.
+                Small.setUpOnDemand();
+                return;
+            }
+
+            if (!hasSetUp) {
+                // Restarting an activity after application recreated,
+                // maybe upgrading or somehow the application was killed in background.
+                Small.setUp();
+            }
 
             // Replace with the REAL activityInfo
             ActivityInfo targetInfo = sLoadedActivities.get(targetClass);
             ReflectAccelerator.setActivityInfo(r, targetInfo);
-            return false;
+        }
+
+        private void ensureServiceClassesLoadable(Message msg) {
+            // Cause Small is only setup in current application process, if a service is specified
+            // with a different process('android:process=xx'), then we should also setup Small for
+            // that process so that the service classes can be successfully loaded.
+            Small.setUpOnDemand();
         }
     }
 
     /**
      * Class for redirect activity from Stub(AndroidManifest.xml) to Real(Plugin)
      */
-    private static class InstrumentationWrapper extends Instrumentation
+    protected static class InstrumentationWrapper extends Instrumentation
             implements InstrumentationInternal {
 
+        private Instrumentation mBase;
         private static final int STUB_ACTIVITIES_COUNT = 4;
 
-        public InstrumentationWrapper() { }
+        public InstrumentationWrapper(Instrumentation base) {
+            mBase = base;
+        }
 
         /** @Override V21+
          * Wrap activity from REAL to STUB */
@@ -140,7 +193,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 Context who, IBinder contextThread, IBinder token, Activity target,
                 Intent intent, int requestCode, android.os.Bundle options) {
             wrapIntent(intent);
-            return ReflectAccelerator.execStartActivity(sHostInstrumentation,
+            return ReflectAccelerator.execStartActivity(mBase,
                     who, contextThread, token, target, intent, requestCode, options);
         }
 
@@ -150,7 +203,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 Context who, IBinder contextThread, IBinder token, Activity target,
                 Intent intent, int requestCode) {
             wrapIntent(intent);
-            return ReflectAccelerator.execStartActivity(sHostInstrumentation,
+            return ReflectAccelerator.execStartActivity(mBase,
                     who, contextThread, token, target, intent, requestCode);
         }
 
@@ -163,6 +216,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 if (ai == null) break;
 
                 applyActivityInfo(activity, ai);
+                ReflectAccelerator.ensureCacheResources();
             } while (false);
             sHostInstrumentation.callActivityOnCreate(activity, icicle);
 
@@ -193,22 +247,38 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             // and while we are back to foreground, all the things(code & layout) will be reload.
             // Don't worry about the data missing in current activity, you can do all the backups
             // with your activity's `onSaveInstanceState' and `onRestoreInstanceState'.
+
+            // Get all the processes of device (1)
             ActivityManager am = (ActivityManager) activity.getSystemService(Context.ACTIVITY_SERVICE);
             List<RunningAppProcessInfo> processes = am.getRunningAppProcesses();
             if (processes == null) return;
 
+            // Gather all the processes of current application (2)
+            // Above 5.1.1, this may be equals to (1), on the safe side, we also
+            // filter the processes with current package name.
             String pkg = activity.getApplicationContext().getPackageName();
-            ActivityManager.RunningAppProcessInfo self = null;
-            for (ActivityManager.RunningAppProcessInfo p : processes) {
-                if (p.processName.equals(pkg)) {
-                    self = p;
-                    break;
-                }
-            }
-            if (self == null) return;
-            if (self.importance == RunningAppProcessInfo.IMPORTANCE_FOREGROUND) return;
+            final List<RunningAppProcessInfo> currentAppProcesses = new ArrayList<>(processes.size());
+            for (RunningAppProcessInfo p : processes) {
+                if (p.pkgList == null) continue;
 
-            final int pid = self.pid;
+                boolean match = false;
+                int N = p.pkgList.length;
+                for (int i = 0; i < N; i++) {
+                    if (p.pkgList[i].equals(pkg)) {
+                        match = true;
+                        break;
+                    }
+                }
+                if (!match) continue;
+
+                currentAppProcesses.add(p);
+            }
+            if (currentAppProcesses.isEmpty()) return;
+
+            // The top process of current application processes.
+            RunningAppProcessInfo currentProcess = currentAppProcesses.get(0);
+            if (currentProcess.importance == RunningAppProcessInfo.IMPORTANCE_FOREGROUND) return;
+
             // Seems should delay some time to ensure the activity can be successfully
             // restarted after the application restart.
             // FIXME: remove following thread if you find the better place to `killProcess'
@@ -220,7 +290,9 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    android.os.Process.killProcess(pid);
+                    for (RunningAppProcessInfo p : currentAppProcesses) {
+                        android.os.Process.killProcess(p.pid);
+                    }
                 }
             }.start();
         }
@@ -237,18 +309,66 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             sHostInstrumentation.callActivityOnDestroy(activity);
         }
 
+        @Override
+        public boolean onException(Object obj, Throwable e) {
+            if (sProviders != null && e.getClass().equals(ClassNotFoundException.class)) {
+                boolean errorOnInstallProvider = false;
+                StackTraceElement[] stacks = e.getStackTrace();
+                for (StackTraceElement st : stacks) {
+                    if (st.getMethodName().equals("installProvider")) {
+                        errorOnInstallProvider = true;
+                        break;
+                    }
+                }
+
+                if (errorOnInstallProvider) {
+                    // We'll reinstall this content provider later, so just ignores it!!!
+                    // FIXME: any better way to get the class name?
+                    String msg = e.getMessage();
+                    final String prefix = "Didn't find class \"";
+                    if (msg.startsWith(prefix)) {
+                        String providerClazz = msg.substring(prefix.length());
+                        providerClazz = providerClazz.substring(0, providerClazz.indexOf("\""));
+                        for (ProviderInfo info : sProviders) {
+                            if (info.name.equals(providerClazz)) {
+                                if (mLazyInitProviders == null) {
+                                    mLazyInitProviders = new ArrayList<ProviderInfo>();
+                                }
+                                mLazyInitProviders.add(info);
+                                break;
+                            }
+                        }
+                    }
+                    return true;
+                }
+            }
+
+            return super.onException(obj, e);
+        }
+
         private void wrapIntent(Intent intent) {
             ComponentName component = intent.getComponent();
             String realClazz;
             if (component == null) {
-                // Implicit way to start an activity
+                // Try to resolve the implicit action which has registered in host.
                 component = intent.resolveActivity(Small.getContext().getPackageManager());
-                if (component != null) return; // ignore system or host action
+                if (component != null) {
+                    // A system or host action, nothing to be done.
+                    return;
+                }
 
+                // Try to resolve the implicit action which has registered in bundles.
                 realClazz = resolveActivity(intent);
-                if (realClazz == null) return;
+                if (realClazz == null) {
+                    // Cannot resolved, nothing to be done.
+                    return;
+                }
             } else {
                 realClazz = component.getClassName();
+                if (realClazz.startsWith(STUB_ACTIVITY_PREFIX)) {
+                    // Re-wrap to ensure the launch mode works.
+                    realClazz = unwrapIntent(intent);
+                }
             }
 
             if (sLoadedActivities == null) return;
@@ -346,6 +466,20 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 }
             }
         }
+
+        private void setStubQueue(String mode, String realActivityClazz) {
+            int launchMode = mode.charAt(0) - '0';
+            int stubIndex = mode.charAt(1) - '0';
+            int offset = (launchMode - 1) * STUB_ACTIVITIES_COUNT + stubIndex;
+            if (mStubQueue == null) {
+                mStubQueue = new String[STUB_ACTIVITIES_COUNT * 3];
+            }
+            mStubQueue[offset] = realActivityClazz;
+        }
+    }
+
+    public static void wrapIntent(Intent intent) {
+        sBundleInstrumentation.wrapIntent(intent);
     }
 
     private static String unwrapIntent(Intent intent) {
@@ -395,39 +529,86 @@ public class ApkBundleLauncher extends SoBundleLauncher {
     }
 
     @Override
+    public void onCreate(Application app) {
+        super.onCreate(app);
+
+        Object/*ActivityThread*/ thread;
+        List<ProviderInfo> providers;
+        Instrumentation base;
+        ApkBundleLauncher.InstrumentationWrapper wrapper;
+        Field f;
+
+        // Get activity thread
+        thread = ReflectAccelerator.getActivityThread(app);
+
+        // Replace instrumentation
+        try {
+            f = thread.getClass().getDeclaredField("mInstrumentation");
+            f.setAccessible(true);
+            base = (Instrumentation) f.get(thread);
+            wrapper = new ApkBundleLauncher.InstrumentationWrapper(base);
+            f.set(thread, wrapper);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to replace instrumentation for thread: " + thread);
+        }
+
+        // Inject message handler
+        try {
+            f = thread.getClass().getDeclaredField("mH");
+            f.setAccessible(true);
+            Handler ah = (Handler) f.get(thread);
+            f = Handler.class.getDeclaredField("mCallback");
+            f.setAccessible(true);
+            f.set(ah, new ApkBundleLauncher.ActivityThreadHandlerCallback());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to replace message handler for thread: " + thread);
+        }
+
+        // Get providers
+        try {
+            f = thread.getClass().getDeclaredField("mBoundApplication");
+            f.setAccessible(true);
+            Object/*AppBindData*/ data = f.get(thread);
+            f = data.getClass().getDeclaredField("providers");
+            f.setAccessible(true);
+            providers = (List<ProviderInfo>) f.get(data);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to get providers from thread: " + thread);
+        }
+
+        sActivityThread = thread;
+        sProviders = providers;
+        sHostInstrumentation = base;
+        sBundleInstrumentation = wrapper;
+    }
+
+    @Override
     public void setUp(Context context) {
         super.setUp(context);
-        if (sHostInstrumentation == null) {
-            try {
-                // Inject instrumentation
-                final Class<?> activityThreadClass = Class.forName("android.app.ActivityThread");
-                Object thread = ReflectAccelerator.getActivityThread(context, activityThreadClass);
-                Field field = activityThreadClass.getDeclaredField("mInstrumentation");
-                field.setAccessible(true);
-                sHostInstrumentation = (Instrumentation) field.get(thread);
-                Instrumentation wrapper = new InstrumentationWrapper();
-                field.set(thread, wrapper);
-                if (!sHostInstrumentation.getClass().getName().equals("android.app.Instrumentation")) {
-                    sBundleInstrumentation = wrapper; // record for later replacement
-                }
 
-                if (context instanceof Activity) {
-                    field = Activity.class.getDeclaredField("mInstrumentation");
-                    field.setAccessible(true);
-                    field.set(context, wrapper);
-                }
+        Field f;
 
-                // Inject handler
-                field = activityThreadClass.getDeclaredField("mH");
-                field.setAccessible(true);
-                Handler ah = (Handler) field.get(thread);
-                field = Handler.class.getDeclaredField("mCallback");
-                field.setAccessible(true);
-                field.set(ah, new ActivityThreadHandlerCallback());
-            } catch (Exception ignored) {
-                ignored.printStackTrace();
-                // Usually, cannot reach here
-            }
+        // AOP for pending intent
+        try {
+            f = TaskStackBuilder.class.getDeclaredField("IMPL");
+            f.setAccessible(true);
+            final Object impl = f.get(TaskStackBuilder.class);
+            InvocationHandler aop = new InvocationHandler() {
+                @Override
+                public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                    Intent[] intents = (Intent[]) args[1];
+                    for (Intent intent : intents) {
+                        sBundleInstrumentation.wrapIntent(intent);
+                        intent.setAction(Intent.ACTION_MAIN);
+                        intent.addCategory(Intent.CATEGORY_LAUNCHER);
+                    }
+                    return method.invoke(impl, args);
+                }
+            };
+            Object newImpl = Proxy.newProxyInstance(context.getClassLoader(), impl.getClass().getInterfaces(), aop);
+            f.set(TaskStackBuilder.class, newImpl);
+        } catch (Exception ignored) {
+            ignored.printStackTrace();
         }
     }
 
@@ -454,7 +635,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         if (i != paths.length) {
             paths = Arrays.copyOf(paths, i);
         }
-        ReflectAccelerator.mergeResources(app, paths);
+        ReflectAccelerator.mergeResources(app, sActivityThread, paths);
 
         // Merge all the dex into host's class loader
         ClassLoader cl = app.getClassLoader();
@@ -510,8 +691,22 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             }
         }
 
+        // Lazy init content providers
+        if (mLazyInitProviders != null) {
+            try {
+                Method m = sActivityThread.getClass().getDeclaredMethod(
+                        "installContentProviders", Context.class, List.class);
+                m.setAccessible(true);
+                m.invoke(sActivityThread, app, mLazyInitProviders);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to lazy init content providers: " + mLazyInitProviders);
+            }
+        }
+
         // Free temporary variables
         sLoadedApks = null;
+        sProviders = null;
+        sActivityThread = null;
     }
 
     @Override

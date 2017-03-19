@@ -2,6 +2,7 @@ ext {
     versionTags = [
             [start: "gradle-small:", end: "'", path: 'README.md'],
             [start: "gradle-small:", end: "'", path: '../../Sample/build.gradle'],
+            [start: "gradle-small:", end: "'", path: '../../../Android/README.md'],
             [start: "gradle-small:", end: "'", path: '../../../Android/GETTING-STARTED.md'],
             [start: '"smallPluginVersion" value="', end: '" />', path: '../../../Android/templates/activities/SmallLauncher/globals.xml.ftl']
     ]
@@ -32,7 +33,7 @@ def updateVersions() {
     }
 }
 
-task checkVersions << {
+task ('checkVersions') .doLast {
     def changelog = project.file('CHANGELOG.md')
     if (!changelog.exists()) return
 
@@ -45,7 +46,7 @@ task checkVersions << {
     }
 }
 
-task updateVersions << {
+task ('updateVersions') .doLast {
     updateVersions()
 }
 

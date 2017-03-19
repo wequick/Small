@@ -6,6 +6,20 @@
 	objectVersion = 46;
 	objects = {
 
+/* Begin PBXAggregateTarget section */
+		F8FB32691D8596F700A52286 /* InitSmallProjects */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = F8FB326C1D8596F700A52286 /* Build configuration list for PBXAggregateTarget "InitSmallProjects" */;
+			buildPhases = (
+				F8FB326D1D85970800A52286 /* Run Script */,
+			);
+			dependencies = (
+			);
+			name = InitSmallProjects;
+			productName = InitSmallProjects;
+		};
+/* End PBXAggregateTarget section */
+
 /* Begin PBXBuildFile section */
 		1BB3946C3661C9F885E56442 /* Pods_Sample.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 108ED5151086A43DBA8C30B9 /* Pods_Sample.framework */; };
 		F8B344F91C5A0712003AA7C3 /* net_wequick_example_small_app_detail.framework in Resources */ = {isa = PBXBuildFile; fileRef = F8B344EC1C5A06ED003AA7C3 /* net_wequick_example_small_app_detail.framework */; };
@@ -107,6 +121,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = F8F023BC1C574A8C002B0A00;
 			remoteInfo = web.about;
+		};
+		F8FB32761D85A32600A52286 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F8E4AD231C51F83400BB6DD4 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F8FB32691D8596F700A52286;
+			remoteInfo = InitSmallProjects;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -274,16 +295,17 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = F8E4AD421C51F83400BB6DD4 /* Build configuration list for PBXNativeTarget "Sample" */;
 			buildPhases = (
-				3B51F224C98125B9C19CEF74 /* Check Pods Manifest.lock */,
+				3B51F224C98125B9C19CEF74 /* [CP] Check Pods Manifest.lock */,
 				F8E4AD271C51F83400BB6DD4 /* Sources */,
 				F8E4AD281C51F83400BB6DD4 /* Frameworks */,
 				F8E4AD291C51F83400BB6DD4 /* Resources */,
-				5B1881B12A1169996563C03E /* Embed Pods Frameworks */,
-				CF91B81F852B1731379E894E /* Copy Pods Resources */,
+				5B1881B12A1169996563C03E /* [CP] Embed Pods Frameworks */,
+				CF91B81F852B1731379E894E /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				F8FB32771D85A32600A52286 /* PBXTargetDependency */,
 				F8B344EE1C5A0700003AA7C3 /* PBXTargetDependency */,
 				F8B344F01C5A0700003AA7C3 /* PBXTargetDependency */,
 				F8B344F21C5A0700003AA7C3 /* PBXTargetDependency */,
@@ -307,6 +329,9 @@
 				TargetAttributes = {
 					F8E4AD2A1C51F83400BB6DD4 = {
 						CreatedOnToolsVersion = 7.1;
+					};
+					F8FB32691D8596F700A52286 = {
+						CreatedOnToolsVersion = 7.3.1;
 					};
 				};
 			};
@@ -350,6 +375,7 @@
 			projectRoot = "";
 			targets = (
 				F8E4AD2A1C51F83400BB6DD4 /* Sample */,
+				F8FB32691D8596F700A52286 /* InitSmallProjects */,
 			);
 		};
 /* End PBXProject section */
@@ -420,14 +446,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		3B51F224C98125B9C19CEF74 /* Check Pods Manifest.lock */ = {
+		3B51F224C98125B9C19CEF74 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 			);
-			name = "Check Pods Manifest.lock";
+			name = "[CP] Check Pods Manifest.lock";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -435,14 +461,14 @@
 			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
 			showEnvVarsInLog = 0;
 		};
-		5B1881B12A1169996563C03E /* Embed Pods Frameworks */ = {
+		5B1881B12A1169996563C03E /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 			);
-			name = "Embed Pods Frameworks";
+			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -450,20 +476,34 @@
 			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Sample/Pods-Sample-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		CF91B81F852B1731379E894E /* Copy Pods Resources */ = {
+		CF91B81F852B1731379E894E /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 			);
-			name = "Copy Pods Resources";
+			name = "[CP] Copy Pods Resources";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Sample/Pods-Sample-resources.sh\"\n";
 			showEnvVarsInLog = 0;
+		};
+		F8FB326D1D85970800A52286 /* Run Script */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Run Script";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "./Small-subprojects.rb";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -510,6 +550,11 @@
 			isa = PBXTargetDependency;
 			name = web.about;
 			targetProxy = F8B344F71C5A0700003AA7C3 /* PBXContainerItemProxy */;
+		};
+		F8FB32771D85A32600A52286 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F8FB32691D8596F700A52286 /* InitSmallProjects */;
+			targetProxy = F8FB32761D85A32600A52286 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -639,6 +684,20 @@
 			};
 			name = Release;
 		};
+		F8FB326A1D8596F700A52286 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		F8FB326B1D8596F700A52286 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -656,6 +715,15 @@
 			buildConfigurations = (
 				F8E4AD431C51F83400BB6DD4 /* Debug */,
 				F8E4AD441C51F83400BB6DD4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F8FB326C1D8596F700A52286 /* Build configuration list for PBXAggregateTarget "InitSmallProjects" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F8FB326A1D8596F700A52286 /* Debug */,
+				F8FB326B1D8596F700A52286 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

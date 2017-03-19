@@ -11,22 +11,13 @@ Pod::Spec.new do |s|
 
   s.platform     = :ios, "7.0"
 
-  s.source       = { :git => "https://github.com/wequick/Small.git", :tag => "{s.version}" }
+  s.source       = { :git => "https://github.com/wequick/Small.git", :tag => "ios-#{s.version}" }
 
   s.source_files = "iOS/Small/*.{h,m}", "iOS/Small/Classes/*"
   s.public_header_files = "iOS/Small/*.h", "iOS/Small/Classes/*.h"
   s.private_header_files = "iOS/Small/Classes/_*.h"
-  s.subspec 'no-arc' do |sp|
-    sp.requires_arc = false
-    sp.source_files = "iOS/Small/Vendor/**/*"
-    sp.public_header_files = "iOS/Small/Vendor/ZipArchive/ZipArchive.h"
-    sp.private_header_files = "iOS/Small/Vendor/ZipArchive/minizip/*.h"
-  end
 
   s.framework  = "UIKit"
-  s.library    = "z.1.2.5"
 
-  s.vendored_framework = "Small.framework"
-
-  s.pod_target_xcconfig = { 'CONFIGURATION_BUILD_DIR' => '$PODS_CONFIGURATION_BUILD_DIR' }
+  s.dependency "ZipArchive"
 end

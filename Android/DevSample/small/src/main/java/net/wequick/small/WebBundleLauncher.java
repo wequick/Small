@@ -17,8 +17,11 @@
 package net.wequick.small;
 
 import android.app.Activity;
+import android.content.Context;
+import android.os.Build;
 
 import net.wequick.small.webkit.WebActivity;
+import net.wequick.small.webkit.WebView;
 
 /**
  * This class launch the plugin html file with an internal {@link WebActivity}.
@@ -54,5 +57,23 @@ public class WebBundleLauncher extends AssetBundleLauncher {
     @Override
     protected Class<? extends Activity> getActivityClass() {
         return WebActivity.class;
+    }
+
+    @Override
+    public void setUp(Context context) {
+        super.setUp(context);
+        if (Build.VERSION.SDK_INT < 24) return;
+
+        Bundle.postUI(new Runnable() {
+            @Override
+            public void run() {
+                // In android 7.0+, on firstly create WebView, it will replace the application
+                // assets with the one who has join the WebView asset path.
+                // If this happens after our assets replacement,
+                // what we have done would be come to naught!
+                // So, we need to push it enOOOgh ahead! (#347)
+                new android.webkit.WebView(Small.getContext());
+            }
+        });
     }
 }

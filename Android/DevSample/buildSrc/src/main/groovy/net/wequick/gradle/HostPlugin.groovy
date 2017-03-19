@@ -15,11 +15,12 @@ class HostPlugin extends AndroidPlugin {
         
         project.afterEvaluate {
             // Configure libs dir
-            def jniDirs = android.sourceSets.main.jniLibs.srcDirs
-            if (jniDirs == null) {
-                android.sourceSets.main.jniLibs.srcDirs = [SMALL_LIBS]
+            def sourceSet = project.android.sourceSets.main
+            def source = rootSmall.buildToAssets ? sourceSet.assets : sourceSet.jniLibs
+            if (source.srcDirs == null) {
+                source.srcDirs = [SMALL_LIBS]
             } else {
-                android.sourceSets.main.jniLibs.srcDirs += SMALL_LIBS
+                source.srcDirs += SMALL_LIBS
             }
             // If contains release signing config, all bundles will be signed with it,
             // copy the config to debug type to ensure the signature-validating works
@@ -28,6 +29,10 @@ class HostPlugin extends AndroidPlugin {
             if (releaseSigningConfig != null) {
                 android.buildTypes.debug.signingConfig = releaseSigningConfig
             }
+
+            // Add a build config to specify whether load-from-assets or not.
+            android.defaultConfig.buildConfigField(
+                    "boolean", "LOAD_FROM_ASSETS", rootSmall.buildToAssets ? "true" : "false")
         }
     }
 

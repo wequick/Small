@@ -44,8 +44,8 @@ public class MainActivity extends AppCompatActivity {
      */
     private ViewPager mViewPager;
 
-    private static String[] sUris = new String[] {"home", "mine"};
-    private static String[] sTitles = new String[] {"Home", "Mine"};
+    private static String[] sUris = new String[] {"home", "mine", "stub"};
+    private static String[] sTitles = new String[] {"Home", "Mine", "Stub"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

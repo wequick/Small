@@ -1,68 +1,41 @@
-# Small
+![small-header][header]
 
 世界那么大，组件那么小。Small，做最轻巧的跨平台插件化框架。
 
-[![Join the chat at https://gitter.im/wequick/Small](https://badges.gitter.im/wequick/Small.svg)](https://gitter.im/wequick/Small?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[Android](Android) API 9(2.3)+  [iOS](iOS) 7.0+
+
 [![License Apache2.0](https://img.shields.io/hexpm/l/plug.svg)][license]
 
+官网：http://code.wequick.net/Small
 
-支持平台：[Android](Android) API 9(2.3)+  [iOS](iOS) 7.0+
+## 架构
 
-![Small][icon]
+![small-arch][arch]
 
-## 功能
-* **完美内置**
-  - 所有插件支持内置于宿主包中
-* **高度透明**
-  - 插件编码、布局编写方式与独立应用开发无异
-  - 插件代码调试与整包开发无异
-* **极致剪裁**
-  - 对插件分离所有一切能分离的公共代码、资源
-* **无缝链接**
-  - 通过设定URI，宿主、本地化应用插件、本地化web插件、在线网页，以及任何自定义的插件之间能够相互调起与传递参数
-* **跨平台**
-  - 目前已支持[Android](Android)、[iOS](iOS)以及html5插件。并且三者之间可以通过同一套Javascript接口进行通信。
+## 快照
 
-## 文档
-开发细节、代码原理见 [Small Wiki][wiki]
+![small-snapshot][snapshot]
 
-## 协议
-Apache License 2.0
-
-## 重要入口贴三遍
-
-[Android](Android) [Android](Android) [Android](Android)
-
-[iOS](iOS) [iOS](iOS) [iOS](iOS)
-
-# English Version
-
-A small framework to split an app into small parts.
-
-## Features
-* **Perfection built-in**
-  - All plugins are supported to build in host application.
-* **Highly transparent**
-  - The plugin codings (code, layout, etc.) are the same as a single application.
-  - Support plugin debugging just like a completion application.
-* **Ultimate slicing**
-  - Splits out any shared code and resources from plugins.
-* **Seamless connection**
-  - The host, native app bundle, native web bundle, online web page and any custom bundle can launch and pass parameters to each other with a simple URI.
-* **Cross platforms**
-  - Until now, we support Android, iOS and HTML5 plugins. In addition, they can communicate with each other through a uniform JavaScript interface.
-
-## Getting Started
+## 入门
 
 * [Android](Android)
 * [iOS](iOS)
 
-## Documentation
-The development details and the code principles are on [Small Wiki][wiki].
+## 进阶
 
-## License
-Apache License 2.0
+* [原理介绍][wiki]
+* [贡献指南][CG]
+* [加入开发][CLA]
 
-[wiki]: https://github.com/wequick/Small/wiki
+![small-footer][footer]
+
+[header]: http://code.wequick.net/assets/images/small-header.png
+[footer]: http://code.wequick.net/assets/images/small-footer.png
+[arch]: http://code.wequick.net/assets/images/small-architecture.png
+[snapshot]: http://code.wequick.net/assets/anims/small-upgrade.gif
 [license]: https://raw.githubusercontent.com/wequick/Small/master/LICENSE
-[icon]: http://code.wequick.net/images/small-icon-512.png
+[wiki]: https://github.com/wequick/Small/wiki
+[android-tour]: https://github.com/wequick/Small/tree/master/Android
+[iOS-tour]: https://github.com/wequick/Small/tree/master/iOS
+[CG]: https://github.com/wequick/Small/blob/master/%E8%B4%A1%E7%8C%AE%E6%8C%87%E5%8D%97.md
+[CLA]: https://goo.gl/forms/HUdWjUrtOxQ3kX7A2

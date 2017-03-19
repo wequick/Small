@@ -1,3 +1,113 @@
+## 1.2.0-beta1 (2017-03-19)
+
+Features:
+
+  - 兼容 Android Plugin 2.3.0 (@xufun)
+
+## 1.1.0-alpha2 (2017-02-25)
+
+Features:
+
+  - 增加 `gradlew smallLint` 任务用于检查插件问题
+    - 检查是否包含重复类，以避免 pre-verified 与 AppCompat主题闪退问题
+
+  - `aarVersion` 默认与 `gradle-small` 版本保持一致
+
+Bugfixes:
+
+  - 修正第三方jar未被分离的问题 (#378)
+  - 修正第三方so未被正确打包进插件的问题 (#367, #381)
+  - 修正 `support-compat` 与 `support-core-utils` 冲突的问题
+  - 修正不包含资源的插件包在混淆时无法编译的问题
+
+Refactor:
+
+  - 导出 util.Log 类用于打印彩色日志
+  - 使用 taskGraph 监听来完成插件编译开始与结束日志
+
+## 1.1.0-beta4 (2016-12-12)
+
+Bugfixes:
+
+  - 修正无法正确引用 `app+stub` 模块中的代码和资源的问题 (#364, #371)
+
+## 1.1.0-beta3 (2016-11-10)
+
+Features:
+
+  - 自动为宿主添加 `BuildConfig.LOAD_FROM_ASSETS`, 值等于 `small.buildToAssets`
+
+## 1.1.0-beta2 (2016-11-10)
+
+Features:
+
+  - 支持打包插件到宿主Assets, 在根 `build.gradle` 中开启:
+
+    ```
+    small {
+        buildToAssets = true
+    }
+    ```
+
+Bugfixes:
+
+  - 对于 `app.*` 模块, 移除 `Stub` 模块manifest中可能存在的ContentProvider, 避免命名冲突而无法单独运行
+  - 当插件没有资源时, 移除整个 `generated/source/r/release` 目录, 避免将第三方 `R.class` 打包到插件中
+
+## 1.1.0-beta1 (2016-11-04)
+
+Features:
+
+  - 使用`gradlew small`可打印更多有用的编译信息以方便提issue
+  - 支持Stub模块(宿主分身), 该模块会被打包到宿主, 其他模块可自由引用其中的类与资源
+
+    声明一个分身模块, 你可以:
+    - 模块名以 `app+` 开头
+    - 或者在 根`build.gradle` 里声明 `bundles ('stub', ['any1', 'any2'])`
+
+  - 支持统一配置android环境, 以避免由于环境不同可能导致的资源不匹配问题(AppCompat):
+
+    ```
+    small {
+      android {
+        compileSdkVersion = 23       // 编译sdk版本
+        buildToolsVersion = "23.0.3" // 编译工具版本
+        supportVersion = "23.4.0"    // Support包版本
+      }
+    }
+    ```
+
+Bugfixes:
+
+  - 兼容 Gradle 3.0, 使用 `JANSI` 完成控制台颜色输出 (#326)
+  - 修正 `AssetPlugin` 中对 `android.jar` 的引用路径
+
+## 1.0.0-alpha2 (2016-10-11)
+
+Bugfixes:
+
+  - 修正在Android Studio 2.2上出现的 `assembleRelease` 无法找到问题 (#315)
+
+## 1.0.0-alpha1 (2016-10-09)
+
+Features:
+
+  - 支持Android Gradle 2.2.0 (#167, #315, #323, #327)
+
+## 1.0.0-beta9 (2016-08-25)
+
+Bugfixes:
+
+  - 解决 `lib.*` 相互依赖可能导致的资源重复问题 (#279)
+  - 修正上个版本未能正确收集嵌套引用 `lib.*` 依赖的问题
+
+## 1.0.0-beta8 (2016-08-22)
+
+Bugfixes:
+
+  - 修正第三方库引用AppCompat资源导致的R字段找不到问题 (#271)
+  - 修正嵌套引用的 `lib.*` 模块与 `app.*` 模块的 `manifest application` 冲突定义的问题
+
 ## 1.0.0-beta7 (2016-08-11)
 
 Bugfixes:

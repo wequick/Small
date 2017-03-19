@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">App+stub</string>
+    <string name="hello_stub">Hello World from app.ok-if-stub(Defined in app+stub)!</string>
+</resources>

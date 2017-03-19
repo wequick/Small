@@ -36,5 +36,16 @@ task clean(type: Delete) {
 apply plugin: 'net.wequick.small'
 
 small {
-    aarVersion = '${smallAarVersion}'
+    // Whether build all the bundles to host assets.
+    buildToAssets = false
+
+    // The compiling `net.wequick.small:small` aar version.
+    aarVersion = "${smallAarVersion}"
+
+    // The project-wide Android version configurations
+    android {
+        compileSdkVersion = <#if buildApiString?matches("^\\d+$")>${buildApiString}<#else>'${buildApiString}'</#if>
+        buildToolsVersion = "${buildToolsVersion}"
+        supportVersion = "${buildApi}.+" // replace this with an explicit value
+    }
 }

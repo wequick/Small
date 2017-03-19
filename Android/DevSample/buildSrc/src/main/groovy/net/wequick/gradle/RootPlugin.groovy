@@ -1,9 +1,14 @@
 package net.wequick.gradle
 
 import net.wequick.gradle.aapt.SymbolParser
+import net.wequick.gradle.tasks.LintTask
 import net.wequick.gradle.util.DependenciesUtils
+import net.wequick.gradle.util.Log
 import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.execution.TaskExecutionListener
 import org.gradle.api.tasks.Delete
+import org.gradle.api.tasks.TaskState
 
 import java.text.DecimalFormat
 
@@ -29,8 +34,13 @@ class RootPlugin extends BasePlugin {
     protected void configureProject() {
         super.configureProject()
 
+        injectBuildLog()
+
         def rootExt = small
 
+        rootExt.appProjects = new HashSet<>()
+        rootExt.libProjects = new HashSet<>()
+        rootExt.hostStubProjects = new HashSet<>()
         AppPlugin.sPackageIds = [:]
 
         project.afterEvaluate {
@@ -39,6 +49,16 @@ class RootPlugin extends BasePlugin {
             rootExt.bundleModules.each { type, names ->
                 names.each {
                     userBundleTypes.put(it, type)
+                }
+            }
+
+            // Configure versions
+            def base = rootExt.android
+            if (base != null) {
+                project.subprojects { p ->
+                    p.afterEvaluate {
+                        configVersions(p, base)
+                    }
                 }
             }
 
@@ -54,20 +74,29 @@ class RootPlugin extends BasePlugin {
                     it.apply plugin: HostPlugin
                     rootExt.outputBundleDir = new File(it.projectDir, SMALL_LIBS)
                     rootExt.hostProject = it
+                } else if (it.name.startsWith('app+')) {
+                    rootExt.hostStubProjects.add(it)
+                    return
                 } else {
                     String type = userBundleTypes.get(it.name)
                     if (type == null) {
                         def idx = it.name.indexOf('.')
                         if (idx < 0) return
+
                         type = it.name.substring(0, idx)
                     }
 
                     switch (type) {
                         case 'app':
                             it.apply plugin: AppPlugin
+                            rootExt.appProjects.add(it)
                             break;
+                        case 'stub':
+                            rootExt.hostStubProjects.add(it)
+                            return;
                         case 'lib':
                             it.apply plugin: LibraryPlugin
+                            rootExt.libProjects.add(it)
                             break;
                         case 'web':
                         default: // Default to Asset
@@ -84,20 +113,9 @@ class RootPlugin extends BasePlugin {
                     modules.add(it.name)
                 }
 
-                // Hook on project build started and finished for log
-                // FIXME: any better way to hooks?
-                it.afterEvaluate {
-                    it.preBuild.doFirst {
-                        logStartBuild(it.project)
-                    }
-                    it.assembleRelease.doLast {
-                        logFinishBuild(it.project)
-                    }
-                }
-
                 if (it.hasProperty('buildLib')) {
                     it.small.buildIndex = ++rootExt.libCount
-                    it.buildLib.doLast {
+                    it.tasks['buildLib'].doLast {
                         buildLib(it.project)
                     }
                 } else if (it.hasProperty('buildBundle')) {
@@ -108,6 +126,50 @@ class RootPlugin extends BasePlugin {
             if (rootExt.hostProject == null) {
                 throw new RuntimeException(
                         "Cannot find host module with name: '${rootExt.hostModuleName}'!")
+            }
+
+            if (!rootExt.hostStubProjects.empty) {
+                rootExt.hostStubProjects.each { stub ->
+                    rootExt.hostProject.afterEvaluate {
+                        it.dependencies.add('compile', stub)
+                    }
+                    rootExt.appProjects.each {
+                        it.afterEvaluate {
+                            it.dependencies.add('compile', stub)
+                        }
+                    }
+                    rootExt.libProjects.each {
+                        it.afterEvaluate {
+                            it.dependencies.add('compile', stub)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    protected void configVersions(Project p, RootExtension.AndroidConfig base) {
+        if (!p.hasProperty('android')) return
+
+        com.android.build.gradle.BaseExtension android = p.android
+        if (base.compileSdkVersion != 0) {
+            android.compileSdkVersion = base.compileSdkVersion
+        }
+        if (base.buildToolsVersion != null) {
+            android.buildToolsVersion = base.buildToolsVersion
+        }
+        if (base.supportVersion != null) {
+            def sv = base.supportVersion
+            def cfg = p.configurations.compile
+            def supportDependencies = []
+            cfg.dependencies.each { d ->
+                if (d.group == 'com.android.support' && d.version != sv) {
+                    supportDependencies.add(d)
+                }
+            }
+            cfg.dependencies.removeAll(supportDependencies)
+            supportDependencies.each { d ->
+                p.dependencies.add('compile', "$d.group:$d.name:$sv")
             }
         }
     }
@@ -124,31 +186,38 @@ class RootPlugin extends BasePlugin {
         project.task('cleanBundle', group: 'small', description: 'Clean all bundles')
         project.task('buildBundle', group: 'small', description: 'Build all bundles')
 
-        project.task('small') << {
+        project.task('small').doLast {
 
             println()
-            println '------------------------------------------------------------'
-            println 'Small: A small framework to split your app into small parts '
+            println '### Compile-time'
+            println ''
+            println '```'
 
             // gradle-small
-            print String.format('%16s', 'gradle-small: ')
-            def pluginVersion
-            def pluginProperties = project.file('buildSrc/gradle.properties')
+            print String.format('%24s', 'gradle-small plugin : ')
+            def pluginVersion = small.PLUGIN_VERSION
+            def pluginProperties = project.file('buildSrc/src/main/resources/META-INF/gradle-plugins/net.wequick.small.properties')
             if (pluginProperties.exists()) {
-                def prop = new Properties()
-                prop.load(pluginProperties.newDataInputStream())
-                pluginVersion = prop.getProperty('version')
                 println "$pluginVersion (project)"
             } else {
                 def config = project.buildscript.configurations['classpath']
                 def module = config.resolvedConfiguration.firstLevelModuleDependencies.find {
                     it.moduleGroup == 'net.wequick.tools.build' && it.moduleName == 'gradle-small'
                 }
-                println "$module.moduleVersion (maven)"
+                File pluginDir = module.moduleArtifacts.first().file.parentFile
+                if (pluginDir.name == module.moduleVersion) {
+                    // local maven:
+                    // ~/.m2/repository/net/wequick/tools/build/gradle-small/1.0.0-beta9/gradle-small-1.0.0-beta9.jar
+                    println "$module.moduleVersion (local maven)"
+                } else {
+                    // remote maven:
+                    // ~/.gradle/caches/modules-2/files-2.1/net.wequick.tools.build/gradle-small/1.0.0-beta9/8db229545a888ab25e210a9e574c0261e6a7a52d/gradle-small-1.0.0-beta9.jar
+                    println "$module.moduleVersion (maven)"
+                }
             }
 
             // small
-            print String.format('%16s', 'small: ')
+            print String.format('%24s', 'small aar : ')
             if (small.smallProject != null) {
                 def prop = new Properties()
                 prop.load(small.smallProject.file('gradle.properties').newDataInputStream())
@@ -160,36 +229,90 @@ class RootPlugin extends BasePlugin {
                 } catch (Exception e) {
                     aarVersion = 'unspecific'
                 }
-                println "$aarVersion (maven)"
+                def module = small.hostProject.configurations.compile
+                        .resolvedConfiguration.firstLevelModuleDependencies.find {
+                    it.moduleGroup == 'net.wequick.small' && it.moduleName == 'small'
+                }
+                File pluginDir = module.moduleArtifacts.first().file.parentFile
+                if (pluginDir.name == module.moduleVersion) {
+                    // local maven:
+                    // ~/.m2/repository/net/wequick/tools/build/gradle-small/1.0.0-beta9/gradle-small-1.0.0-beta9.jar
+                    println "$aarVersion (local maven)"
+                } else {
+                    // remote maven:
+                    // ~/.gradle/caches/modules-2/files-2.1/net.wequick.tools.build/gradle-small/1.0.0-beta9/8db229545a888ab25e210a9e574c0261e6a7a52d/gradle-small-1.0.0-beta9.jar
+                    println "$aarVersion (maven)"
+                }
             }
-            println '------------------------------------------------------------'
+
+            // gradle version
+            print String.format('%24s', 'gradle core : ')
+            println project.gradle.gradleVersion
+
+            // android gradle plugin
+            def androidGradlePlugin = project.buildscript.configurations.classpath
+                    .resolvedConfiguration.firstLevelModuleDependencies.find {
+                it.moduleGroup == 'com.android.tools.build' && it.moduleName == 'gradle'
+            }
+            if (androidGradlePlugin != null)  {
+                print String.format('%24s', 'android plugin : ')
+                println androidGradlePlugin.moduleVersion
+            }
+
+            // OS
+            print String.format('%24s', 'OS : ')
+            println "${System.properties['os.name']} ${System.properties['os.version']} (${System.properties['os.arch']})"
+
+            println '```'
+            println()
+
+            println '### Bundles'
             println()
 
             // modules
             def rows = []
-            File out = new File(small.outputBundleDir, 'armeabi')
-            if (!out.exists()) {
-                out = new File(small.outputBundleDir, 'x86')
+            def fileTitle = 'file'
+            File out = small.outputBundleDir
+            if (!small.buildToAssets) {
+                out = new File(small.outputBundleDir, 'armeabi')
+                if (!out.exists()) {
+                    out = new File(small.outputBundleDir, 'x86')
+                }
+                if (out.exists()) {
+                    fileTitle += "($out.name)"
+                }
             }
-            def hasOut = out.exists()
-            rows.add(['type', 'name', 'PP', 'file', 'size'])
-            rows.add(['host', small.hostModuleName, '', '', ''])
+            rows.add(['type', 'name', 'PP', 'sdk', 'aapt', 'support', fileTitle, 'size'])
+            def vs = getVersions(small.hostProject)
+            rows.add(['host', small.hostModuleName, '', vs.sdk, vs.aapt, vs.support, '', ''])
+            small.hostStubProjects.each {
+                vs = getVersions(it)
+                rows.add(['stub', it.name, '', vs.sdk, vs.aapt, vs.support, '', ''])
+            }
             bundleModules.each { type, names ->
                 names.each {
                     def file = null
-                    if (hasOut) {
-                        def prj = project.rootProject.project(":$it")
+                    def fileName = null
+                    def prj = project.rootProject.project(":$it")
+                    vs = getVersions(prj)
+                    if (out.exists()) {
                         def manifest = new XmlParser().parse(prj.android.sourceSets.main.manifestFile)
                         def pkg = manifest.@package
-                        def so = "lib${pkg.replaceAll('\\.', '_')}.so"
-                        file = new File(out, so)
+                        if (small.buildToAssets) {
+                            file = new File(out, "${pkg}.apk")
+                            fileName = '*.' + pkg.split('\\.').last() + '.apk'
+                        } else {
+                            fileName = "lib${pkg.replaceAll('\\.', '_')}.so"
+                            file = new File(out, fileName)
+                            fileName = '*_' + file.name.split('_').last()
+                        }
                     }
                     def pp = AppPlugin.sPackageIds.get(it)
                     pp = (pp == null) ? '' : String.format('0x%02x', pp)
                     if (file != null && file.exists()) {
-                        rows.add([type, it, pp, "$file.name ($out.name)", getFileSize(file)])
+                        rows.add([type, it, pp, vs.sdk, vs.aapt, vs.support, fileName, getFileSize(file)])
                     } else {
-                        rows.add([type, it, pp, '', ''])
+                        rows.add([type, it, pp, vs.sdk, vs.aapt, vs.support, '', ''])
                     }
                 }
             }
@@ -197,13 +320,46 @@ class RootPlugin extends BasePlugin {
             printRows(rows)
             println()
         }
+
+        project.afterEvaluate {
+            small.hostProject.afterEvaluate {
+                def flavorName = 'Release'
+                com.android.build.gradle.AppExtension android = it.android
+                if (android.productFlavors.size() > 0) {
+                    flavorName = android.productFlavors[0].name.capitalize() + 'Release'
+                }
+
+                def hostDexTaskName = ":app:transformClassesWithDexFor$flavorName"
+                project.task('smallLint',
+                        type: LintTask,
+                        dependsOn: [hostDexTaskName]) {
+                    rootSmall = small
+                }
+            }
+        }
+    }
+
+    static def getVersions(Project p) {
+        com.android.build.gradle.BaseExtension android = p.android
+        def sdk = android.getCompileSdkVersion()
+        if (sdk.startsWith('android-')) {
+            sdk = sdk.substring(8) // bypass 'android-'
+        }
+        def cfg = p.configurations.compile
+        def supportLib = cfg.dependencies.find { d ->
+            d.group == 'com.android.support'
+        }
+        def supportVer = supportLib != null ? supportLib.version : ''
+        return [sdk: sdk,
+                aapt: android.buildToolsVersion,
+                support: supportVer]
     }
 
     static void printRows(List rows) {
         def colLens = []
         int nCol = rows[0].size()
         for (int i = 0; i < nCol; i++) {
-            colLens[i] = 8
+            colLens[i] = 4
         }
 
         def nRow = rows.size()
@@ -212,7 +368,7 @@ class RootPlugin extends BasePlugin {
             nCol = row.size()
             for (int j = 0; j < nCol; j++) {
                 def col = row[j]
-                colLens[j] = Math.max(colLens[j], col.length() + 4)
+                colLens[j] = Math.max(colLens[j], col.length() + 2)
             }
         }
 
@@ -240,8 +396,8 @@ class RootPlugin extends BasePlugin {
                     for (int k = 0; k < maxLen; k++) split += '-'
                 } else {
                     // Left align for content
-                    int rp = maxLen - 2 - len // right padding
-                    s += '|  ' + col
+                    int rp = maxLen - 1 - len // right padding
+                    s += '| ' + col
                     for (int k = 0; k < rp; k++) s += ' '
                 }
             }
@@ -271,6 +427,8 @@ class RootPlugin extends BasePlugin {
         //  - copy dependencies jars
         ext.explodeAarDirs.each {
             // explodedDir: **/exploded-aar/$group/$artifact/$version
+            if (it == null) return
+
             File version = it
             File jarDir = new File(version, 'jars')
             File jarFile = new File(jarDir, 'classes.jar')
@@ -374,6 +532,15 @@ class RootPlugin extends BasePlugin {
             def aarPw = new PrintWriter(aarLinkFile.newWriter(true))
             def jarPw = new PrintWriter(jarLinkFile.newWriter(true))
 
+            // Cause the later aar(as fresco) may dependent by 'com.android.support:support-compat'
+            // which would duplicate with the builtin 'appcompat' and 'support-v4' library in host.
+            // Hereby we also mark 'support-compat' has compiled in host.
+            // FIXME: any influence of this?
+            if (lib == small.hostProject) {
+                aarPw.println "com.android.support:support-compat:+"
+                aarPw.println "com.android.support:support-core-utils:+"
+            }
+
             allDependencies.each { d ->
                 def isAar = true
                 d.moduleArtifacts.each { art ->
@@ -405,6 +572,25 @@ class RootPlugin extends BasePlugin {
         }
     }
 
+    /** Hook on project build started and finished for log */
+    private void injectBuildLog() {
+        project.gradle.taskGraph.addTaskExecutionListener(new TaskExecutionListener() {
+            @Override
+            void beforeExecute(Task task) { }
+
+            @Override
+            void afterExecute(Task task, TaskState taskState) {
+                if (taskState.didWork) {
+                    if (task.name == 'preBuild') {
+                        logStartBuild(task.project)
+                    } else if (task.name == 'assembleRelease') {
+                        logFinishBuild(task.project)
+                    }
+                }
+            }
+        })
+    }
+
     private void logStartBuild(Project project) {
         BaseExtension ext = project.small
         switch (ext.type) {
@@ -427,7 +613,7 @@ class RootPlugin extends BasePlugin {
         }
     }
 
-    private void logFinishBuild(Project project) {
+    private static void logFinishBuild(Project project) {
         project.android.applicationVariants.each { variant ->
             if (variant.buildType.name != 'release') return
 

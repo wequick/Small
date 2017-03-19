@@ -1,3 +1,66 @@
+## 1.2.0-beta1 (2017-03-19)
+
+Bugfixes:
+
+  - 修正 7.0 下无法播放 raw 目录下视频的问题 (#429)
+
+## 1.1.0-alpha2 (2017-02-25)
+
+Bugfixes:
+
+  - 修正打包到assets下的apk包改变时未能正确被解压更新的问题
+  - 修正WebView判断加载相同url的错误
+
+Other:
+
+  - 导出WebView onProgressChanged事件
+
+## 1.1.0-alpha1 (2017-01-09)
+
+Bugfixes:
+
+  - 修正 MiUI8 资源无法合并的问题 (@xufan)
+
+## 1.1.0-beta9 (2016-11-17)
+
+Bugfixes:
+
+  - 取消使用 `SetUpActivity`, 以避免应用重启后无法传递 `savedInstanceState` 到Activity.
+
+## 1.1.0-beta8 (2016-11-15)
+
+Bugfixes:
+
+  - 修正指定了 `android:process` 的Activity/Service启动时闪退的问题 (#354, #355)
+
+## 1.1.0-beta7 (2016-11-10)
+
+Features:
+
+  - 取消使用 `SetUpProvider`, 改在宿主Application构造方法中调用 `Small.preSetUp` 来支持ContentProvider (#253)
+  - `Small.openUri` 增加返回值, false表示打开失败
+  - 支持从宿主Assets中加载插件: `Small.setLoadFromAssets(true)`
+
+## 1.1.0-beta6 (2016-11-04)
+
+Features:
+
+  - 支持通过 `TaskStackBuilder` 来透明的创建通知 (与原有代码一致)
+  - 导出 `Small.wrapIntent` 以支持自定义 `PendingIntent` 的插件化封装
+  - 支持在宿主注册插件 `ContentProvider`, 而在插件中实现该类 (#253)
+
+## 1.1.0-beta5 (2016-08-17)
+
+Bugfixes:
+
+  - 确保后台升级时能够杀死应用程序相关进程
+  - 避免 `Small.setUp` 重复调用时可能引起的 `pre-verify` 错误
+  - 修正当 `query` 被url编码后无法正确匹配 `uri` 的问题 (#222)
+
+Other:
+
+  - 引入 `Small.isFirstSetUp` 方法来判断是否首次启动
+
 ## 1.1.0-beta4 (2016-08-09)
 
 Bugfixes:

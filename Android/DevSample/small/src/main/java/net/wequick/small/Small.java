@@ -17,24 +17,23 @@
 package net.wequick.small;
 
 import android.app.Activity;
-import android.app.ActivityManager;
 import android.app.Application;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.Signature;
 import android.net.Uri;
 
 import net.wequick.small.util.ApplicationUtils;
+import net.wequick.small.util.ReflectAccelerator;
 import net.wequick.small.webkit.JsHandler;
 import net.wequick.small.webkit.WebView;
 import net.wequick.small.webkit.WebViewClient;
 
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -66,15 +65,37 @@ public final class Small {
     private static Application sContext = null;
     private static String sBaseUri = ""; // base url of uri
     private static boolean sIsNewHostApp; // first launched or upgraded
+    private static boolean sHasSetUp;
+    private static int sLaunchingHostVersionCode;
     private static int sWebActivityTheme;
 
-    private static byte[][] sHostCertificates;
+    private static List<ActivityLifecycleCallbacks> sSetUpActivityLifecycleCallbacks;
+
+    private static boolean sLoadFromAssets;
+
+    public static boolean isLoadFromAssets() {
+        return sLoadFromAssets;
+    }
+
+    public static void setLoadFromAssets(boolean flag) {
+        sLoadFromAssets = flag;
+    }
 
     public interface OnCompleteListener {
         void onComplete();
     }
 
+    public interface ActivityLifecycleCallbacks {
+        void onActivityCreated(Activity activity, android.os.Bundle savedInstanceState);
+        void onActivityDestroyed(Activity activity);
+    }
+
     public static Application getContext() {
+        if (sContext == null) {
+            // While launching bundle independently, the `Small.setUp` may not be called,
+            // so lazy initialize this if needed.
+            sContext = ReflectAccelerator.getApplication();
+        }
         return sContext;
     }
 
@@ -86,66 +107,56 @@ public final class Small {
         return sBaseUri;
     }
 
+    /**
+     * @deprecated Use {@link #isFirstSetUp} instead
+     * @return
+     */
     public static boolean getIsNewHostApp() {
-        return sIsNewHostApp;
+        int launchingVersion = getLaunchingHostVersionCode();
+        if (getLaunchedHostVersionCode() != launchingVersion) {
+            setLaunchedHostVersionCode(launchingVersion);
+            return true;
+        }
+
+        return false;
     }
 
-    public static byte[][] getHostCertificates() {
-        return sHostCertificates;
+    public static int getLaunchingHostVersionCode() {
+        if (sLaunchingHostVersionCode > 0) {
+            return sLaunchingHostVersionCode;
+        }
+
+        Context context = getContext();
+        PackageManager pm = context.getPackageManager();
+        String packageName = context.getPackageName();
+
+        // Check if host app is first-installed or upgraded
+        try {
+            PackageInfo pi = pm.getPackageInfo(packageName, 0);
+            sLaunchingHostVersionCode = pi.versionCode;
+        } catch (PackageManager.NameNotFoundException ignored) {
+            // Never reach
+        }
+
+        return sLaunchingHostVersionCode;
+    }
+
+    public static boolean isFirstSetUp() {
+        return getIsNewHostApp() && !sHasSetUp;
     }
 
     public static void preSetUp(Application context) {
+        if (sContext != null) {
+            return;
+        }
+
         sContext = context;
 
         // Register default bundle launchers
         registerLauncher(new ActivityLauncher());
         registerLauncher(new ApkBundleLauncher());
         registerLauncher(new WebBundleLauncher());
-
-        PackageManager pm = context.getPackageManager();
-        String packageName = context.getPackageName();
-
-        // Check if host app is first-installed or upgraded
-        int backupHostVersion = getHostVersionCode();
-        int currHostVersion = 0;
-        try {
-            PackageInfo pi = pm.getPackageInfo(packageName, 0);
-            currHostVersion = pi.versionCode;
-        } catch (PackageManager.NameNotFoundException ignored) {
-            // Never reach
-        }
-
-        if (backupHostVersion != currHostVersion) {
-            sIsNewHostApp = true;
-            setHostVersionCode(currHostVersion);
-        } else {
-            sIsNewHostApp = false;
-        }
-
-        // Collect host certificates
-        try {
-            Signature[] ss = pm.getPackageInfo(Small.getContext().getPackageName(),
-                    PackageManager.GET_SIGNATURES).signatures;
-            if (ss != null) {
-                int N = ss.length;
-                sHostCertificates = new byte[N][];
-                for (int i = 0; i < N; i++) {
-                    sHostCertificates[i] = ss[i].toByteArray();
-                }
-            }
-        } catch (PackageManager.NameNotFoundException ignored) {
-
-        }
-
-        // Check if application is started after unexpected exit (killed in background etc.)
-        ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-        ComponentName launchingComponent = am.getRunningTasks(1).get(0).topActivity;
-        ComponentName launcherComponent = pm.getLaunchIntentForPackage(packageName).getComponent();
-        if (!launchingComponent.equals(launcherComponent)) {
-            // In this case, system launching the last restored activity instead of our launcher
-            // activity. Call `setUp' synchronously to ensure `Small' available.
-            setUp(context, null);
-        }
+        Bundle.onCreateLaunchers(context);
     }
 
     public static void setUp(Context context, OnCompleteListener listener) {
@@ -154,8 +165,29 @@ public final class Small {
             throw new UnsupportedOperationException(
                     "Please call `Small.preSetUp' in your application first");
         }
-        Bundle.setupLaunchers(context);
+
+        if (sHasSetUp) {
+            if (listener != null) {
+                listener.onComplete();
+            }
+            return;
+        }
+
         Bundle.loadLaunchableBundles(listener);
+        sHasSetUp = true;
+    }
+
+    protected static boolean hasSetUp() {
+        return sHasSetUp;
+    }
+
+    protected static void setUp() {
+        setUp(getContext(), null);
+    }
+
+    protected static void setUpOnDemand() {
+        // TODO: load required classes on demand.
+        setUp(getContext(), null);
     }
 
     public static Bundle getBundle(String bundleName) {
@@ -174,6 +206,17 @@ public final class Small {
         WebView.registerJsHandler(method, handler);
     }
 
+    public static void registerSetUpActivityLifecycleCallbacks(ActivityLifecycleCallbacks callbacks) {
+        if (sSetUpActivityLifecycleCallbacks == null) {
+            sSetUpActivityLifecycleCallbacks = new ArrayList();
+        }
+        sSetUpActivityLifecycleCallbacks.add(callbacks);
+    }
+
+    protected static List<ActivityLifecycleCallbacks> getSetUpActivityLifecycleCallbacks() {
+        return sSetUpActivityLifecycleCallbacks;
+    }
+
     public static SharedPreferences getSharedPreferences() {
         return getContext().getSharedPreferences(SHARED_PREFERENCES_SMALL, 0);
     }
@@ -183,12 +226,12 @@ public final class Small {
                 getSharedPreferences(SHARED_PREFERENCES_BUNDLE_VERSIONS, 0).getAll();
     }
 
-    public static int getHostVersionCode() {
+    private static int getLaunchedHostVersionCode() {
         return getContext().getSharedPreferences(SHARED_PREFERENCES_SMALL, 0).
                 getInt(SHARED_PREFERENCES_KEY_VERSION, 0);
     }
 
-    public static void setHostVersionCode(int versionCode) {
+    private static void setLaunchedHostVersionCode(int versionCode) {
         SharedPreferences small = getContext().getSharedPreferences(SHARED_PREFERENCES_SMALL, 0);
         SharedPreferences.Editor editor = small.edit();
         editor.putInt(SHARED_PREFERENCES_KEY_VERSION, versionCode);
@@ -246,11 +289,11 @@ public final class Small {
         return false;
     }
 
-    public static void openUri(String uriString, Context context) {
-        openUri(makeUri(uriString), context);
+    public static boolean openUri(String uriString, Context context) {
+        return openUri(makeUri(uriString), context);
     }
 
-    public static void openUri(Uri uri, Context context) {
+    public static boolean openUri(Uri uri, Context context) {
         // System url schemes
         String scheme = uri.getScheme();
         if (scheme != null
@@ -259,14 +302,16 @@ public final class Small {
                 && !scheme.equals("file")
                 && ApplicationUtils.canOpenUri(uri, context)) {
             ApplicationUtils.openUri(uri, context);
-            return;
+            return true;
         }
 
         // Small url schemes
         Bundle bundle = Bundle.getLaunchableBundle(uri);
         if (bundle != null) {
             bundle.launchFrom(context);
+            return true;
         }
+        return false;
     }
 
     public static Intent getIntentOfUri(String uriString, Context context) {
@@ -290,6 +335,10 @@ public final class Small {
             return bundle.createIntent(context);
         }
         return null;
+    }
+
+    public static void wrapIntent(Intent intent) {
+        ApkBundleLauncher.wrapIntent(intent);
     }
 
     public static <T> T createObject(String type, String uriString, Context context) {
