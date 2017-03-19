@@ -37,9 +37,17 @@
     <android.support.v7.widget.AppCompatButton
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:id="@+id/play_video_button"
+        android:text="@string/play_video"
+        android:layout_below="@id/jni_label"
+        app:textAllCaps="false" />
+
+    <android.support.v7.widget.AppCompatButton
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:id="@+id/inter_start_button"
         android:text="@string/inter_start"
-        android:layout_below="@id/jni_label"
+        android:layout_below="@id/play_video_button"
         app:textAllCaps="false" />
 
     <android.support.v7.widget.AppCompatButton
