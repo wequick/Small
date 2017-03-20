@@ -20,6 +20,7 @@ public class AarPath {
     private static final String CACHE_DIR = "build-cache"
     private static final String CACHE_INPUTS_FILE = "inputs"
     private static final String CACHE_FILE_PATH_KEY = "FILE_PATH"
+    private static final int CACHE_FILE_PATH_INDEX = CACHE_FILE_PATH_KEY.length() + 1
 
     private String mSrc
     private boolean isCache
@@ -41,9 +42,13 @@ public class AarPath {
             return
         }
 
-        def prop = new Properties()
-        prop.load(input.newDataInputStream())
-        def src = prop.getProperty(CACHE_FILE_PATH_KEY)
+        def src = null
+        input.eachLine {
+            if (it.startsWith(CACHE_FILE_PATH_KEY)) {
+                src = it.substring(CACHE_FILE_PATH_INDEX)
+                return
+            }
+        }
         if (src == null) {
             return
         }
@@ -62,7 +67,11 @@ public class AarPath {
 
         // [sdk]/extras/android/m2repository/com/android/support/support-core-ui/25.1.0/*.aar
         //                                   ^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^
-        def repoGroup = aar.group.replaceAll('\\.', File.separator)
+        def sep = File.separator
+        if (sep == '\\') {
+            sep = '\\\\' // coompat for windows
+        }
+        def repoGroup = aar.group.replaceAll('\\.', sep)
         def repoAarPath = "$repoGroup$File.separator$aar.name"
         return mSrc.contains(repoAarPath)
     }
