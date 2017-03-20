@@ -1,3 +1,9 @@
+## 1.2.0-beta2 (2017-03-21)
+
+Bugfixes:
+
+  - 适配 Android Plugin 2.3.0 兼容 Windows
+
 ## 1.2.0-beta1 (2017-03-19)
 
 Features:
