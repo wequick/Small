@@ -69,7 +69,7 @@ public class AarPath {
         //                                   ^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^
         def sep = File.separator
         if (sep == '\\') {
-            sep = '\\\\' // coompat for windows
+            sep = '\\\\' // compat for windows
         }
         def repoGroup = aar.group.replaceAll('\\.', sep)
         def repoAarPath = "$repoGroup$File.separator$aar.name"
