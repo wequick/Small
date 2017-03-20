@@ -51,6 +51,7 @@ class AppPlugin extends BundlePlugin {
 
     protected Set<Project> mDependentLibProjects
     protected Set<Project> mTransitiveDependentLibProjects
+    protected Set<Project> mProvidedProjects
     protected Set<Project> mCompiledProjects
     protected Set<Map> mUserLibAars
     protected Set<File> mLibraryJars
@@ -93,16 +94,19 @@ class AppPlugin extends BundlePlugin {
         Set<DefaultProjectDependency> smallLibs = []
         mUserLibAars = []
         mDependentLibProjects = []
+        mProvidedProjects = []
         mCompiledProjects = []
         allLibs.each {
             if (rootSmall.isLibProject(it.dependencyProject)) {
                 smallLibs.add(it)
+                mProvidedProjects.add(it.dependencyProject)
                 mDependentLibProjects.add(it.dependencyProject)
             } else {
                 mCompiledProjects.add(it.dependencyProject)
                 collectAarsOfLibrary(it.dependencyProject, mUserLibAars)
             }
         }
+        mProvidedProjects.addAll(rootSmall.hostStubProjects)
 
         if (rootSmall.isBuildingLibs()) {
             // While building libs, `lib.*' modules are changing to be an application
@@ -1097,8 +1101,8 @@ class AppPlugin extends BundlePlugin {
 
         // Collect transitive dependent `lib.*' projects
         mTransitiveDependentLibProjects = new HashSet<>()
-        mTransitiveDependentLibProjects.addAll(mDependentLibProjects)
-        mDependentLibProjects.each {
+        mTransitiveDependentLibProjects.addAll(mProvidedProjects)
+        mProvidedProjects.each {
             collectLibProjects(it, mTransitiveDependentLibProjects)
         }
 

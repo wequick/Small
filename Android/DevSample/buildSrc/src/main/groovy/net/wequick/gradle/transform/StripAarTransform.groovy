@@ -57,17 +57,9 @@ public class StripAarTransform extends Transform {
                    Collection<TransformInput> referencedInputs,
                    TransformOutputProvider outputProvider, boolean isIncremental)
             throws IOException, TransformException, InterruptedException {
-
         Project project = ((Task) context).project
         AppExtension small = project.small
-
-        Set<String> splitPaths = []
-        small.splitAars.each { Map<String, String> it ->
-            splitPaths.add(it.group + File.separator + it.name)
-        }
-
         inputs.each {
-
             // Bypass the directories
             it.directoryInputs.each {
                 File dest = outputProvider.getContentLocation(
@@ -77,14 +69,8 @@ public class StripAarTransform extends Transform {
 
             // Filter the jars
             it.jarInputs.each {
+                // Strip jars in aar or build-cache under android plugin 2.3.0+
                 File src = it.file
-                def temp = splitPaths.find { src.absolutePath.contains(it) }
-                if (temp != null) {
-                    // Ignores the jar that should split
-                    return
-                }
-
-                // Strip from build-cache for android plugin 2.3.0+
                 AarPath aarPath = new AarPath(src)
                 for (aar in small.splitAars) {
                     if (aarPath.explodedFromAar(aar)) {
