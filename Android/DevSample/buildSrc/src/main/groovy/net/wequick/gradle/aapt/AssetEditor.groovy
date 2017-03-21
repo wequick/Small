@@ -323,17 +323,40 @@ public class AssetEditor extends CppHexEditor {
         def offsets = []
         def lens = []
         def offset = 0
+        def idsMap = []
 
         // Filter strings
         ids.each {
             def s = sp.strings[it]
             strings.add(s)
             offsets.add(offset)
+            idMaps.add(it)
             def lenData = sp.stringLens[it]
             lens.add(lenData)
             def l = s.length
             offset += l + lenData.length + 1 // 1 for 0x0
         }
+        //issue 165 : add span strings and reset span.name
+        if (sp.styleCount > 0) {
+            for (def i = 0; i < sp.styleCount; i++) {
+                def span = sp.styles[i]
+                def s = sp.strings[span.name]
+                idsMap.add(span.name)
+                strings.add(s)
+                offsets.add(offset)
+                def lenData = sp.stringLens[span.name]
+                lens.add(lenData)
+                def l = s.length
+                offset += l + lenData.length + 1 // 1 for 0x0
+            }
+
+            for (def span : sp.styles) {
+                if (idsMap.contains(span.name)) {
+                    span.name = idsMap.indexOf(span.name)
+                }
+            }
+        }
+
         def newStringCount = strings.size()
         def d = (sp.stringCount - newStringCount) * 4
         sp.strings = strings
@@ -360,7 +383,6 @@ public class AssetEditor extends CppHexEditor {
         if (sp.stylesStart > 0) {
             sp.stylesStart = sp.stringsStart + sp.stringsSize + sp.stringPadding
         }
-
         // Adjust entry size
         def newSize = sp.header.size - d
         sp.header.size = newSize
