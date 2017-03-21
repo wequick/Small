@@ -106,6 +106,7 @@ class AppPlugin extends BundlePlugin {
                 collectAarsOfLibrary(it.dependencyProject, mUserLibAars)
             }
         }
+        collectAarsOfLibrary(project, mUserLibAars)
         mProvidedProjects.addAll(rootSmall.hostStubProjects)
 
         if (rootSmall.isBuildingLibs()) {
