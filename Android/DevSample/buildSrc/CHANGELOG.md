@@ -8,7 +8,7 @@ Bugfixes:
 
 Features:
 
-  - 兼容 Android Plugin 2.3.0 (@xufun)
+  - 兼容 Android Plugin 2.3.0 (@xufan)
 
 ## 1.1.0-alpha2 (2017-02-25)
 
