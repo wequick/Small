@@ -67,6 +67,7 @@ public class ArscEditor extends AssetEditor {
 
         def retainedTypeSpecs = []
         def retainedStringIds = []
+        def retainedStringEntries = [:]
         def retainedTypeIds = []
         def retainedKeyIds = []
         def retainedEntries = []
@@ -145,12 +146,15 @@ public class ArscEditor extends AssetEditor {
                         if (dataType == ResValueDataType.TYPE_STRING) {
                             // String reference
                             def oldId = entry.value.data
-                            def newId = retainedStringIds.indexOf(oldId)
-                            if (newId < 0) {
+                            if (!retainedStringIds.contains(oldId)) {
                                 retainedStringIds.add(oldId)
-                                newId = retainedStringIds.size() - 1
                             }
-                            entry.value.data = newId
+
+                            def stringEntries = retainedStringEntries[oldId]
+                            if (stringEntries == null) {
+                                retainedStringEntries[oldId] = stringEntries = []
+                            }
+                            stringEntries.add(entry)
                         } else if (dataType == ResValueDataType.TYPE_REFERENCE) {
                             def id = idMaps.get(entry.value.data)
                             if (id != null) {
@@ -182,12 +186,15 @@ public class ArscEditor extends AssetEditor {
                             if (dataType == ResValueDataType.TYPE_STRING) {
                                 // String reference
                                 def oldId = it.value.data
-                                def newId = retainedStringIds.indexOf(oldId)
-                                if (newId < 0) {
+                                if (!retainedStringIds.contains(oldId)) {
                                     retainedStringIds.add(oldId)
-                                    newId = retainedStringIds.size() - 1
                                 }
-                                it.value.data = newId
+
+                                def stringEntries = retainedStringEntries[oldId]
+                                if (stringEntries == null) {
+                                    retainedStringEntries[oldId] = stringEntries = []
+                                }
+                                stringEntries.add(it)
                             } else if (dataType == ResValueDataType.TYPE_REFERENCE) {
                                 id = idMaps.get(it.value.data)
                                 if (id != null) {
@@ -232,7 +239,7 @@ public class ArscEditor extends AssetEditor {
         t.typeList.specs = retainedTypeSpecs
 
         // Filter string pools
-        filterStringPool(t.stringPool, retainedStringIds)
+        filterStringPool(t.stringPool, retainedStringIds, retainedStringEntries)
         filterStringPool(t.typeStringPool, retainedTypeIds)
         filterStringPool(t.keyStringPool, retainedKeyIds)
 

@@ -346,8 +346,13 @@ public class AssetEditor extends CppHexEditor {
             return [data: data, value: (hb << 1)]
         }
     }
-    /** Filter ResStringPool with specific string indexes */
+
     protected static def filterStringPool(sp, ids) {
+        filterStringPool(sp, ids, null)
+    }
+
+    /** Filter ResStringPool with specific string indexes */
+    protected static def filterStringPool(sp, ids, entries) {
         if (sp.stringsStart == 0) return sp
 
         def strings = []
@@ -357,7 +362,7 @@ public class AssetEditor extends CppHexEditor {
         def stringCount = ids.size()
         def entryDiff = 0
 
-        if (sp.styleCount > 0) {
+        if (sp.styleCount > 0 && entries != null) {
             // The styles indexes are related to the strings.
             // As example:
             //
@@ -379,6 +384,14 @@ public class AssetEditor extends CppHexEditor {
             //
             // Hereby, resort the strings ordered by the ids to make sense.
             ids.sort()
+
+            // Reset entry ids
+            for (int i = 0; i < stringCount; i++) {
+                def es = entries[ids[i]]
+                es.each {
+                    it.value.data = i
+                }
+            }
         }
 
         // Filter strings
