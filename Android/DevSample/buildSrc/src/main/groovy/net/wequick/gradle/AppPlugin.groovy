@@ -950,7 +950,7 @@ class AppPlugin extends BundlePlugin {
         def jniDirs = android.sourceSets.main.jniLibs.srcDirs
         if (jniDirs == null) jniDirs = []
         // Collect ABIs from AARs
-        mCompiledProjects.each {
+        mTransitiveDependentLibProjects.each {
             com.android.build.gradle.BaseExtension libAndrioid = it.android
             jniDirs += libAndrioid.sourceSets.main.jniLibs.srcDirs
         }
