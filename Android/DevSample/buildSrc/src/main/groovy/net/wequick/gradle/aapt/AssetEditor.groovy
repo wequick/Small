@@ -268,8 +268,8 @@ public class AssetEditor extends CppHexEditor {
         int len = len16 / 2
         def buffer = new char[len]
         int i = 0;
-        for (int j = 0; j < len16; j+=2) {
-            char c = (char)u16str[j]
+        for (int j = 0; j < len16; j += 2) {
+            char c = (char) u16str[j]
             if (c == 0) {
                 buffer[i] = '\0'
                 break
@@ -322,7 +322,7 @@ public class AssetEditor extends CppHexEditor {
             def N = bytes.size()
             def data = new byte[N]
             for (int i = 0; i < N; i++) {
-                data[i] = (byte)bytes[i]
+                data[i] = (byte) bytes[i]
             }
             return [data: data, value: hb]
         } else {
@@ -341,7 +341,7 @@ public class AssetEditor extends CppHexEditor {
             def N = bytes.size()
             def data = new byte[N]
             for (int i = 0; i < N; i++) {
-                data[i] = (byte)bytes[i]
+                data[i] = (byte) bytes[i]
             }
             return [data: data, value: (hb << 1)]
         }
@@ -362,7 +362,7 @@ public class AssetEditor extends CppHexEditor {
         def stringCount = ids.size()
         def entryDiff = 0
 
-        if (sp.styleCount > 0 && entries != null) {
+        if (sp.styleCount > 0) {
             // The styles indexes are related to the strings.
             // As example:
             //
@@ -384,8 +384,10 @@ public class AssetEditor extends CppHexEditor {
             //
             // Hereby, resort the strings ordered by the ids to make sense.
             ids.sort()
+        }
 
-            // Reset entry ids
+        // Reset entry ids no matter if no styles
+        if (entries != null) {
             for (int i = 0; i < stringCount; i++) {
                 def es = entries[ids[i]]
                 es.each {
@@ -487,7 +489,7 @@ public class AssetEditor extends CppHexEditor {
         sp.header.size = newSize
     }
 
-    /** Dump ResStringPool, as `aapt d xmlstrings' command */
+/** Dump ResStringPool, as `aapt d xmlstrings' command */
     protected static def dumpStringPool(pool) {
         def type = pool.flags == 0 ? 'UTF-16' : 'UTF-8'
         println "String pool of ${pool.stringCount} unique $type non-sorted strings, " +
@@ -508,4 +510,5 @@ public class AssetEditor extends CppHexEditor {
             }
         }
     }
+
 }
