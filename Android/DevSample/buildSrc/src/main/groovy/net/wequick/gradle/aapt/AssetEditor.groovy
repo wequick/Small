@@ -362,7 +362,7 @@ public class AssetEditor extends CppHexEditor {
         def stringCount = ids.size()
         def entryDiff = 0
 
-        if (sp.styleCount > 0 && entries != null) {
+        if (sp.styleCount > 0) {
             // The styles indexes are related to the strings.
             // As example:
             //
@@ -384,9 +384,10 @@ public class AssetEditor extends CppHexEditor {
             //
             // Hereby, resort the strings ordered by the ids to make sense.
             ids.sort()
-
-            // Reset entry ids
-            for (int i = 0; i < stringCount; i++) {
+        }
+        // Reset entry ids no matter if no styles
+        for (int i = 0; i < stringCount; i++) {
+            if(entries != null){
                 def es = entries[ids[i]]
                 es.each {
                     it.value.data = i
