@@ -949,11 +949,18 @@ class AppPlugin extends BundlePlugin {
 
         def jniDirs = android.sourceSets.main.jniLibs.srcDirs
         if (jniDirs == null) jniDirs = []
+
         // Collect ABIs from AARs
-        mCompiledProjects.each {
-            com.android.build.gradle.BaseExtension libAndrioid = it.android
-            jniDirs += libAndrioid.sourceSets.main.jniLibs.srcDirs
+        def mergeJniLibsTask = project.tasks.withType(TransformTask.class).find {
+            it.variantName == 'release' && it.transform.name == 'mergeJniLibs'
         }
+        if (mergeJniLibsTask != null) {
+            jniDirs.addAll(mergeJniLibsTask.streamInputs.findAll {
+                it.isDirectory() && !shouldStripInput(it)
+            })
+        }
+
+        // Filter ABIs
         def filters = android.defaultConfig.ndkConfig.abiFilters
         jniDirs.each { dir ->
             dir.listFiles().each { File d ->
@@ -968,6 +975,16 @@ class AppPlugin extends BundlePlugin {
         }
 
         return JNIUtils.getABIFlag(abis)
+    }
+
+    protected boolean shouldStripInput(File input) {
+        AarPath aarPath = new AarPath(input)
+        for (aar in small.splitAars) {
+            if (aarPath.explodedFromAar(aar)) {
+                return true
+            }
+        }
+        return false
     }
 
     protected void hookVariantTask(BaseVariant variant) {
@@ -997,15 +1014,9 @@ class AppPlugin extends BundlePlugin {
     def hookMergeJniLibs(TransformTask t) {
         stripAarFiles(t, { splitPaths ->
             t.streamInputs.each {
-                AarPath aarPath = new AarPath(it)
-                for (aar in mUserLibAars) {
-                    if (aarPath.explodedFromAar(aar)) {
-                        // keep the user libraries
-                        return
-                    }
+                if (shouldStripInput(it)) {
+                    splitPaths.add(it)
                 }
-
-                splitPaths.add(it)
             }
         })
     }
@@ -1020,13 +1031,9 @@ class AppPlugin extends BundlePlugin {
                 if (it.configName == 'main' || it.configName == 'release') return
 
                 it.sourceFiles.each {
-                    def version = it.parentFile
-                    def name = version.parentFile
-                    def group = name.parentFile
-                    def aar = [group: group.name, name: name.name, version: version.name]
-                    if (mUserLibAars.contains(aar)) return
-
-                    paths.add(it)
+                    if (shouldStripInput(it)) {
+                        paths.add(it)
+                    }
                 }
             }
         })
