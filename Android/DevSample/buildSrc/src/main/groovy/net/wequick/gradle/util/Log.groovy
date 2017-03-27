@@ -22,15 +22,15 @@ public final class Log {
     }
 
     public static void success(String text) {
-        print String.format('\t%-64s', text)
+        print String.format('        %-64s', text)
         println AnsiUtils.green('[  OK  ]')
     }
 
     public static void warn(String text) {
-        println AnsiUtils.red(String.format('\t%s', text))
+        println AnsiUtils.red(String.format('        %s', text))
     }
 
     public static void footer(String text) {
-        println AnsiUtils.white(String.format('\t%s', text))
+        println AnsiUtils.white(String.format('        %s', text))
     }
 }
