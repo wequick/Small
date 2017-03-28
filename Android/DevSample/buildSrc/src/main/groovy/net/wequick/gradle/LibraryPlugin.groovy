@@ -79,7 +79,7 @@ class LibraryPlugin extends AppPlugin {
                     def requiredOutput = IntermediateFolderUtils.getContentLocation(
                             t.streamOutputFolder, 'main',
                             t.transform.outputTypes, t.transform.scopes,
-                            Format.DIRECTORY) // folders/2000/1f/main
+                            t.transform.name == 'proguard'? Format.JAR: Format.DIRECTORY) // folders/2000/1f/main
                     def requiredScope = requiredOutput.parentFile // folders/2000/1f
                     if (requiredScope.exists()) return
                     def typesDir = requiredScope.parentFile // folders/2000
