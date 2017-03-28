@@ -1,3 +1,14 @@
+## 1.2.0-beta3 (2017-03-27)
+
+Bugfixes:
+
+  - 修正 Android Plugin 2.3.0 下未能正确保留插件模块 JNI 的问题 (@xufan)
+  - 修正span类型字符串(`<b>Hello</b>`)无法被正确编译的问题 (#335, @jasonrongdevelop)
+
+Other:
+
+  - 使用8个空格替代`\t`来打印编译log，以保证整齐
+
 ## 1.2.0-beta2 (2017-03-21)
 
 Bugfixes:

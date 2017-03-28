@@ -435,6 +435,7 @@ public class AssetEditor extends CppHexEditor {
                             def l = s.length
                             offset += l + lenData.length + 1 // 1 for 0x0
 
+                            ids.add(it.name)
                             it.name = stringCount
                             stringCount++
                         } else {
