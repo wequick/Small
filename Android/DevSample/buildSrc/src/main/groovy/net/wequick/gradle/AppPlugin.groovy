@@ -1226,6 +1226,10 @@ class AppPlugin extends BundlePlugin {
 
                     if (line.indexOf('>') > 0) { // <application /> or <application .. > in one line
                         needsFilter = false
+                        // Remove all the unused keys, fix #313
+                        filterKeys.each {
+                            line = line.replaceAll(" $it=\"[^\"]+\"", "")
+                        }
                         break
                     }
 
