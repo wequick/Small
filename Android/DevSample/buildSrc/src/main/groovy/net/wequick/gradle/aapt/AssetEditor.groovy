@@ -115,7 +115,6 @@ public class AssetEditor extends CppHexEditor {
         s.styles = [] // {name, firstChar, lastChar}
         s.stringsSize = 0
         s.stringLens = []
-        s.styleLens = []
         s.isUtf8 = (s.flags & ResStringFlag.UTF8_FLAG) != 0
 
         // Read offsets
@@ -455,6 +454,10 @@ public class AssetEditor extends CppHexEditor {
             sp.styles = styles
             sp.styleOffsets = styleOffsets
             styleSizeDiff = sp.styleSize - styleOffset
+            if (styleCount == 0) {
+                styleSizeDiff += ResStringPoolSpan.END_SPAN.size()
+            }
+            sp.styleSize = styleOffset
         }
 
         entryDiff += sp.stringCount - stringCount
@@ -480,9 +483,12 @@ public class AssetEditor extends CppHexEditor {
         sp.stringPadding = newStringPadding
 
         // Adjust styles start position
+        d += styleSizeDiff
         if (sp.styleCount > 0) {
             sp.stylesStart = sp.stringsStart + sp.stringsSize + sp.stringPadding
-            d += styleSizeDiff
+        } else {
+            sp.stylesStart = 0
+            sp.styleEnd = null
         }
 
         // Adjust entry size
