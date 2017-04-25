@@ -103,6 +103,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
     private static Instrumentation sHostInstrumentation;
     private static InstrumentationWrapper sBundleInstrumentation;
+    private static ActivityThreadHandlerCallback sActivityThreadHandlerCallback;
 
     private static final char REDIRECT_FLAG = '>';
 
@@ -193,6 +194,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 Context who, IBinder contextThread, IBinder token, Activity target,
                 Intent intent, int requestCode, android.os.Bundle options) {
             wrapIntent(intent);
+            resetHandler();
             return ReflectAccelerator.execStartActivity(mBase,
                     who, contextThread, token, target, intent, requestCode, options);
         }
@@ -203,6 +205,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 Context who, IBinder contextThread, IBinder token, Activity target,
                 Intent intent, int requestCode) {
             wrapIntent(intent);
+            resetHandler();
             return ReflectAccelerator.execStartActivity(mBase,
                     who, contextThread, token, target, intent, requestCode);
         }
@@ -344,6 +347,26 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             }
 
             return super.onException(obj, e);
+        }
+
+        private void resetHandler(){
+            // ReInject mH in ActivityThread if it was modified by some other applications like LBE #412
+            if (sActivityThreadHandlerCallback != null) {
+                Object/*ActivityThread*/ thread;
+                try {
+                    thread = ReflectAccelerator.getActivityThread(Small.getContext());
+                    Field f = thread.getClass().getDeclaredField("mH");
+                    f.setAccessible(true);
+                    Object ah = f.get(thread);
+                    if (ah != sActivityThreadHandlerCallback) {
+                        f = Handler.class.getDeclaredField("mCallback");
+                        f.setAccessible(true);
+                        f.set(ah, sActivityThreadHandlerCallback);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
         }
 
         private void wrapIntent(Intent intent) {
@@ -536,6 +559,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         List<ProviderInfo> providers;
         Instrumentation base;
         ApkBundleLauncher.InstrumentationWrapper wrapper;
+        ApkBundleLauncher.ActivityThreadHandlerCallback callback;
         Field f;
 
         // Get activity thread
@@ -558,8 +582,8 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             f.setAccessible(true);
             Handler ah = (Handler) f.get(thread);
             f = Handler.class.getDeclaredField("mCallback");
-            f.setAccessible(true);
-            f.set(ah, new ApkBundleLauncher.ActivityThreadHandlerCallback());
+            callback = new ActivityThreadHandlerCallback();
+            f.set(ah, callback);
         } catch (Exception e) {
             throw new RuntimeException("Failed to replace message handler for thread: " + thread);
         }
@@ -579,6 +603,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         sActivityThread = thread;
         sProviders = providers;
         sHostInstrumentation = base;
+        sActivityThreadHandlerCallback = callback;
         sBundleInstrumentation = wrapper;
     }
 
