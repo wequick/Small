@@ -582,6 +582,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             f.setAccessible(true);
             Handler ah = (Handler) f.get(thread);
             f = Handler.class.getDeclaredField("mCallback");
+            f.setAccessible(true);
             callback = new ActivityThreadHandlerCallback();
             f.set(ah, callback);
         } catch (Exception e) {
