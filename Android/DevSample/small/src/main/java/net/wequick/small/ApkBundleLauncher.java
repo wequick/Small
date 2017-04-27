@@ -194,7 +194,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 Context who, IBinder contextThread, IBinder token, Activity target,
                 Intent intent, int requestCode, android.os.Bundle options) {
             wrapIntent(intent);
-            resetHandler();
+            ensureInjectMessageHandler(sActivityThread);
             return ReflectAccelerator.execStartActivity(mBase,
                     who, contextThread, token, target, intent, requestCode, options);
         }
@@ -205,7 +205,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 Context who, IBinder contextThread, IBinder token, Activity target,
                 Intent intent, int requestCode) {
             wrapIntent(intent);
-            resetHandler();
+            ensureInjectMessageHandler(sActivityThread);
             return ReflectAccelerator.execStartActivity(mBase,
                     who, contextThread, token, target, intent, requestCode);
         }
@@ -349,26 +349,6 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             return super.onException(obj, e);
         }
 
-        private void resetHandler(){
-            // ReInject mH in ActivityThread if it was modified by some other applications like LBE #412
-            if (sActivityThreadHandlerCallback != null) {
-                Object/*ActivityThread*/ thread;
-                try {
-                    thread = ReflectAccelerator.getActivityThread(Small.getContext());
-                    Field f = thread.getClass().getDeclaredField("mH");
-                    f.setAccessible(true);
-                    Object ah = f.get(thread);
-                    if (ah != sActivityThreadHandlerCallback) {
-                        f = Handler.class.getDeclaredField("mCallback");
-                        f.setAccessible(true);
-                        f.set(ah, sActivityThreadHandlerCallback);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
         private void wrapIntent(Intent intent) {
             ComponentName component = intent.getComponent();
             String realClazz;
@@ -501,6 +481,35 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         }
     }
 
+    private static void ensureInjectMessageHandler(Object thread) {
+        try {
+            Field f = thread.getClass().getDeclaredField("mH");
+            f.setAccessible(true);
+            Handler ah = (Handler) f.get(thread);
+            f = Handler.class.getDeclaredField("mCallback");
+            f.setAccessible(true);
+
+            boolean needsInject = false;
+            if (sActivityThreadHandlerCallback == null) {
+                needsInject = true;
+            } else {
+                Object callback = f.get(ah);
+                if (callback != sActivityThreadHandlerCallback) {
+                    needsInject = true;
+                }
+            }
+
+            if (needsInject) {
+                // Inject message handler
+                sActivityThreadHandlerCallback = new ActivityThreadHandlerCallback();
+                f.set(ah, sActivityThreadHandlerCallback);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to replace message handler for thread: " + thread);
+        }
+    }
+
+
     public static void wrapIntent(Intent intent) {
         sBundleInstrumentation.wrapIntent(intent);
     }
@@ -577,17 +586,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         }
 
         // Inject message handler
-        try {
-            f = thread.getClass().getDeclaredField("mH");
-            f.setAccessible(true);
-            Handler ah = (Handler) f.get(thread);
-            f = Handler.class.getDeclaredField("mCallback");
-            f.setAccessible(true);
-            callback = new ActivityThreadHandlerCallback();
-            f.set(ah, callback);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to replace message handler for thread: " + thread);
-        }
+        ensureInjectMessageHandler(thread);
 
         // Get providers
         try {
