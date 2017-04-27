@@ -731,7 +731,6 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         // Free temporary variables
         sLoadedApks = null;
         sProviders = null;
-        sActivityThread = null;
     }
 
     @Override
