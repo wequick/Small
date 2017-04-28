@@ -568,7 +568,6 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         List<ProviderInfo> providers;
         Instrumentation base;
         ApkBundleLauncher.InstrumentationWrapper wrapper;
-        ApkBundleLauncher.ActivityThreadHandlerCallback callback;
         Field f;
 
         // Get activity thread
@@ -603,7 +602,6 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         sActivityThread = thread;
         sProviders = providers;
         sHostInstrumentation = base;
-        sActivityThreadHandlerCallback = callback;
         sBundleInstrumentation = wrapper;
     }
 
