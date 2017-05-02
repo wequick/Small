@@ -120,8 +120,8 @@ class AndroidPlugin extends BasePlugin {
 
         project.tasks.withType(PrepareLibraryTask.class).each {
             it.doLast { PrepareLibraryTask aar ->
-                AarPath aarPath = TaskUtils.getAarOutput(aar)
-                File aarDir = new File(aarPath.getExplodePath())
+                AarPath aarPath = TaskUtils.getBuildCache(aar)
+                File aarDir = new File(aarPath.getBuildCachePath())
                 if (aarDir == null) {
                     return
                 }
@@ -207,9 +207,8 @@ class AndroidPlugin extends BasePlugin {
         // Init default output file (*.apk)
         small.outputFile = variant.outputs[0].outputFile
 
-        project.tasks
-                .withType(PrepareLibraryTask.class)
-                .collect { TaskUtils.getAarExplodedDir(project, it) }
+        project.tasks.withType(PrepareLibraryTask.class)
+                .collect { TaskUtils.collectAarBuildCacheDir(project, it) }
 
         // Hook variant tasks
         variant.assemble.doLast {

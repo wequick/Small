@@ -426,7 +426,7 @@ class RootPlugin extends BasePlugin {
             }
         }
         //  - copy dependencies jars
-        ext.explodeAarDirs.each { k, v ->
+        ext.buildCaches.each { k, v ->
             // explodedDir: [key:value]
             // [com.android.support/appcompat-v7/25.2.0:\Users\admin\.android\build-cache\hash\output]
             File aarOutPut = new File(v)

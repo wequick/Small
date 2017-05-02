@@ -471,7 +471,7 @@ class AppPlugin extends BundlePlugin {
 
         def path = "$group/$name/$version"
         def aar = [path: path, group: group, name: node.name, version: version]
-        def aarOutput = small.explodeAarDirs.get(path)
+        def aarOutput = small.buildCaches.get(path)
         if (aarOutput != null) {
             def resDir = new File(aarOutput, "res")
             // If the dependency has resources, collect it
@@ -809,7 +809,7 @@ class AppPlugin extends BundlePlugin {
         def vendorStyleableKeys = new HashMap<String, HashSet<String>>()
         transitiveVendorAars.each { aar ->
             String path = aar.path
-            def aarOutput = small.explodeAarDirs.get(path)
+            def aarOutput = small.buildCaches.get(path)
             if (aarOutput == null) {
                 return
             }
@@ -1313,7 +1313,7 @@ class AppPlugin extends BundlePlugin {
                 // Overwrite the retained vendor R.java
                 def retainedRFiles = [small.rJavaFile]
                 small.vendorTypes.each { name, types ->
-                    def aarOutput = small.explodeAarDirs.get(name)
+                    def aarOutput = small.buildCaches.get(name)
                     // TODO: read the aar package name once and store
                     File manifestFile = new File(aarOutput, 'AndroidManifest.xml')
                     def manifest = new XmlParser().parse(manifestFile)

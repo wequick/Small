@@ -24,9 +24,9 @@ import java.util.regex.Pattern
 
 public class TaskUtils {
 
-    public static void getAarExplodedDir(Project project,PrepareLibraryTask task) {
-        AarPath aarPath = getAarOutput(task)
-        String input = aarPath.getAarPath()
+    public static void collectAarBuildCacheDir(Project project,PrepareLibraryTask task) {
+        AarPath aarPath = getBuildCache(task)
+        String input = aarPath.getInputAarPath()
         if(input == null){
             return
         }
@@ -34,8 +34,8 @@ public class TaskUtils {
         def artifact
         def version
         File versionFile
-        if (input.contains('m2repository') && input.contains('sdk')) {
-            //  /extras/android/m2repository/com/android/support/support-core-ui/25.1.0/*.aar
+        if (input.contains('m2repository') && input.contains('sdk/extras')) {
+            //  sdk/extras/android/m2repository/com/android/support/support-core-ui/25.1.0/*.aar
             //                               ^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^ ^^^^^^
             versionFile = new File(input).parentFile
 
@@ -52,10 +52,10 @@ public class TaskUtils {
         version = versionFile.name
         artifact = versionFile.parentFile.name
         String key = "$group/$artifact/$version"
-        ((AndroidExtension)project.small).explodeAarDirs.put(key, aarPath.getExplodePath())
+        ((AndroidExtension)project.small).buildCaches.put(key, aarPath.getBuildCachePath())
     }
 
-    public static AarPath getAarOutput(PrepareLibraryTask task){
+    public static AarPath getBuildCache(PrepareLibraryTask task){
         Field explodedDirField = PrepareLibraryTask.class.getDeclaredField("explodedDir")
         explodedDirField.setAccessible(true)
         File explodedDir = explodedDirField.get(task)
