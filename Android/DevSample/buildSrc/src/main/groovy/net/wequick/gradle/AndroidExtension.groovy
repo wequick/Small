@@ -31,9 +31,11 @@ public class AndroidExtension extends BaseExtension {
     Task jar
 
     /** Tasks of aar exploder */
-    Set<File> explodeAarDirs
+    Map explodeAarDirs
 
     AndroidExtension(Project project) {
         super(project)
+
+        explodeAarDirs = new HashMap()
     }
 }

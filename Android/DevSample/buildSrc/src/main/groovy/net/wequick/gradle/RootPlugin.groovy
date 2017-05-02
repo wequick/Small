@@ -4,6 +4,7 @@ import net.wequick.gradle.aapt.SymbolParser
 import net.wequick.gradle.tasks.LintTask
 import net.wequick.gradle.util.DependenciesUtils
 import net.wequick.gradle.util.Log
+import net.wequick.gradle.util.TaskUtils
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.execution.TaskExecutionListener
@@ -425,19 +426,19 @@ class RootPlugin extends BasePlugin {
             }
         }
         //  - copy dependencies jars
-        ext.explodeAarDirs.each {
-            // explodedDir: **/exploded-aar/$group/$artifact/$version
-            if (it == null) return
-
-            File version = it
-            File jarDir = new File(version, 'jars')
+        ext.explodeAarDirs.each { k, v ->
+            // explodedDir: [key:value]
+            // [com.android.support/appcompat-v7/25.2.0:\Users\admin\.android\build-cache\hash\output]
+            File aarOutPut = new File(v)
+            File jarDir = new File(aarOutPut, 'jars')
             File jarFile = new File(jarDir, 'classes.jar')
             if (!jarFile.exists()) return
-
-            File artifact = version.parentFile
-            File group = artifact.parentFile
+            def key = k.split("/")
+            def group = key[0]
+            def artifact = key[1]
+            def version = key[2]
             File destFile = new File(preJarDir,
-                    "${group.name}-${artifact.name}-${version.name}.jar")
+                    "${group}-${artifact}-${version}.jar")
             if (destFile.exists()) return
 
             project.copy {
@@ -451,7 +452,7 @@ class RootPlugin extends BasePlugin {
             libDir.listFiles().each { jar ->
                 if (!jar.name.endsWith('.jar')) return
 
-                destFile = new File(preJarDir, "${group.name}-${artifact.name}-${jar.name}")
+                destFile = new File(preJarDir, "${group}-${artifact}-${jar.name}")
                 if (destFile.exists()) return
 
                 project.copy {

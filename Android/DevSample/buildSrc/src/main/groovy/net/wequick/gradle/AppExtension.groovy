@@ -42,9 +42,6 @@ public class AppExtension extends BundleExtension {
     /** Symbol file - R.txt */
     File symbolFile
 
-    /** Directory of all exploded aar */
-    File aarDir
-
     /** File of resources.ap_ */
     File apFile
 
@@ -82,9 +79,6 @@ public class AppExtension extends BundleExtension {
     AppExtension(Project project) {
         super(project)
 
-        File interDir = new File(project.buildDir, FD_INTERMEDIATES)
-
-        aarDir = new File(interDir, 'exploded-aar')
         publicSymbolFile = new File(project.projectDir, 'public.txt')
     }
 }
