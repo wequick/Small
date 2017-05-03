@@ -35,7 +35,5 @@ public class AndroidExtension extends BaseExtension {
 
     AndroidExtension(Project project) {
         super(project)
-
-        buildCaches = new HashMap()
     }
 }

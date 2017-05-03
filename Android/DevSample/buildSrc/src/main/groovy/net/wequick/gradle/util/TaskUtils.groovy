@@ -16,6 +16,7 @@
 package net.wequick.gradle.util
 
 import com.android.build.gradle.internal.tasks.PrepareLibraryTask
+import javafx.scene.effect.Reflection
 import net.wequick.gradle.AndroidExtension
 import org.gradle.api.Project
 
@@ -24,7 +25,7 @@ import java.util.regex.Pattern
 
 public class TaskUtils {
 
-    public static void collectAarBuildCacheDir(Project project,PrepareLibraryTask task) {
+    public static void collectAarBuildCacheDir(PrepareLibraryTask task,Map<String,File> buildCache) {
         AarPath aarPath = getBuildCache(task)
         String input = aarPath.getInputAarPath()
         if(input == null){
@@ -52,15 +53,24 @@ public class TaskUtils {
         version = versionFile.name
         artifact = versionFile.parentFile.name
         String key = "$group/$artifact/$version"
-        ((AndroidExtension)project.small).buildCaches.put(key, aarPath.getBuildCachePath())
+        buildCache.put(key, aarPath.getBuildCacheFile())
     }
 
     public static AarPath getBuildCache(PrepareLibraryTask task){
-        Field explodedDirField = PrepareLibraryTask.class.getDeclaredField("explodedDir")
-        explodedDirField.setAccessible(true)
-        File explodedDir = explodedDirField.get(task)
+        AarPath aarPath
+        try{
+            Field explodedDirField = PrepareLibraryTask.class.getDeclaredField("explodedDir")
+            explodedDirField.setAccessible(true)
+            File explodedDir = explodedDirField.get(task)
+            aarPath = new AarPath(explodedDir)
+        }catch (NoSuchFieldException noSuchFieldException){
+            Log.warn "[${task.getProject().name}] NoSuchFieldException Reflect PrepareLibraryTask Field explodedDir failed..."
+        }catch(IllegalArgumentException illegalArgumentException){
+            Log.warn "[${task.getProject().name}] IllegalArgumentException Reflect PrepareLibraryTask Field explodedDir failed..."
+        }catch(Exception exception){
+            exception.printStackTrace()
+        }
 
-        AarPath aarPath = new AarPath(explodedDir)
         return aarPath;
     }
 

@@ -429,8 +429,7 @@ class RootPlugin extends BasePlugin {
         ext.buildCaches.each { k, v ->
             // explodedDir: [key:value]
             // [com.android.support/appcompat-v7/25.2.0:\Users\admin\.android\build-cache\hash\output]
-            File aarOutPut = new File(v)
-            File jarDir = new File(aarOutPut, 'jars')
+            File jarDir = new File(v, 'jars')
             File jarFile = new File(jarDir, 'classes.jar')
             if (!jarFile.exists()) return
             def key = k.split("/")

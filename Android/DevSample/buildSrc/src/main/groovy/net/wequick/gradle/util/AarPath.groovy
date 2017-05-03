@@ -23,13 +23,13 @@ public class AarPath {
     private static final int CACHE_FILE_PATH_INDEX = CACHE_FILE_PATH_KEY.length() + 1
 
     private String mSrc
-    private String mBuildCache
+    private File mBuildCacheFile
     private boolean isCache
 
     public AarPath(File path) {
         mSrc = path.absolutePath
         if (mSrc.contains(CACHE_DIR)) {
-            mBuildCache = path.absolutePath;
+            mBuildCacheFile = new File(path.absolutePath);
             this.initWithCachePath(path)
         }
     }
@@ -82,7 +82,7 @@ public class AarPath {
         return mSrc
     }
 
-    public String getBuildCachePath(){
-        return  mBuildCache;
+    public File getBuildCacheFile(){
+        return  mBuildCacheFile;
     }
 }
