@@ -34,4 +34,8 @@ public final class AnsiUtils {
     public static def yellow(text) {
         return ansi().fg(YELLOW).a(text).reset()
     }
+
+    public static def bold(text) {
+        return ansi().bold().a(text).reset()
+    }
 }

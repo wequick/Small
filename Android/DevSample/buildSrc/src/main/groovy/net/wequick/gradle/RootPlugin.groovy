@@ -185,8 +185,9 @@ class RootPlugin extends BasePlugin {
         }
         project.task('cleanBundle', group: 'small', description: 'Clean all bundles')
         project.task('buildBundle', group: 'small', description: 'Build all bundles')
+        project.task('smallLint', type: LintTask, group: 'small', description: 'Verify bundles')
 
-        project.task('small').doLast {
+        project.task('small', group: 'small', description: 'Print bundle environments').doLast {
 
             println()
             println '### Compile-time'
@@ -319,23 +320,6 @@ class RootPlugin extends BasePlugin {
 
             printRows(rows)
             println()
-        }
-
-        project.afterEvaluate {
-            small.hostProject.afterEvaluate {
-                def flavorName = 'Release'
-                com.android.build.gradle.AppExtension android = it.android
-                if (android.productFlavors.size() > 0) {
-                    flavorName = android.productFlavors[0].name.capitalize() + 'Release'
-                }
-
-                def hostDexTaskName = ":app:transformClassesWithDexFor$flavorName"
-                project.task('smallLint',
-                        type: LintTask,
-                        dependsOn: [hostDexTaskName]) {
-                    rootSmall = small
-                }
-            }
         }
     }
 
