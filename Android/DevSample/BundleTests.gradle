@@ -18,12 +18,22 @@ class BundleTests extends UnitTests {
     def testShouldKeepJarAssetsInLib() {
         File bundle = bundle('net.wequick.example.small.app.home')
         def out = aapt(['list', bundle.path])
-//        def aapt = 'aapt'
-//        def out = cmd(aapt, ['list', bundle.path])
         out.eachLine { name ->
             tAssert(name != 'assets/asset-should-only-in-lib-bundle.txt',
                     'Assets duplicate')
             tAssert(name != 'assets/jar-asset-should-only-in-lib.txt',
+                    'Jar assets duplicate')
+        }
+    }
+
+    /**
+     * 测试宿主分身的 assets 资源不会重复打包到插件中
+     */
+    def testShouldKeepJarAssetsInStub() {
+        File bundle = bundle('net.wequick.example.small.app.home')
+        def out = aapt(['list', bundle.path])
+        out.eachLine { name ->
+            tAssert(name != 'assets/jar-asset-should-only-in-stub.txt',
                     'Jar assets duplicate')
         }
     }
@@ -35,9 +45,6 @@ class BundleTests extends UnitTests {
         // lib/x86/libshould-keep-in-app-bundle.so
         File bundle = bundle('net.wequick.example.small.app.main')
         def out = aapt(['list', bundle.path])
-//        def aapt = 'aapt'
-//        def out = cmd(aapt, ['list', bundle.path])
-
         tAssert(out.split("\n").contains('lib/x86/libshould-keep-in-app-bundle.so'),
                 'Native library missing')
     }
