@@ -185,12 +185,12 @@ class UnitTests {
 
         println ''
         def allSpentTimeStr = String.format('%.3f', (System.nanoTime() - allStartTime) / 1000000000)
+        def resultStr = "    Executed $allTestCount tests, with $failedTestCount failure in $allSpentTimeStr seconds\n"
         if (failedTestCount != 0) {
-            println AnsiUtils.red("    Executed $allTestCount tests, with $failedTestCount failure in $allSpentTimeStr seconds")
+            println AnsiUtils.red(resultStr)
             throw new RuntimeException("Lint failed!")
         } else {
-            println AnsiUtils.green("    Executed $allTestCount tests, with 0 failure in $allSpentTimeStr seconds")
+            println AnsiUtils.green(resultStr)
         }
-        println ''
     }
 }
