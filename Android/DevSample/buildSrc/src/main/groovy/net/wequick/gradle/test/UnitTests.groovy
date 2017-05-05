@@ -125,7 +125,7 @@ class UnitTests {
     }
 
     static def logAction(action, text) {
-        println " ${AnsiUtils.yellow('▸')} ${AnsiUtils.bold(action)} $text"
+        println "${AnsiUtils.yellow('▸')} ${AnsiUtils.bold(action)} $text"
     }
 
     public static def runAllTests(Project project) {
@@ -172,7 +172,7 @@ class UnitTests {
                         }
                         println ' failed'
                         if (details != null) {
-                            println "      $details"
+                            println "$details"
                         }
                     } else {
                         println "    ${AnsiUtils.green('✓')} ${it.name} (${String.format('%.3f', spentTime)} seconds)"
@@ -191,5 +191,6 @@ class UnitTests {
         } else {
             println AnsiUtils.green("    Executed $allTestCount tests, with 0 failure in $allSpentTimeStr seconds")
         }
+        println ''
     }
 }

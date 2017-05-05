@@ -146,7 +146,8 @@ class DuplicateClassesTests extends UnitTests {
                 }
                 details += "] "
                 clazz = clazz.substring(1).replace('/', '.')
-                details += AnsiUtils.red(clazz) + "\n"
+                details += AnsiUtils.red(clazz)
+                details += "\n"
             }
             tAssert(false, 'Classes duplicate', details)
         }
