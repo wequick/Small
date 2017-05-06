@@ -73,6 +73,8 @@ public class Bundle {
     private static final String VERSION_KEY = "version";
     private static final String BUNDLES_KEY = "bundles";
     private static final String HOST_PACKAGE = "main";
+    private static final String DEFAULT_ENTRANCE_PATH = "";
+    private static final String DEFAULT_ENTRANCE_ACTIVITY = "MainActivity";
 
     private static final class Manifest {
         String version;
@@ -413,25 +415,22 @@ public class Bundle {
 
         String dstPath = null;
         String dstQuery = srcQuery;
-        if (srcPath.equals("")) {
-            dstPath = srcPath;
-        } else {
-            for (String key : this.rules.keySet()) {
-                // TODO: regex match and replace
-                if (key.equals(srcPath)) dstPath = this.rules.get(key);
-                if (dstPath != null) break;
-            }
-            if (dstPath == null) return false;
 
-            int index = dstPath.indexOf("?");
-            if (index > 0) {
-                if (dstQuery != null) {
-                    dstQuery = dstQuery + "&" + dstPath.substring(index + 1);
-                } else {
-                    dstQuery = dstPath.substring(index + 1);
-                }
-                dstPath = dstPath.substring(0, index);
+        for (String key : this.rules.keySet()) {
+            // TODO: regex match and replace
+            if (key.equals(srcPath)) dstPath = this.rules.get(key);
+            if (dstPath != null) break;
+        }
+        if (dstPath == null) return false;
+
+        int index = dstPath.indexOf("?");
+        if (index > 0) {
+            if (dstQuery != null) {
+                dstQuery = dstQuery + "&" + dstPath.substring(index + 1);
+            } else {
+                dstQuery = dstPath.substring(index + 1);
             }
+            dstPath = dstPath.substring(0, index);
         }
 
         this.path = dstPath;
@@ -529,20 +528,26 @@ public class Bundle {
         }
 
         this.rules = new HashMap<String, String>();
-        // Default rules to visit entrance page of bundle
-        this.rules.put("", "");
-        this.rules.put(".html", "");
-        this.rules.put("/index", "");
-        this.rules.put("/index.html", "");
+        String entrancePath = DEFAULT_ENTRANCE_PATH;
         if (map.has("rules")) {
             // User rules to visit other page of bundle
             JSONObject rulesObj = map.getJSONObject("rules");
             Iterator<String> it = rulesObj.keys();
             while (it.hasNext()) {
-                String key = it.next();
-                this.rules.put("/" + key, rulesObj.getString(key));
+                String from = it.next();
+                String to = rulesObj.getString(from);
+                if (from.equals(DEFAULT_ENTRANCE_PATH)) {
+                    entrancePath = to;
+                } else {
+                    this.rules.put("/" + from, to);
+				}
             }
         }
+        // Default rules to visit entrance page of bundle
+        this.rules.put(DEFAULT_ENTRANCE_PATH, entrancePath);
+        this.rules.put(".html", entrancePath);
+        this.rules.put("/index", entrancePath);
+        this.rules.put("/index.html", entrancePath);
     }
 
     protected void prepareForLaunch() {
@@ -636,16 +641,20 @@ public class Bundle {
 
     protected String getActivityName() {
         String activityName = path;
-        if (activityName == null || activityName.equals("")) {
-            activityName = entrance;
-        } else {
-            String pkg = mPackageName != null ? mPackageName : Small.getContext().getPackageName();
-            char c = activityName.charAt(0);
-            if (c == '.') {
-                activityName = pkg + activityName;
-            } else if (c >= 'A' && c <= 'Z') {
-                activityName = pkg + '.' + activityName;
+        if (activityName == null || activityName.equals(DEFAULT_ENTRANCE_PATH)) {
+            if (entrance != null) {
+                return entrance;
             }
+
+            activityName = DEFAULT_ENTRANCE_ACTIVITY;
+        }
+
+        String pkg = mPackageName != null ? mPackageName : Small.getContext().getPackageName();
+        char c = activityName.charAt(0);
+        if (c == '.') {
+            activityName = pkg + activityName;
+        } else if (c >= 'A' && c <= 'Z') {
+            activityName = pkg + '.' + activityName;
         }
         return activityName;
     }

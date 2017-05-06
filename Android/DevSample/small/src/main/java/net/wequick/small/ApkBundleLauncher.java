@@ -795,7 +795,6 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         }
 
         if (pluginInfo.activities == null) {
-            bundle.setLaunchable(false);
             return;
         }
 
@@ -827,6 +826,11 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         // Intent extras - class
         String activityName = bundle.getActivityName();
         if (!ActivityLauncher.containsActivity(activityName)) {
+            if (sLoadedActivities == null) {
+                throw new ActivityNotFoundException("Unable to find explicit activity class " +
+                        "{ " + activityName + " }");
+            }
+
             if (!sLoadedActivities.containsKey(activityName)) {
                 if (activityName.endsWith("Activity")) {
                     throw new ActivityNotFoundException("Unable to find explicit activity class " +
