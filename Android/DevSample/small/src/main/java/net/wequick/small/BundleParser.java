@@ -79,7 +79,8 @@ public class BundleParser {
             // activity
             public static int[] AndroidManifestActivity = {
                     0x01010000, 0x01010001, 0x01010002, 0x01010003,
-                    0x0101001d, 0x0101001e, 0x0101022b, 0x010102d3
+                    0x0101001d, 0x0101001e, 0x0101001f, 0x0101022b,
+                    0x010102d3
             };
             public static int AndroidManifestActivity_theme = 0;
             public static int AndroidManifestActivity_label = 1;
@@ -87,8 +88,9 @@ public class BundleParser {
             public static int AndroidManifestActivity_name = 3;
             public static int AndroidManifestActivity_launchMode = 4;
             public static int AndroidManifestActivity_screenOrientation = 5;
-            public static int AndroidManifestActivity_windowSoftInputMode = 6;
-            public static int AndroidManifestActivity_hardwareAccelerated = 7;
+            public static int AndroidManifestActivity_configChanges = 6;
+            public static int AndroidManifestActivity_windowSoftInputMode = 7;
+            public static int AndroidManifestActivity_hardwareAccelerated = 8;
             // data (for intent-filter)
             public static int[] AndroidManifestData = {
                     0x01010026, 0x01010027, 0x01010028, 0x01010029,
@@ -304,6 +306,7 @@ public class BundleParser {
                 ai.screenOrientation = sa.getInt(
                         R.styleable.AndroidManifestActivity_screenOrientation,
                         ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+                ai.configChanges = sa.getInt(R.styleable.AndroidManifestActivity_configChanges, 0);
                 ai.softInputMode = sa.getInteger(
                         R.styleable.AndroidManifestActivity_windowSoftInputMode, 0);
 
