@@ -22,8 +22,20 @@ public final class Log {
     private static final String IC_FAILED = isWindows ? 'x' : '✗'
     private static final String IC_PASSED = isWindows ? 'o' : '✓'
 
+    public static enum LogState {
+        None,
+        Lint
+    }
+
+    private static LogState state
+
+    public static void setState(LogState state) {
+        this.state = state
+    }
+
     public static void header(String text) {
-        print AnsiUtils.yellow("[Small] ")
+        def logo = (state == LogState.None) ? "[Small] " : "  Small "
+        print AnsiUtils.yellow(logo)
         println AnsiUtils.white(text)
     }
 

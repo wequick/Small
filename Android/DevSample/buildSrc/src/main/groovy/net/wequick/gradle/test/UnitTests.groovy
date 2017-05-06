@@ -133,6 +133,8 @@ class UnitTests {
 
     public static def runAllTests(Project project) {
 
+        Log.setState(Log.LogState.Lint)
+
         // Collect all the tests
         def tests = []
 
@@ -197,5 +199,7 @@ class UnitTests {
         } else {
             println AnsiUtils.green(resultStr)
         }
+
+        Log.setState(Log.LogState.None)
     }
 }
