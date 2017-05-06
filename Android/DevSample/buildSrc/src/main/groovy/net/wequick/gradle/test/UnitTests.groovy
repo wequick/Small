@@ -20,7 +20,6 @@ import com.android.sdklib.BuildToolInfo
 import net.wequick.gradle.util.AnsiUtils
 import net.wequick.gradle.util.Log
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.GradleBuild
 
@@ -29,8 +28,6 @@ class UnitTests {
     public static String error
     public static String details
     protected Project project
-
-    private static GradleBuild gradlew
 
     UnitTests() { }
 
@@ -69,34 +66,32 @@ class UnitTests {
     }
 
     def gradlew(String taskName, boolean quiet, boolean parallel) {
-        // def args = []
-        // def exe = './gradlew'
-        // if (System.properties['os.name'].toLowerCase().contains('windows')) {
-        //     exe = 'cmd'
-        //     args.add('gradlew')
-        // }
+//         def args = []
+//         def exe = './gradlew'
+//         if (System.properties['os.name'].toLowerCase().contains('windows')) {
+//             exe = 'cmd'
+//             args.add('gradlew')
+//         }
+//
+//         args.add(taskName)
+//         if (quiet) {
+//             args.add('-q')
+//         }
+//         args.add('-Dorg.gradle.daemon=true')
+//         args.add("-Dorg.gradle.parallel=${parallel ? 'true' : 'false'}")
+//
+//         cmd(exe, args)
 
-        // args.add(taskName)
-        // if (quiet) {
-        //     args.add('-q')
-        // }
-        // args.add('-Dorg.gradle.daemon=true')
-        // args.add("-Dorg.gradle.parallel=${parallel ? 'true' : 'false'}")
-
-        // cmd(exe, args)
-
-        if (gradlew == null) {
-            gradlew = project.task('__small_gradlew', type: GradleBuild)
-        }
-
+        GradleBuild gradlew = project.task('__temp_gradlew', type: GradleBuild)
         gradlew.tasks = [taskName]
-        gradlew.startParameter.systemPropertiesArgs = [
-            'org.gradle.daemon': 'true',
-            'org.gradle.parallel': (parallel ? 'true' : 'false')
-        ]
+        gradlew.startParameter.systemPropertiesArgs.putAll(
+                'org.gradle.daemon': 'true',
+                'org.gradle.parallel': parallel ? 'true' : 'false')
         gradlew.startParameter.logLevel = quiet ? LogLevel.QUIET : LogLevel.LIFECYCLE
 
         gradlew.execute()
+
+        project.tasks.remove(gradlew)
     }
 
     def aapt(theArgs) {
