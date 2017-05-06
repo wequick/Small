@@ -603,7 +603,7 @@ class RootPlugin extends BasePlugin {
 
             variant.outputs.each { out ->
                 File outFile = out.outputFile
-                Log.footer "-- output: ${outFile.parentFile.name}/${outFile.name} " +
+                Log.result "${outFile.parentFile.name}/${outFile.name} " +
                         "(${outFile.length()} bytes = ${getFileSize(outFile)})"
             }
         }

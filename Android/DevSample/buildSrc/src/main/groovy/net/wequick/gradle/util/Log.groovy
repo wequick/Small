@@ -18,9 +18,10 @@ package net.wequick.gradle.util
 public final class Log {
 
     private static final boolean isWindows = System.properties['os.name'].toLowerCase().contains('windows')
-    private static final String IC_ARROW = isWindows ? '>' : '▸'
+    private static final String IC_ACTION = isWindows ? '>' : '▸'
     private static final String IC_FAILED = isWindows ? 'x' : '✗'
     private static final String IC_PASSED = isWindows ? 'o' : '✓'
+    private static final String IC_ARROW = '->'
 
     public static enum LogState {
         None,
@@ -52,8 +53,12 @@ public final class Log {
         println AnsiUtils.white(String.format('        %s', text))
     }
 
+    public static void result(String text) {
+        println "        ${AnsiUtils.yellow(IC_ARROW)} $text"
+    }
+
     public static void action(String action, String text) {
-        println "${AnsiUtils.yellow(IC_ARROW)} ${AnsiUtils.bold(action)} $text"
+        println "${AnsiUtils.yellow(IC_ACTION)} ${AnsiUtils.bold(action)} $text"
     }
 
     public static void failed(String text) {
