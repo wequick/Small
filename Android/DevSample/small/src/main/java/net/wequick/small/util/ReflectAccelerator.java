@@ -23,6 +23,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.AssetManager;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
@@ -576,6 +577,31 @@ public class ReflectAccelerator {
             Intent intent, int requestCode) {
         return V9_20.execStartActivity(instrumentation,
                 who, contextThread, token, target, intent, requestCode);
+    }
+
+    public static boolean relaunchActivity(Activity activity,
+                                           Object/*ActivityThread*/ thread,
+                                           Object/*IBinder*/ activityToken) {
+        if (Build.VERSION.SDK_INT >= 11) {
+            activity.recreate();
+            return true;
+        }
+
+        try {
+            Method m = thread.getClass().getDeclaredMethod("getApplicationThread");
+            m.setAccessible(true);
+            Object /*ActivityThread$ApplicationThread*/ appThread = m.invoke(thread);
+            Class[] types = new Class[]{IBinder.class, List.class, List.class,
+                    int.class, boolean.class, Configuration.class};
+            m = appThread.getClass().getMethod("scheduleRelaunchActivity", types);
+            m.setAccessible(true);
+            m.invoke(appThread, activityToken, null, null, 0, false, null);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
     }
 
     public static Intent getIntent(Object/*ActivityClientRecord*/ r) {

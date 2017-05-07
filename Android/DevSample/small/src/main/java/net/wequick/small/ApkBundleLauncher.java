@@ -28,6 +28,7 @@ import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.ProviderInfo;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.os.Handler;
@@ -118,6 +119,10 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
         private static final int LAUNCH_ACTIVITY = 100;
         private static final int CREATE_SERVICE = 114;
+        private static final int CONFIGURATION_CHANGED = 118;
+        private static final int ACTIVITY_CONFIGURATION_CHANGED = 125;
+
+        private Configuration mApplicationConfig;
 
         @Override
         public boolean handleMessage(Message msg) {
@@ -129,6 +134,13 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 case CREATE_SERVICE:
                     ensureServiceClassesLoadable(msg);
                     break;
+
+                case CONFIGURATION_CHANGED:
+                    recordConfigChanges(msg);
+                    break;
+
+                case ACTIVITY_CONFIGURATION_CHANGED:
+                    return relaunchActivityIfNeeded(msg);
 
                 default:
                     break;
@@ -172,6 +184,58 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             // with a different process('android:process=xx'), then we should also setup Small for
             // that process so that the service classes can be successfully loaded.
             Small.setUpOnDemand();
+        }
+
+        private void recordConfigChanges(Message msg) {
+            mApplicationConfig = (Configuration) msg.obj;
+        }
+
+        private boolean relaunchActivityIfNeeded(Message msg) {
+            try {
+                Field f = sActivityThread.getClass().getDeclaredField("mActivities");
+                f.setAccessible(true);
+                Map mActivities = (Map) f.get(sActivityThread);
+                Object /*ActivityThread$ActivityConfigChangeData*/ data = msg.obj;
+                Object token;
+                if (data instanceof IBinder) {
+                    token = data;
+                } else {
+                    f = data.getClass().getDeclaredField("activityToken");
+                    f.setAccessible(true);
+                    token = f.get(data);
+                }
+                Object /*ActivityClientRecord*/ r = mActivities.get(token);
+                Intent intent = ReflectAccelerator.getIntent(r);
+                String bundleActivityName = unwrapIntent(intent);
+                if (bundleActivityName == null) {
+                    return false;
+                }
+
+                f = r.getClass().getDeclaredField("activity");
+                f.setAccessible(true);
+                final Activity activity = (Activity) f.get(r);
+
+                f = Activity.class.getDeclaredField("mCurrentConfig");
+                f.setAccessible(true);
+                Configuration activityConfig = (Configuration) f.get(activity);
+
+                int configDiff = activityConfig.diff(mApplicationConfig);
+                if (configDiff == 0) {
+                    return false;
+                }
+
+                ActivityInfo bundleActivityInfo = sLoadedActivities.get(bundleActivityName);
+                if ((configDiff & (~bundleActivityInfo.configChanges)) == 0) {
+                    return false;
+                }
+
+                // The activity isn't handling the change, relaunch it.
+                return ReflectAccelerator.relaunchActivity(activity, sActivityThread, token);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return false;
         }
     }
 
