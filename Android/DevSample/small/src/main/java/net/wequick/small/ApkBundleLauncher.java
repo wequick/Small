@@ -213,17 +213,18 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
                 f = r.getClass().getDeclaredField("activity");
                 f.setAccessible(true);
-                final Activity activity = (Activity) f.get(r);
-
+                Activity activity = (Activity) f.get(r);
                 f = Activity.class.getDeclaredField("mCurrentConfig");
                 f.setAccessible(true);
                 Configuration activityConfig = (Configuration) f.get(activity);
 
+                // Calculate the changes
                 int configDiff = activityConfig.diff(mApplicationConfig);
                 if (configDiff == 0) {
                     return false;
                 }
 
+                // Check if the activity can handle the changes
                 ActivityInfo bundleActivityInfo = sLoadedActivities.get(bundleActivityName);
                 if ((configDiff & (~bundleActivityInfo.configChanges)) == 0) {
                     return false;
