@@ -5,6 +5,7 @@ import com.android.build.gradle.internal.pipeline.TransformTask
 import com.android.build.gradle.internal.transforms.ProGuardTransform
 import com.android.build.gradle.internal.tasks.PrepareLibraryTask
 import com.android.build.gradle.tasks.MergeManifests
+import net.wequick.gradle.util.AarPath
 import net.wequick.gradle.util.TaskUtils
 import org.gradle.api.Project
 
@@ -119,13 +120,9 @@ class AndroidPlugin extends BasePlugin {
 
         project.tasks.withType(PrepareLibraryTask.class).each {
             it.doLast { PrepareLibraryTask aar ->
-                File aarDir = TaskUtils.getAarExplodedDir(aar)
+                AarPath aarPath = TaskUtils.getBuildCache(aar)
+                File aarDir = aarPath.getBuildCacheFile()
                 if (aarDir == null) {
-                    return
-                }
-
-                def aarName = aarDir.parentFile.name
-                if (rootSmall.hostStubProjects.find { it.name == aarName } != null) {
                     return
                 }
 
@@ -209,10 +206,12 @@ class AndroidPlugin extends BasePlugin {
     protected void configureReleaseVariant(BaseVariant variant) {
         // Init default output file (*.apk)
         small.outputFile = variant.outputs[0].outputFile
-        small.explodeAarDirs = project.tasks
-                .withType(PrepareLibraryTask.class)
-                .collect { TaskUtils.getAarExplodedDir(it) }
 
+        Map buildCaches = new HashMap<String, File>()
+        project.tasks.withType(PrepareLibraryTask.class).each {
+            TaskUtils.collectAarBuildCacheDir(it,buildCaches)
+        }
+        small.buildCaches = buildCaches
         // Hook variant tasks
         variant.assemble.doLast {
             tidyUp()

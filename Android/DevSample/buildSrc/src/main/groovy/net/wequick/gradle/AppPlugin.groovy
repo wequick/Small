@@ -35,6 +35,7 @@ import net.wequick.gradle.util.ClassFileUtils
 import net.wequick.gradle.util.JNIUtils
 import net.wequick.gradle.util.Log
 import net.wequick.gradle.util.ZipUtils
+import net.wequick.gradle.util.TaskUtils
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.DependencySet
@@ -467,20 +468,23 @@ class AppPlugin extends BundlePlugin {
         }
 
         def path = "$group/$name/$version"
-        def aar = [path: path, name: node.name, version: version]
-        def resDir = new File(small.aarDir, "$path/res")
-        // If the dependency has resources, collect it
-        if (resDir.exists() && resDir.list().size() > 0) {
-            if (outFirstLevelAars != null && !outFirstLevelAars.contains(node)) {
-                outFirstLevelAars.add(node)
+        def aar = [path: path, group: group, name: node.name, version: version]
+        File aarOutput = small.buildCaches.get(path)
+        if (aarOutput != null) {
+            def resDir = new File(aarOutput, "res")
+            // If the dependency has resources, collect it
+            if (resDir.exists() && resDir.list().size() > 0) {
+                if (outFirstLevelAars != null && !outFirstLevelAars.contains(node)) {
+                    outFirstLevelAars.add(node)
+                }
+                if (!outTransitiveAars.contains(aar)) {
+                    outTransitiveAars.add(aar)
+                }
+                node.children.each { next ->
+                    collectVendorAars(next, null, outTransitiveAars)
+                }
+                return true
             }
-            if (!outTransitiveAars.contains(aar)) {
-                outTransitiveAars.add(aar)
-            }
-            node.children.each { next ->
-                collectVendorAars(next, null, outTransitiveAars)
-            }
-            return true
         }
 
         // Otherwise, check it's children for recursively collecting
@@ -803,9 +807,12 @@ class AppPlugin extends BundlePlugin {
         def vendorStyleableKeys = new HashMap<String, HashSet<String>>()
         transitiveVendorAars.each { aar ->
             String path = aar.path
-            File aarPath = new File(small.aarDir, path)
-            String resPath = new File(aarPath, 'res').absolutePath
-            File symbol = new File(aarPath, 'R.txt')
+            File aarOutput = small.buildCaches.get(path)
+            if (aarOutput == null) {
+                return
+            }
+            String resPath = new File(aarOutput, 'res').absolutePath
+            File symbol = new File(aarOutput, 'R.txt')
             Set<SymbolParser.Entry> resTypeEntries = new HashSet<>()
             Set<String> resStyleableKeys = new HashSet<>()
 
@@ -830,12 +837,12 @@ class AppPlugin extends BundlePlugin {
             // We had to parse this cause the aar maybe referenced to the other external aars like
             // `AppCompat' and so on, so that we should keep those external `R.*.*' for current aar.
             // Fix issue #271.
-            File jar = new File(aarPath, 'jars/classes.jar')
+            File jar = new File(aarOutput, 'jars/classes.jar')
             if (jar.exists()) {
                 def codedTypeEntries = []
                 def codedStyleableKeys = []
-
-                File aarSymbolsDir = new File(small.aarDir.parentFile, 'small-symbols')
+                File interDir = new File(project.buildDir, "intermediates")
+                File aarSymbolsDir = new File(interDir, 'small-symbols')
                 File refDir = new File(aarSymbolsDir, path)
                 File refFile = new File(refDir, 'R.txt')
                 if (refFile.exists()) {
@@ -858,7 +865,7 @@ class AppPlugin extends BundlePlugin {
                     })
 
                     // TODO: read the aar package name once and store
-                    File manifestFile = new File(aarPath, 'AndroidManifest.xml')
+                    File manifestFile = new File(aarOutput, 'AndroidManifest.xml')
                     def manifest = new XmlParser().parse(manifestFile)
                     String aarPkg = manifest.@package.replaceAll('\\.', '/')
 
@@ -1323,9 +1330,9 @@ class AppPlugin extends BundlePlugin {
                 // Overwrite the retained vendor R.java
                 def retainedRFiles = [small.rJavaFile]
                 small.vendorTypes.each { name, types ->
-                    File aarDir = new File(small.aarDir, name)
+                    File aarOutput = small.buildCaches.get(name)
                     // TODO: read the aar package name once and store
-                    File manifestFile = new File(aarDir, 'AndroidManifest.xml')
+                    File manifestFile = new File(aarOutput, 'AndroidManifest.xml')
                     def manifest = new XmlParser().parse(manifestFile)
                     String aarPkg = manifest.@package
                     String pkgPath = aarPkg.replaceAll('\\.', '/')

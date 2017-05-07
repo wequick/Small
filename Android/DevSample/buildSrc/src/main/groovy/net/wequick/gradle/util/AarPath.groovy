@@ -23,11 +23,13 @@ public class AarPath {
     private static final int CACHE_FILE_PATH_INDEX = CACHE_FILE_PATH_KEY.length() + 1
 
     private String mSrc
+    private File mBuildCacheFile
     private boolean isCache
 
     public AarPath(File path) {
         mSrc = path.absolutePath
         if (mSrc.contains(CACHE_DIR)) {
+            mBuildCacheFile = new File(path.absolutePath);
             this.initWithCachePath(path)
         }
     }
@@ -74,5 +76,13 @@ public class AarPath {
         def repoGroup = aar.group.replaceAll('\\.', sep)
         def repoAarPath = "$repoGroup$File.separator$aar.name"
         return mSrc.contains(repoAarPath)
+    }
+
+    public String getInputAarPath(){
+        return mSrc
+    }
+
+    public File getBuildCacheFile(){
+        return  mBuildCacheFile;
     }
 }
