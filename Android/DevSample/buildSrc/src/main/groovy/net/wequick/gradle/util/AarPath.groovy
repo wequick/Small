@@ -22,6 +22,10 @@ public class AarPath {
     private static final String CACHE_FILE_PATH_KEY = "FILE_PATH"
     private static final int CACHE_FILE_PATH_INDEX = CACHE_FILE_PATH_KEY.length() + 1
 
+    private static final String _ = File.separator
+    private static final String MAVEN2_CACHE_PATH = 'extras' + _ + 'android' + _ + 'm2repository'
+    private static final String GRADLE_CACHE_PATH = '.gradle'+ _ + 'caches'
+
     private File mInputFile
     private File mOutputDir
 
@@ -123,7 +127,7 @@ public class AarPath {
                 module.version = temp.name; temp = temp.parentFile
                 module.name = temp.name; temp = temp.parentFile
                 module.group = temp.name
-            } else if (inputPath.contains('extras/android/m2repository')) {
+            } else if (inputPath.contains(MAVEN2_CACHE_PATH)) {
                 // [SDK_HOME]/extras/android/m2repository/com/android/support/support-core-ui/25.1.0/*.aar
                 //                                        ^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^ ^^^^^^
                 temp = inputFile.parentFile
@@ -132,7 +136,7 @@ public class AarPath {
                 module.group = temp.name; temp = temp.parentFile
                 module.group = temp.name + '.' + module.group; temp = temp.parentFile
                 module.group = temp.name + '.' + module.group
-            } else if (inputPath.contains('.gradle/caches')) {
+            } else if (inputPath.contains(GRADLE_CACHE_PATH)) {
                 // ~/.gradle/caches/modules-2/files-2.1/net.wequick.small/small/1.1.0/hash/*.aar
                 //                                      ^^^^^^^^^^^^^^^^^ ^^^^^ ^^^^^
                 temp = inputFile.parentFile.parentFile
