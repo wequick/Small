@@ -30,7 +30,6 @@ import groovy.io.FileType
 import net.wequick.gradle.aapt.Aapt
 import net.wequick.gradle.aapt.SymbolParser
 import net.wequick.gradle.transform.StripAarTransform
-import net.wequick.gradle.transform.StripAssetsTransform
 import net.wequick.gradle.util.AarPath
 import net.wequick.gradle.util.ClassFileUtils
 import net.wequick.gradle.util.JNIUtils
@@ -122,7 +121,6 @@ class AppPlugin extends BundlePlugin {
 
         // Add custom transformation to split shared libraries
         android.registerTransform(new StripAarTransform())
-        android.registerTransform(new StripAssetsTransform())
 
         resolveReleaseDependencies()
     }
