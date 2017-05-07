@@ -28,6 +28,7 @@ import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.ProviderInfo;
+import android.content.pm.ServiceInfo;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
@@ -180,10 +181,17 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         }
 
         private void ensureServiceClassesLoadable(Message msg) {
-            // Cause Small is only setup in current application process, if a service is specified
-            // with a different process('android:process=xx'), then we should also setup Small for
-            // that process so that the service classes can be successfully loaded.
-            Small.setUpOnDemand();
+            Object/*ActivityThread$CreateServiceData*/ data = msg.obj;
+            ServiceInfo info = ReflectAccelerator.getServiceInfo(data);
+            if (info == null) return;
+
+            String appProcessName = Small.getContext().getApplicationInfo().processName;
+            if (!appProcessName.equals(info.processName)) {
+                // Cause Small is only setup in current application process, if a service is specified
+                // with a different process('android:process=xx'), then we should also setup Small for
+                // that process so that the service classes can be successfully loaded.
+                Small.setUpOnDemand();
+            }
         }
 
         private void recordConfigChanges(Message msg) {

@@ -22,6 +22,7 @@ import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.ServiceInfo;
 import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -611,6 +612,11 @@ public class ReflectAccelerator {
         return getValue(sActivityClientRecord_intent_field, r);
     }
 
+    public static ServiceInfo getServiceInfo(Object/*ActivityThread$CreateServiceData*/ data) {
+        Field f = getDeclaredField(data.getClass(), "info");
+        return getValue(f, data);
+    }
+
     public static void setActivityInfo(Object/*ActivityClientRecord*/ r, ActivityInfo ai) {
         if (sActivityClientRecord_activityInfo_field == null) {
             sActivityClientRecord_activityInfo_field = getDeclaredField(
@@ -697,6 +703,10 @@ public class ReflectAccelerator {
     }
 
     private static <T> T getValue(Field field, Object target) {
+        if (field == null) {
+            return null;
+        }
+
         try {
             return (T) field.get(target);
         } catch (IllegalAccessException e) {
@@ -706,6 +716,10 @@ public class ReflectAccelerator {
     }
 
     private static void setValue(Field field, Object target, Object value) {
+        if (field == null) {
+            return;
+        }
+
         try {
             field.set(target, value);
         } catch (IllegalAccessException e) {
