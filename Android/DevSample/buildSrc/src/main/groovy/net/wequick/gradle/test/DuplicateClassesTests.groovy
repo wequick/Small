@@ -22,6 +22,7 @@ import com.android.sdklib.BuildToolInfo
 import groovy.io.FileType
 import net.wequick.gradle.RootExtension
 import net.wequick.gradle.util.AnsiUtils
+import net.wequick.gradle.util.Log
 import org.gradle.api.Project
 
 class DuplicateClassesTests extends UnitTests {
@@ -38,13 +39,13 @@ class DuplicateClassesTests extends UnitTests {
 
     @Override
     void setUp() {
-        logAction('Building', 'lib.* bundles')
+        Log.action('Building', 'lib.* bundles')
         gradlew('buildLib', true, false)
 
-        logAction('Building', 'app.* bundles')
+        Log.action('Building', 'app.* bundles')
         gradlew('buildBundle', true, true)
 
-        logAction('Compiling', 'host classes')
+        Log.action('Compiling', 'host classes')
         def hostProject = rootSmall.hostProject
         def flavorName = 'Release'
         AppExtension android = hostProject.android

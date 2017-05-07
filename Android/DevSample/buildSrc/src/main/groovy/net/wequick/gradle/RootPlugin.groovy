@@ -585,7 +585,7 @@ class RootPlugin extends BasePlugin {
                 if (buildingLibIndex > 0 && buildingLibIndex <= small.libCount) {
                     Log.header "building library ${buildingLibIndex++} of ${small.libCount} - " +
                             "${project.name} (0x${ext.packageIdStr})"
-                } else {
+                } else if (ext.type != PluginType.Host) {
                     Log.header "building library ${project.name} (0x${ext.packageIdStr})"
                 }
                 break
@@ -603,7 +603,7 @@ class RootPlugin extends BasePlugin {
 
             variant.outputs.each { out ->
                 File outFile = out.outputFile
-                Log.footer "-- output: ${outFile.parentFile.name}/${outFile.name} " +
+                Log.result "${outFile.parentFile.name}/${outFile.name} " +
                         "(${outFile.length()} bytes = ${getFileSize(outFile)})"
             }
         }

@@ -22,7 +22,9 @@ import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.ServiceInfo;
 import android.content.res.AssetManager;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
@@ -578,11 +580,41 @@ public class ReflectAccelerator {
                 who, contextThread, token, target, intent, requestCode);
     }
 
+    public static boolean relaunchActivity(Activity activity,
+                                           Object/*ActivityThread*/ thread,
+                                           Object/*IBinder*/ activityToken) {
+        if (Build.VERSION.SDK_INT >= 11) {
+            activity.recreate();
+            return true;
+        }
+
+        try {
+            Method m = thread.getClass().getDeclaredMethod("getApplicationThread");
+            m.setAccessible(true);
+            Object /*ActivityThread$ApplicationThread*/ appThread = m.invoke(thread);
+            Class[] types = new Class[]{IBinder.class, List.class, List.class,
+                    int.class, boolean.class, Configuration.class};
+            m = appThread.getClass().getMethod("scheduleRelaunchActivity", types);
+            m.setAccessible(true);
+            m.invoke(appThread, activityToken, null, null, 0, false, null);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
     public static Intent getIntent(Object/*ActivityClientRecord*/ r) {
         if (sActivityClientRecord_intent_field == null) {
             sActivityClientRecord_intent_field = getDeclaredField(r.getClass(), "intent");
         }
         return getValue(sActivityClientRecord_intent_field, r);
+    }
+
+    public static ServiceInfo getServiceInfo(Object/*ActivityThread$CreateServiceData*/ data) {
+        Field f = getDeclaredField(data.getClass(), "info");
+        return getValue(f, data);
     }
 
     public static void setActivityInfo(Object/*ActivityClientRecord*/ r, ActivityInfo ai) {
@@ -671,6 +703,10 @@ public class ReflectAccelerator {
     }
 
     private static <T> T getValue(Field field, Object target) {
+        if (field == null) {
+            return null;
+        }
+
         try {
             return (T) field.get(target);
         } catch (IllegalAccessException e) {
@@ -680,6 +716,10 @@ public class ReflectAccelerator {
     }
 
     private static void setValue(Field field, Object target, Object value) {
+        if (field == null) {
+            return;
+        }
+
         try {
             field.set(target, value);
         } catch (IllegalAccessException e) {

@@ -18,10 +18,10 @@ package net.wequick.gradle.test
 import com.android.build.gradle.tasks.ProcessAndroidResources
 import com.android.sdklib.BuildToolInfo
 import net.wequick.gradle.util.AnsiUtils
+import net.wequick.gradle.util.Log
 import org.gradle.api.Project
-//import org.gradle.api.Task
-//import org.gradle.api.logging.LogLevel
-//import org.gradle.api.tasks.GradleBuild
+import org.gradle.api.logging.LogLevel
+import org.gradle.api.tasks.GradleBuild
 
 class UnitTests {
     public static boolean passed
@@ -36,7 +36,7 @@ class UnitTests {
     }
 
     void setUp() {
-        logAction('Executing', this.class.simpleName)
+        Log.action('Executing', this.class.simpleName)
     }
 
     void tearDown() {
@@ -49,14 +49,15 @@ class UnitTests {
 
     def cmd(exe, theArgs, logs) {
         def out = null
-        if (!logs) {
+        def redirectsOutput = !logs
+        if (redirectsOutput) {
             out = new ByteArrayOutputStream()
         }
 
         project.exec {
             commandLine exe
             args = theArgs
-            if (out != null) {
+            if (redirectsOutput) {
                 standardOutput = out
             }
         }
@@ -65,26 +66,32 @@ class UnitTests {
     }
 
     def gradlew(String taskName, boolean quiet, boolean parallel) {
-        def args = [taskName]
-        if (quiet) {
-            args.add('-q')
-        }
-        args.add('-Dorg.gradle.daemon=true')
-        args.add("-Dorg.gradle.parallel=${parallel ? 'true' : 'false'}")
-        cmd('./gradlew', args)
+//         def args = []
+//         def exe = './gradlew'
+//         if (System.properties['os.name'].toLowerCase().contains('windows')) {
+//             exe = 'cmd'
+//             args.add('gradlew')
+//         }
+//
+//         args.add(taskName)
+//         if (quiet) {
+//             args.add('-q')
+//         }
+//         args.add('-Dorg.gradle.daemon=true')
+//         args.add("-Dorg.gradle.parallel=${parallel ? 'true' : 'false'}")
+//
+//         cmd(exe, args)
 
-//        Task tempTask = project.task('__temp_gradlew', type: GradleBuild) { GradleBuild gb ->
-//            gb.tasks = [taskName]
-//
-//            gb.startParameter.systemPropertiesArgs.putAll(
-//                    'org.gradle.daemon': 'true',
-//                    'org.gradle.parallel': parallel ? 'true' : 'false')
-//            gb.startParameter.logLevel = quiet ? LogLevel.QUIET : LogLevel.LIFECYCLE
-//        }
-//
-//        tempTask.execute()
-//
-//        project.tasks.remove(tempTask)
+        GradleBuild gradlew = project.task('__temp_gradlew', type: GradleBuild)
+        gradlew.tasks = [taskName]
+        gradlew.startParameter.systemPropertiesArgs.putAll(
+                'org.gradle.daemon': 'true',
+                'org.gradle.parallel': parallel ? 'true' : 'false')
+        gradlew.startParameter.logLevel = quiet ? LogLevel.QUIET : LogLevel.LIFECYCLE
+
+        gradlew.execute()
+
+        project.tasks.remove(gradlew)
     }
 
     def aapt(theArgs) {
@@ -124,11 +131,9 @@ class UnitTests {
         invokeMethod(name, null)
     }
 
-    static def logAction(action, text) {
-        println "${AnsiUtils.yellow('▸')} ${AnsiUtils.bold(action)} $text"
-    }
-
     public static def runAllTests(Project project) {
+
+        Log.setState(Log.LogState.Lint)
 
         // Collect all the tests
         def tests = []
@@ -164,18 +169,20 @@ class UnitTests {
                     def startTime = System.nanoTime()
                     test.runTest(it.name)
                     def spentTime = (System.nanoTime() - startTime) / 1000000000
+                    def status = it.name
                     if (!passed) {
                         failedTestCount++
-                        print "    ${AnsiUtils.red('✗')} ${it.name}"
                         if (error != null) {
-                            print " ($error)"
+                            status += " ($error)"
                         }
-                        println ' failed'
+                        status += ' failed'
                         if (details != null) {
-                            println "$details"
+                            status += "\n$details"
                         }
+                        Log.failed(status)
                     } else {
-                        println "    ${AnsiUtils.green('✓')} ${it.name} (${String.format('%.3f', spentTime)} seconds)"
+                        status += " (${String.format('%.3f', spentTime)} seconds)"
+                        Log.passed(status)
                     }
                 }
             }
@@ -192,5 +199,7 @@ class UnitTests {
         } else {
             println AnsiUtils.green(resultStr)
         }
+
+        Log.setState(Log.LogState.None)
     }
 }

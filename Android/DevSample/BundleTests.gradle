@@ -45,7 +45,7 @@ class BundleTests extends UnitTests {
         // lib/x86/libshould-keep-in-app-bundle.so
         File bundle = bundle('net.wequick.example.small.app.main')
         def out = aapt(['list', bundle.path])
-        tAssert(out.split("\n").contains('lib/x86/libshould-keep-in-app-bundle.so'),
+        tAssert(out.contains('lib/x86/libshould-keep-in-app-bundle.so'),
                 'Native library missing')
     }
 }

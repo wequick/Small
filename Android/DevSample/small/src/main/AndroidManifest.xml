@@ -7,23 +7,37 @@
     <application>
         <!-- Stub Activities -->
         <!-- 1 standard mode -->
-        <activity android:name=".A" android:launchMode="standard"/>
-        <activity android:name=".A1" android:theme="@android:style/Theme.Translucent"/>
+        <activity android:name=".A"
+            android:configChanges="locale|fontScale|keyboard|keyboardHidden|layoutDirection|mcc|mnc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|touchscreen|uiMode"/>
+        <activity android:name=".A1" android:theme="@android:style/Theme.Translucent"
+            android:configChanges="locale|fontScale|keyboard|keyboardHidden|layoutDirection|mcc|mnc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|touchscreen|uiMode"/>
         <!-- 4 singleTop mode -->
-        <activity android:name=".A10" android:launchMode="singleTop"/>
-        <activity android:name=".A11" android:launchMode="singleTop"/>
-        <activity android:name=".A12" android:launchMode="singleTop"/>
-        <activity android:name=".A13" android:launchMode="singleTop"/>
+        <activity android:name=".A10" android:launchMode="singleTop"
+            android:configChanges="locale|fontScale|keyboard|keyboardHidden|layoutDirection|mcc|mnc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|touchscreen|uiMode"/>
+        <activity android:name=".A11" android:launchMode="singleTop"
+            android:configChanges="locale|fontScale|keyboard|keyboardHidden|layoutDirection|mcc|mnc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|touchscreen|uiMode"/>
+        <activity android:name=".A12" android:launchMode="singleTop"
+            android:configChanges="locale|fontScale|keyboard|keyboardHidden|layoutDirection|mcc|mnc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|touchscreen|uiMode"/>
+        <activity android:name=".A13" android:launchMode="singleTop"
+            android:configChanges="locale|fontScale|keyboard|keyboardHidden|layoutDirection|mcc|mnc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|touchscreen|uiMode"/>
         <!-- 4 singleTask mode -->
-        <activity android:name=".A20" android:launchMode="singleTask"/>
-        <activity android:name=".A21" android:launchMode="singleTask"/>
-        <activity android:name=".A22" android:launchMode="singleTask"/>
-        <activity android:name=".A23" android:launchMode="singleTask"/>
+        <activity android:name=".A20" android:launchMode="singleTask"
+            android:configChanges="locale|fontScale|keyboard|keyboardHidden|layoutDirection|mcc|mnc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|touchscreen|uiMode"/>
+        <activity android:name=".A21" android:launchMode="singleTask"
+            android:configChanges="locale|fontScale|keyboard|keyboardHidden|layoutDirection|mcc|mnc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|touchscreen|uiMode"/>
+        <activity android:name=".A22" android:launchMode="singleTask"
+            android:configChanges="locale|fontScale|keyboard|keyboardHidden|layoutDirection|mcc|mnc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|touchscreen|uiMode"/>
+        <activity android:name=".A23" android:launchMode="singleTask"
+            android:configChanges="locale|fontScale|keyboard|keyboardHidden|layoutDirection|mcc|mnc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|touchscreen|uiMode"/>
         <!-- 4 singleInstance mode -->
-        <activity android:name=".A30" android:launchMode="singleInstance"/>
-        <activity android:name=".A31" android:launchMode="singleInstance"/>
-        <activity android:name=".A32" android:launchMode="singleInstance"/>
-        <activity android:name=".A33" android:launchMode="singleInstance"/>
+        <activity android:name=".A30" android:launchMode="singleInstance"
+            android:configChanges="locale|fontScale|keyboard|keyboardHidden|layoutDirection|mcc|mnc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|touchscreen|uiMode"/>
+        <activity android:name=".A31" android:launchMode="singleInstance"
+            android:configChanges="locale|fontScale|keyboard|keyboardHidden|layoutDirection|mcc|mnc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|touchscreen|uiMode"/>
+        <activity android:name=".A32" android:launchMode="singleInstance"
+            android:configChanges="locale|fontScale|keyboard|keyboardHidden|layoutDirection|mcc|mnc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|touchscreen|uiMode"/>
+        <activity android:name=".A33" android:launchMode="singleInstance"
+            android:configChanges="locale|fontScale|keyboard|keyboardHidden|layoutDirection|mcc|mnc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|touchscreen|uiMode"/>
 
         <!-- Web Activity -->
         <activity android:name=".webkit.WebActivity"

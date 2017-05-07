@@ -1005,10 +1005,16 @@ class AppPlugin extends BundlePlugin {
 
         hookJavac(small.javac, variant.buildType.minifyEnabled)
 
-        def mergeJniLibsTask = project.tasks.withType(TransformTask.class).find {
+        def transformTasks = project.tasks.withType(TransformTask.class)
+        def mergeJniLibsTask = transformTasks.find {
             it.transform.name == 'mergeJniLibs' && it.variantName == variant.name
         }
         hookMergeJniLibs(mergeJniLibsTask)
+
+        def mergeJavaResTask = transformTasks.find {
+            it.transform.name == 'mergeJavaRes' && it.variantName == variant.name
+        }
+        hookMergeJavaRes(mergeJavaResTask)
 
         // Hook clean task to unset package id
         project.clean.doLast {
@@ -1021,6 +1027,19 @@ class AppPlugin extends BundlePlugin {
      * TODO: filter the native libraries while exploding aar
      */
     def hookMergeJniLibs(TransformTask t) {
+        stripAarFiles(t, { splitPaths ->
+            t.streamInputs.each {
+                if (shouldStripInput(it)) {
+                    splitPaths.add(it)
+                }
+            }
+        })
+    }
+
+    /**
+     * Hook merge-javaRes task to ignores the lib.* jar assets
+     */
+    def hookMergeJavaRes(TransformTask t) {
         stripAarFiles(t, { splitPaths ->
             t.streamInputs.each {
                 if (shouldStripInput(it)) {
