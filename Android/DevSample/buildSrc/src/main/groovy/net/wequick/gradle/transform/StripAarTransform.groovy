@@ -78,39 +78,7 @@ public class StripAarTransform extends Transform {
                     }
                 }
 
-                // Copy the jar and rename
-                File version = src.parentFile
-                String versionName = version.name
-                String moduleName
-                if (versionName == 'jars') {
-                    // **/appcompat-v7/23.2.1/jars/classes.jar
-                    // => appcompat-v7-23.2.1.jar
-                    version = version.parentFile
-                    versionName = version.name
-                    moduleName = version.parentFile.name
-                } else if (versionName == 'libs') {
-                    versionName = src.name.substring(0, src.name.length() - 4) // bypass '.jar'
-                    if (version.parentFile.name == 'jars') {
-                        // **/support-v4/23.2.1/jars/libs/internal_impl-23.2.1.jar
-                        // => support-v4-internal_impl-23.2.1.jar
-                        moduleName = version.parentFile.parentFile.parentFile.name
-                    } else if (version.parentFile.name == 'default') {
-                        // Compat for android plugin 2.3.0
-                        // Sample/lib.utils/build/intermediates/bundles/default/libs/mylib.jar
-                        moduleName = version.parentFile.parentFile.parentFile.parentFile.parentFile.name
-                    } else {
-                        // [projectDir]/libs/mylib.jar
-                        // => [projectName]-mylib.jar
-                        moduleName = "${project.name}"
-                    }
-                } else if (versionName == 'default') {
-                    // Compat for android plugin 2.3.0
-                    // Sample/jni_plugin/intermediates/bundles/default/classes.jar
-                    moduleName = version.parentFile.parentFile.parentFile.parentFile.name
-                } else {
-                    moduleName = "${version.parentFile.parentFile.name}-${version.parentFile.name}"
-                }
-                String destName = "$moduleName-$versionName"
+                String destName = aarPath.module.fileName
                 File dest = outputProvider.getContentLocation(
                         destName, it.contentTypes, it.scopes, Format.JAR)
                 FileUtils.copyFile(it.file, dest)

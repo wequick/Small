@@ -22,67 +22,175 @@ public class AarPath {
     private static final String CACHE_FILE_PATH_KEY = "FILE_PATH"
     private static final int CACHE_FILE_PATH_INDEX = CACHE_FILE_PATH_KEY.length() + 1
 
-    private String mSrc
-    private File mBuildCacheFile
-    private boolean isCache
+    private File mInputFile
+    private File mOutputDir
 
-    public AarPath(File path) {
-        mSrc = path.absolutePath
-        if (mSrc.contains(CACHE_DIR)) {
-            mBuildCacheFile = new File(path.absolutePath);
-            this.initWithCachePath(path)
+    public static class Module {
+        String group
+        String name
+        String version
+        String path
+        String fileName
+
+        public String getPath() {
+            if (path == null) {
+                path = "$group/$name/$version"
+            }
+            return path
+        }
+
+        public String getFileName() {
+            if (fileName == null) {
+                fileName = "$name-$version"
+            }
+            return fileName
         }
     }
 
-    private void initWithCachePath(File path) {
-        while (path.parentFile.name != CACHE_DIR) {
-            path = path.parentFile
+    private Module mModule
+
+    public AarPath(File path) {
+        mOutputDir = path
+        mInputFile = parseInputFile(path)
+    }
+    
+    private static File parseInputFile(File outputDir) {
+        // Find the build cache root which should be something as
+        // `~/.android/build-cache` on Android Plugin 2.3.0+
+        File cacheDir = outputDir
+        while (cacheDir.parentFile != null && cacheDir.parentFile.name != CACHE_DIR) {
+            cacheDir = cacheDir.parentFile
         }
 
-        File input = new File(path, CACHE_INPUTS_FILE)
+        if (cacheDir.parentFile == null) {
+            // Isn't using `buildCache`, just take the output as input
+            return outputDir
+        }
+
+        File input = new File(cacheDir, CACHE_INPUTS_FILE)
         if (!input.exists()) {
-            return
+            return null
         }
 
-        def src = null
+        String inputPath = null
         input.eachLine {
-            if (it.startsWith(CACHE_FILE_PATH_KEY)) {
-                src = it.substring(CACHE_FILE_PATH_INDEX)
-                return
+            if (inputPath == null && it.startsWith(CACHE_FILE_PATH_KEY)) {
+                inputPath = it.substring(CACHE_FILE_PATH_INDEX)
             }
         }
-        if (src == null) {
-            return
+        if (inputPath == null) return null
+
+        return new File(inputPath)
+    }
+
+    private static Module parseInputModule(File inputFile) {
+        Module module = new Module()
+        if (inputFile == null) {
+            return module
         }
 
-        mSrc = src
-        isCache = true
+        File temp
+        File versionFile = inputFile
+        String inputPath = inputFile.absolutePath
+        String parentName = inputFile.parentFile.name
+        if (parentName == 'jars') {
+            // **/appcompat-v7/23.2.1/jars/classes.jar
+            // => appcompat-v7-23.2.1.jar
+            // TODO: handle this
+        } else if (parentName == 'libs') {
+            temp = inputFile.parentFile.parentFile
+            module.version = 'unspecified'
+            module.name = temp.name
+            module.group = temp.parentFile.name
+
+            def name = inputFile.name
+            name = name.substring(0, name.lastIndexOf('.'))
+            module.fileName = "$module.name-$name"
+        } else if (parentName == 'default') {
+            // Compat for android plugin 2.3.0
+            // Sample/jni_plugin/intermediates/bundles/default/classes.jar
+            temp = inputFile.parentFile.parentFile.parentFile.parentFile.parentFile
+            module.version = 'unspecified'
+            module.name = temp.name
+            module.group = temp.parentFile.name
+
+            module.fileName = "$module.name-default"
+        } else {
+            if (inputPath.contains('exploded-aar')) {
+                // [BUILD_DIR]/intermediates/exploded-aar/com.android.support/support-v4/25.1.0
+                //                                        ^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^ ^^^^^^
+                temp = versionFile
+                module.version = temp.name; temp = temp.parentFile
+                module.name = temp.name; temp = temp.parentFile
+                module.group = temp.name
+            } else if (inputPath.contains('extras/android/m2repository')) {
+                // [SDK_HOME]/extras/android/m2repository/com/android/support/support-core-ui/25.1.0/*.aar
+                //                                        ^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^ ^^^^^^
+                temp = inputFile.parentFile
+                module.version = temp.name; temp = temp.parentFile
+                module.name = temp.name; temp = temp.parentFile
+                module.group = temp.name; temp = temp.parentFile
+                module.group = temp.name + '.' + module.group; temp = temp.parentFile
+                module.group = temp.name + '.' + module.group
+            } else if (inputPath.contains('.gradle/caches')) {
+                // ~/.gradle/caches/modules-2/files-2.1/net.wequick.small/small/1.1.0/hash/*.aar
+                //                                      ^^^^^^^^^^^^^^^^^ ^^^^^ ^^^^^
+                temp = inputFile.parentFile.parentFile
+                module.version = temp.name; temp = temp.parentFile
+                module.name = temp.name; temp = temp.parentFile
+                module.group = temp.name
+
+                def hash = inputFile.parentFile.name
+                module.fileName = "$module.name-$module.version-$hash"
+            }
+        }
+
+        if (module.group == null) {
+            throw new RuntimeException("Failed to parse aar module from $inputFile")
+        }
+
+        if (module.version == null) {
+            module.version = versionFile.name
+        }
+        module.name = versionFile.parentFile.name
+        return module
     }
 
     public boolean explodedFromAar(Map aar) {
+        if (mInputFile == null) return false
+
+        String inputPath = mInputFile.absolutePath
+
         // ~/.gradle/caches/modules-2/files-2.1/net.wequick.small/small/1.1.0/hash/*.aar
         //                                      ^^^^^^^^^^^^^^^^^ ^^^^^
         def moduleAarDir = "$aar.group$File.separator$aar.name"
-        if (mSrc.contains(moduleAarDir)) {
+        if (inputPath.contains(moduleAarDir)) {
             return true
         }
 
-        // [sdk]/extras/android/m2repository/com/android/support/support-core-ui/25.1.0/*.aar
-        //                                   ^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^
+        // [SDK_HOME]/extras/android/m2repository/com/android/support/support-core-ui/25.1.0/*.aar
+        //                                        ^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^
         def sep = File.separator
         if (sep == '\\') {
             sep = '\\\\' // compat for windows
         }
         def repoGroup = aar.group.replaceAll('\\.', sep)
         def repoAarPath = "$repoGroup$File.separator$aar.name"
-        return mSrc.contains(repoAarPath)
+        return inputPath.contains(repoAarPath)
     }
 
-    public String getInputAarPath(){
-        return mSrc
+    public File getInputFile() {
+        return mInputFile
     }
 
-    public File getBuildCacheFile(){
-        return  mBuildCacheFile;
+    public File getOutputDir() {
+        return  mOutputDir
+    }
+
+    public Module getModule() {
+        if (mModule == null) {
+            mModule = parseInputModule(mInputFile)
+        }
+        return mModule
     }
 }
