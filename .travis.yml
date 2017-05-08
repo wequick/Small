@@ -6,4 +6,4 @@ android:
     - extra-android-m2repository
     - extra-android-support
 script:
-  - ./gradlew smallLint -q
+  - cd Android/DevSample && ./gradlew smallLint -q
