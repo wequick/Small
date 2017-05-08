@@ -39,6 +39,12 @@ class DuplicateClassesTests extends UnitTests {
 
     @Override
     void setUp() {
+        Log.action('Cleaning', 'lib.* bundles')
+        gradlew('cleanLib', true, true)
+
+        Log.action('Cleaning', 'app.* bundles')
+        gradlew('cleanBundle', true, true)
+
         Log.action('Building', 'lib.* bundles')
         gradlew('buildLib', true, false)
 
