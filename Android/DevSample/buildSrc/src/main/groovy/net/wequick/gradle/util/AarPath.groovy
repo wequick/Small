@@ -152,11 +152,7 @@ public class AarPath {
         if (module.group == null) {
             throw new RuntimeException("Failed to parse aar module from $inputFile")
         }
-
-        if (module.version == null) {
-            module.version = versionFile.name
-        }
-        module.name = versionFile.parentFile.name
+        
         return module
     }
 
