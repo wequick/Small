@@ -1,0 +1,9 @@
+language: android
+android:
+  components:
+    - build-tools-25.0.2
+    - android-25
+    - extra-android-m2repository
+    - extra-android-support
+script:
+  - ./gradlew smallLint -q
