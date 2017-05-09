@@ -233,6 +233,24 @@ public class RootExtension extends BaseExtension {
         modules.addAll(names)
     }
 
+    public File getBundleOutput(String bundleId) {
+        def outputDir = outputBundleDir
+        if (buildToAssets) {
+            return new File(outputDir, "${bundleId}.apk")
+        } else {
+            def arch = System.properties['bundle.arch'] // Get from command line (-Dbundle.arch=xx)
+            if (arch == null) {
+                // Read from local.properties (bundle.arch=xx)
+                def prop = new Properties()
+                prop.load(project.rootProject.file('local.properties').newDataInputStream())
+                arch = prop.getProperty('bundle.arch')
+                if (arch == null) arch = 'armeabi' // Default
+            }
+            def so = "lib${bundleId.replaceAll('\\.', '_')}.so"
+            return new File(outputDir, "$arch/$so")
+        }
+    }
+
     /** Check if is building any libs (lib.*) */
     protected boolean isBuildingLibs() {
         if (mT == null) return false // no tasks

@@ -1,22 +1,16 @@
-import net.wequick.gradle.test.UnitTests
-import net.wequick.gradle.util.AnsiUtils
+import net.wequick.gradle.test.BundleUnitTests
 
-class BundleTests extends UnitTests {
+class BundleTests extends BundleUnitTests {
 
     BundleTests(def project) {
         super(project)
-    }
-
-    def bundle(pkg) {
-        File smallLibsDir = new File(project.projectDir, '../Sample/app/smallLibs')
-        return new File(smallLibsDir, "${pkg}.apk")
     }
 
     /**
      * 测试公共库的 assets 资源不会重复打包到业务插件中
      */
     def testShouldKeepJarAssetsInLib() {
-        File bundle = bundle('net.wequick.example.small.app.home')
+        File bundle = getBundle('net.wequick.example.small.app.home')
         def out = aapt(['list', bundle.path])
         out.eachLine { name ->
             tAssert(name != 'assets/asset-should-only-in-lib-bundle.txt',
@@ -30,7 +24,7 @@ class BundleTests extends UnitTests {
      * 测试宿主分身的 assets 资源不会重复打包到插件中
      */
     def testShouldKeepJarAssetsInStub() {
-        File bundle = bundle('net.wequick.example.small.app.home')
+        File bundle = getBundle('net.wequick.example.small.app.home')
         def out = aapt(['list', bundle.path])
         out.eachLine { name ->
             tAssert(name != 'assets/jar-asset-should-only-in-stub.txt',
@@ -43,7 +37,7 @@ class BundleTests extends UnitTests {
      */
     def testShouldRetainSoInApp() {
         // lib/x86/libshould-keep-in-app-bundle.so
-        File bundle = bundle('net.wequick.example.small.app.main')
+        File bundle = getBundle('net.wequick.example.small.app.main')
         def out = aapt(['list', bundle.path])
         tAssert(out.contains('lib/x86/libshould-keep-in-app-bundle.so'),
                 'Native library missing')

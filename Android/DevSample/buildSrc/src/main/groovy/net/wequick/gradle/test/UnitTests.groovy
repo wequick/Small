@@ -19,11 +19,7 @@ import com.android.build.gradle.tasks.ProcessAndroidResources
 import com.android.sdklib.BuildToolInfo
 import net.wequick.gradle.util.AnsiUtils
 import net.wequick.gradle.util.Log
-import org.gradle.BuildListener
-import org.gradle.BuildResult
 import org.gradle.api.Project
-import org.gradle.api.initialization.Settings
-import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.GradleBuild
 
