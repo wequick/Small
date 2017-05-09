@@ -4,6 +4,7 @@
 
 [Android](Android) API 9(2.3)+  [iOS](iOS) 7.0+
 
+[![CI Status](http://img.shields.io/travis/wequick/Small.svg?style=flat)](https://travis-ci.org/wequick/Small)
 [![License Apache2.0](https://img.shields.io/hexpm/l/plug.svg)][license]
 
 官网：http://code.wequick.net/Small
