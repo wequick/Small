@@ -25,6 +25,7 @@ public class AarPath {
     private static final int CACHE_FILE_PATH_INDEX = CACHE_FILE_PATH_KEY.length() + 1
 
     private static final String _ = File.separator
+    private static final String LOCAL_MAVEN2_CACHE_PATH = '.m2' + _ + 'repository'
     private static final String MAVEN2_CACHE_PATH = 'm2repository'
     private static final String GRADLE_CACHE_PATH = '.gradle'+ _ + 'caches'
 
@@ -157,7 +158,8 @@ public class AarPath {
                 module.version = temp.name; temp = temp.parentFile
                 module.name = temp.name; temp = temp.parentFile
                 module.group = temp.name
-            } else if (inputPath.contains(MAVEN2_CACHE_PATH)) {
+            } else if (inputPath.contains(MAVEN2_CACHE_PATH)
+                    || inputPath.contains(LOCAL_MAVEN2_CACHE_PATH)) {
                 // [SDK_HOME]/extras/android/m2repository/com/android/support/support-core-ui/25.1.0/*.aar
                 //                                        ^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^ ^^^^^^
                 temp = inputFile.parentFile
