@@ -5,10 +5,12 @@
 </head>
 <body>
 <script>
+  var base = '/Small'
   var url = window.location.href;
-  var path = url.substring(url.indexOf('/Small') + 7);
-  console.log('path: ' + path);
-  sessionStorage.setItem('gh-404-recirect', path);
+  var path = url.substring(url.indexOf(base) + 7);
+  sessionStorage.setItem('gh-404-recirect', base);
+
+  window.location = base;
 </script>
 </body>
 </html>
