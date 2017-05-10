@@ -5,7 +5,7 @@
 </head>
 <body>
 <script>
-  var url = window.location;
+  var url = window.location.href;
   var path = url.substring(url.indexOf('/Small') + 7);
   console.log('path: ' + path);
   sessionStorage.setItem('gh-404-recirect', path);
