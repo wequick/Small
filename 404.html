@@ -5,9 +5,10 @@
 </head>
 <body>
 <script>
-  sessionStorage.setItem('gh-404-recirect', window.location);
-  console.log(sessionStorage.getItem('gh-404-recirect'))
-  // window.location = '/Small';
+  var url = window.location;
+  var path = url.substring(url.indexOf('/Small') + 7);
+  console.log('path: ' + path);
+  sessionStorage.setItem('gh-404-recirect', path);
 </script>
 </body>
 </html>
