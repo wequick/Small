@@ -5,7 +5,7 @@ def externalModules = [
         ':app.main', ':app.home', ':app.detail', ':app.mine', ':app.ok-if-stub',
         ':web.about',
         ':lib.utils', ':lib.style', ':lib.afterutils', ':lib.analytics',
-        ':jni_plugin'
+        ':jni_plugin', ':vendor-aar'
 ] as String[]
 
 include externalModules
