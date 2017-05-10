@@ -15,6 +15,8 @@
  */
 package net.wequick.gradle.util
 
+import org.gradle.api.Project
+
 public class AarPath {
 
     private static final String CACHE_DIR = "build-cache"
@@ -26,6 +28,7 @@ public class AarPath {
     private static final String MAVEN2_CACHE_PATH = 'm2repository'
     private static final String GRADLE_CACHE_PATH = '.gradle'+ _ + 'caches'
 
+    private Project project
     private File mInputFile
     private File mOutputDir
 
@@ -53,7 +56,8 @@ public class AarPath {
 
     private Module mModule
 
-    public AarPath(File path) {
+    public AarPath(Project project, File path) {
+        this.project = project
         mOutputDir = path
         mInputFile = parseInputFile(path)
     }
@@ -87,7 +91,7 @@ public class AarPath {
         return new File(inputPath)
     }
 
-    private static Module parseInputModule(File inputFile) {
+    private Module parseInputModule(File inputFile) {
         Module module = new Module()
         if (inputFile == null) {
             return module
@@ -102,25 +106,51 @@ public class AarPath {
             // => appcompat-v7-23.2.1.jar
             // TODO: handle this
         } else if (parentName == 'libs') {
+            // Sample/lib.utils/libs/mylib.jar
+            //        ^^^^^^^^^ project
             temp = inputFile.parentFile.parentFile
-            module.version = 'unspecified'
-            module.name = temp.name
-            module.group = temp.parentFile.name
+            if (temp.name == 'default') {
+                // Sample/lib.utils/build/intermediates/bundles/default/libs/assets.jar
+                temp = temp.parentFile.parentFile.parentFile.parentFile
+            }
+            Project libProject = project.rootProject.findProject(temp.name)
+            if (libProject != null) {
+                module.version = libProject.version
+                module.name = libProject.name
+                module.group = libProject.group ?: temp.parentFile.name
 
-            def name = inputFile.name
-            name = name.substring(0, name.lastIndexOf('.'))
-            module.fileName = "$module.name-$name"
+                def name = inputFile.name
+                name = name.substring(0, name.lastIndexOf('.'))
+                module.fileName = "$module.name-$name"
+            }
         } else if (parentName == 'default') {
             // Compat for android plugin 2.3.0
-            // Sample/jni_plugin/intermediates/bundles/default/classes.jar
+            // Sample/jni_plugin/build/intermediates/bundles/default/classes.jar
+            //        ^^^^^^^^^^ project
             temp = inputFile.parentFile.parentFile.parentFile.parentFile.parentFile
-            module.version = 'unspecified'
-            module.name = temp.name
-            module.group = temp.parentFile.name
+            Project libProject = project.rootProject.findProject(temp.name)
+            if (libProject != null) {
+                module.version = libProject.version
+                module.name = libProject.name
+                module.group = libProject.group ?: temp.parentFile.name
 
-            module.fileName = "$module.name-default"
+                module.fileName = "$module.name-default"
+            }
         } else {
-            if (inputPath.contains('exploded-aar')) {
+            Project aarProject = project.rootProject.findProject(parentName)
+            if (aarProject != null) {
+                // Local AAR
+                // Sample/vendor-aar/vendor-aar.aar
+                //        ^^^^^^^^^^ project
+                if (aarProject.configurations.hasProperty('default')) {
+                    def config = aarProject.configurations.default
+                    if (config.allArtifacts.find { it.file == inputFile }) {
+                        module.version = aarProject.version
+                        module.name = aarProject.name
+                        module.group = aarProject.group ?: inputFile.parentFile.parentFile.name
+                    }
+                }
+            } else if (inputPath.contains('exploded-aar')) {
                 // [BUILD_DIR]/intermediates/exploded-aar/com.android.support/support-v4/25.1.0
                 //                                        ^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^ ^^^^^^
                 temp = versionFile
@@ -162,9 +192,15 @@ public class AarPath {
 
         String inputPath = mInputFile.absolutePath
 
+        def group = aar.group
+        if (group == project.rootProject.name) {
+            def lib = project.rootProject.findProject(aar.name)
+            group = lib.projectDir.parentFile.name
+        }
+
         // ~/.gradle/caches/modules-2/files-2.1/net.wequick.small/small/1.1.0/hash/*.aar
         //                                      ^^^^^^^^^^^^^^^^^ ^^^^^
-        def moduleAarDir = "$aar.group$File.separator$aar.name"
+        def moduleAarDir = "$group$File.separator$aar.name"
         if (inputPath.contains(moduleAarDir)) {
             return true
         }
@@ -175,7 +211,7 @@ public class AarPath {
         if (sep == '\\') {
             sep = '\\\\' // compat for windows
         }
-        def repoGroup = aar.group.replaceAll('\\.', sep)
+        def repoGroup = group.replaceAll('\\.', sep)
         def repoAarPath = "$repoGroup$File.separator$aar.name"
         return inputPath.contains(repoAarPath)
     }

@@ -985,7 +985,7 @@ class AppPlugin extends BundlePlugin {
     }
 
     protected boolean shouldStripInput(File input) {
-        AarPath aarPath = new AarPath(input)
+        AarPath aarPath = new AarPath(project, input)
         for (aar in small.splitAars) {
             if (aarPath.explodedFromAar(aar)) {
                 return true

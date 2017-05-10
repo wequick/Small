@@ -48,7 +48,7 @@ public class TaskUtils {
             }
         }
 
-        return new AarPath(explodedDir)
+        return new AarPath(task.project, explodedDir)
     }
 
 }
