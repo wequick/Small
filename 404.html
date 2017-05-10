@@ -5,9 +5,9 @@
 </head>
 <body>
 <script>
-  console.log("from: " + document.referrer)
-  console.log("location: " + window.location)
-//  window.location = '/Small';
+  sessionStorage.setItem('gh-404-recirect', window.location);
+  console.log(sessionStorage.getItem('gh-404-recirect'))
+  // window.location = '/Small';
 </script>
 </body>
 </html>
