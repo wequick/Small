@@ -1,3 +1,15 @@
+## 1.2.0-beta4 (2017-05-09)
+
+Features:
+
+  - 支持在插件中配置 `android:configChanges` 属性
+  - 支持在 bundle.json 中的 `rules` 通过 "" key 来配置主路由
+
+Bugfixes:
+
+  - 修正在预装了 LBE 的系统上无法正确 hook mH 导致的崩溃问题 (@xufan)
+  - 修正插件manifest中未注册任何 Activity 时出现的空指针问题
+
 ## 1.2.0-beta3 (2017-03-27)
 
 版本同步

@@ -1,3 +1,15 @@
+## 1.2.0-beta4 (2017-05-09)
+
+Features:
+
+  - 增加 `gradlew smallLint` 方法，用于检测插件编译问题
+
+Bugfixes:
+
+  - 修正 transform 目录冲突引起的 syncLibs 异常 (@xufan)
+  - 修正误提示：'请使用 gradle-small 0.9 以上编译' 的问题 (#313)
+  - 修正 Jar 中的 assets 资源被重复打包进插件的问题 (@xufan)
+
 ## 1.2.0-beta3 (2017-03-27)
 
 Bugfixes:
