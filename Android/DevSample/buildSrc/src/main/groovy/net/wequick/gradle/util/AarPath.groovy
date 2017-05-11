@@ -27,7 +27,7 @@ public class AarPath {
     private static final String _ = File.separator
     private static final String LOCAL_MAVEN2_CACHE_PATH = '.m2' + _ + 'repository'
     private static final String MAVEN2_CACHE_PATH = 'm2repository'
-    private static final String GRADLE_CACHE_PATH = '.gradle'+ _ + 'caches'
+    private static final String GRADLE_CACHE_PATH = 'caches' + _ + 'modules'
 
     private Project project
     private File mInputFile
