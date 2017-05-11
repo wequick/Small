@@ -16,12 +16,7 @@
 package net.wequick.gradle.util
 
 import com.android.build.gradle.internal.tasks.PrepareLibraryTask
-import javafx.scene.effect.Reflection
-import net.wequick.gradle.AndroidExtension
-import org.gradle.api.Project
-
 import java.lang.reflect.Field
-import java.util.regex.Pattern
 
 public class TaskUtils {
 
