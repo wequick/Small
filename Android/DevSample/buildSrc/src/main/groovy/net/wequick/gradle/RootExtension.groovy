@@ -242,8 +242,11 @@ public class RootExtension extends BaseExtension {
             if (arch == null) {
                 // Read from local.properties (bundle.arch=xx)
                 def prop = new Properties()
-                prop.load(project.rootProject.file('local.properties').newDataInputStream())
-                arch = prop.getProperty('bundle.arch')
+                def file = project.rootProject.file('local.properties')
+                if (file.exists()) {
+                    prop.load(file.newDataInputStream())
+                    arch = prop.getProperty('bundle.arch')
+                }
                 if (arch == null) arch = 'armeabi' // Default
             }
             def so = "lib${bundleId.replaceAll('\\.', '_')}.so"
