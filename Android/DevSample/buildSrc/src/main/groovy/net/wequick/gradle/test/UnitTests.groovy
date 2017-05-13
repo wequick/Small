@@ -66,32 +66,33 @@ class UnitTests {
     }
 
     def gradlew(String taskName, boolean quiet, boolean parallel) {
-//         def args = []
-//         def exe = './gradlew'
-//         if (System.properties['os.name'].toLowerCase().contains('windows')) {
-//             exe = 'cmd'
-//             args.add('gradlew')
-//         }
+        def args = []
+        def exe = './gradlew'
+        if (System.properties['os.name'].toLowerCase().contains('windows')) {
+            exe = 'cmd'
+            args.add('/c')
+            args.add('gradlew.bat')
+        }
+
+        args.add(taskName)
+        if (quiet) {
+            args.add('-q')
+        }
+        args.add('-Dorg.gradle.daemon=true')
+        args.add("-Dorg.gradle.parallel=${parallel ? 'true' : 'false'}")
+
+        cmd(exe, args, true)
+
+//        GradleBuild gradlew = project.task('__temp_gradlew', type: GradleBuild)
+//        gradlew.tasks = [taskName]
+//        gradlew.startParameter.systemPropertiesArgs.putAll(
+//                'org.gradle.daemon': 'true',
+//                'org.gradle.parallel': parallel ? 'true' : 'false')
+//        gradlew.startParameter.logLevel = quiet ? LogLevel.QUIET : LogLevel.LIFECYCLE
 //
-//         args.add(taskName)
-//         if (quiet) {
-//             args.add('-q')
-//         }
-//         args.add('-Dorg.gradle.daemon=true')
-//         args.add("-Dorg.gradle.parallel=${parallel ? 'true' : 'false'}")
+//        gradlew.execute()
 //
-//         cmd(exe, args)
-
-        GradleBuild gradlew = project.task('__temp_gradlew', type: GradleBuild)
-        gradlew.tasks = [taskName]
-        gradlew.startParameter.systemPropertiesArgs.putAll(
-                'org.gradle.daemon': 'true',
-                'org.gradle.parallel': parallel ? 'true' : 'false')
-        gradlew.startParameter.logLevel = quiet ? LogLevel.QUIET : LogLevel.LIFECYCLE
-
-        gradlew.execute()
-
-        project.tasks.remove(gradlew)
+//        project.tasks.remove(gradlew)
     }
 
     def aapt(theArgs) {
