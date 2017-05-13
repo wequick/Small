@@ -33,7 +33,6 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -115,6 +114,7 @@ public class Bundle {
     private boolean launchable = true;
     private boolean enabled = true;
     private boolean patching = false;
+    private boolean lazy = false;
 
     private String entrance = null; // Main activity for `apk bundle', index page for `web bundle'
 
@@ -527,6 +527,10 @@ public class Bundle {
             this.type = map.getString("type");
         }
 
+        if (map.has("lazy")) {
+            this.lazy = map.getBoolean("lazy");
+        }
+
         this.rules = new HashMap<String, String>();
         String entrancePath = DEFAULT_ENTRANCE_PATH;
         if (map.has("rules")) {
@@ -726,6 +730,14 @@ public class Bundle {
 
     public String getBuiltinAssetName() {
         return mBuiltinAssetName;
+    }
+
+    public boolean isLazy() {
+        return lazy;
+    }
+
+    public void setLazy(boolean lazy) {
+        this.lazy = lazy;
     }
 
     //______________________________________________________________________________

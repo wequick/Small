@@ -33,7 +33,6 @@ import net.wequick.small.webkit.WebViewClient;
 
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -69,8 +68,6 @@ public final class Small {
     private static int sLaunchingHostVersionCode;
     private static int sWebActivityTheme;
 
-    private static List<ActivityLifecycleCallbacks> sSetUpActivityLifecycleCallbacks;
-
     private static boolean sLoadFromAssets;
 
     public static boolean isLoadFromAssets() {
@@ -83,11 +80,6 @@ public final class Small {
 
     public interface OnCompleteListener {
         void onComplete();
-    }
-
-    public interface ActivityLifecycleCallbacks {
-        void onActivityCreated(Activity activity, android.os.Bundle savedInstanceState);
-        void onActivityDestroyed(Activity activity);
     }
 
     public static Application getContext() {
@@ -204,17 +196,6 @@ public final class Small {
 
     public static void registerJsHandler(String method, JsHandler handler) {
         WebView.registerJsHandler(method, handler);
-    }
-
-    public static void registerSetUpActivityLifecycleCallbacks(ActivityLifecycleCallbacks callbacks) {
-        if (sSetUpActivityLifecycleCallbacks == null) {
-            sSetUpActivityLifecycleCallbacks = new ArrayList();
-        }
-        sSetUpActivityLifecycleCallbacks.add(callbacks);
-    }
-
-    protected static List<ActivityLifecycleCallbacks> getSetUpActivityLifecycleCallbacks() {
-        return sSetUpActivityLifecycleCallbacks;
     }
 
     public static SharedPreferences getSharedPreferences() {
