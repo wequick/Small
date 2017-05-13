@@ -1,3 +1,10 @@
+## 1.2.0-beta5 (2017-05-13)
+
+Bugfixes:
+
+  - 修正 gradle cache 路径兼容问题
+  - 修正在插件模块未配置 `local.properties` 时可能出现的编译问题 (#473, @zhaoya188)
+
 ## 1.2.0-beta4 (2017-05-09)
 
 Features:
