@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "net.wequick.example.small.appok_if_stub"
-        minSdkVersion 9
+        minSdkVersion 11
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"

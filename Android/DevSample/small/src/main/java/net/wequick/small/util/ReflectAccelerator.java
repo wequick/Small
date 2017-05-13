@@ -17,6 +17,7 @@
 package net.wequick.small.util;
 
 import android.app.Activity;
+import android.app.ActivityThread;
 import android.app.Application;
 import android.app.Instrumentation;
 import android.content.Context;
@@ -304,31 +305,6 @@ public class ReflectAccelerator {
             Intent intent, int requestCode, android.os.Bundle options) {
         return sExecStartActivityIMPL.execStartActivity(instrumentation,
                 who, contextThread, token, target, intent, requestCode, options);
-    }
-
-    public static boolean relaunchActivity(Activity activity,
-                                           Object/*ActivityThread*/ thread,
-                                           Object/*IBinder*/ activityToken) {
-        if (Build.VERSION.SDK_INT >= 11) {
-            activity.recreate();
-            return true;
-        }
-
-        try {
-            Method m = thread.getClass().getDeclaredMethod("getApplicationThread");
-            m.setAccessible(true);
-            Object /*ActivityThread$ApplicationThread*/ appThread = m.invoke(thread);
-            Class[] types = new Class[]{IBinder.class, List.class, List.class,
-                    int.class, boolean.class, Configuration.class};
-            m = appThread.getClass().getMethod("scheduleRelaunchActivity", types);
-            m.setAccessible(true);
-            m.invoke(appThread, activityToken, null, null, 0, false, null);
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return false;
     }
 
     public static Intent getIntent(Object/*ActivityClientRecord*/ r) {

@@ -33,6 +33,7 @@ import android.content.pm.ServiceInfo;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.content.Context;
@@ -369,33 +370,34 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
         private boolean relaunchActivityIfNeeded(Message msg) {
             try {
+                // Get activity token
                 Field f = sActivityThread.getClass().getDeclaredField("mActivities");
                 f.setAccessible(true);
                 Map mActivities = (Map) f.get(sActivityThread);
                 Object /*ActivityThread$ActivityConfigChangeData*/ data = msg.obj;
-                Object token;
+                IBinder token;
                 if (data instanceof IBinder) {
-                    token = data;
+                    token = (IBinder) data;
                 } else {
                     f = data.getClass().getDeclaredField("activityToken");
                     f.setAccessible(true);
-                    token = f.get(data);
+                    token = (IBinder) f.get(data);
                 }
-                Object /*ActivityClientRecord*/ r = mActivities.get(token);
-                Intent intent = ReflectAccelerator.getIntent(r);
+
+                // Check if is a bundle activity
+                Activity activity = sActivityThread.getActivity(token);
+                Intent intent = activity.getIntent();
                 String bundleActivityName = unwrapIntent(intent);
                 if (bundleActivityName == null) {
                     return false;
                 }
 
-                f = r.getClass().getDeclaredField("activity");
-                f.setAccessible(true);
-                Activity activity = (Activity) f.get(r);
+                // Get the configuration of the activity
                 f = Activity.class.getDeclaredField("mCurrentConfig");
                 f.setAccessible(true);
                 Configuration activityConfig = (Configuration) f.get(activity);
 
-                // Calculate the changes
+                // Calculate the changes of activity configuration with the application one
                 int configDiff = activityConfig.diff(mApplicationConfig);
                 if (configDiff == 0) {
                     return false;
@@ -408,7 +410,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 }
 
                 // The activity isn't handling the change, relaunch it.
-                return ReflectAccelerator.relaunchActivity(activity, sActivityThread, token);
+                activity.recreate();
             } catch (Exception e) {
                 e.printStackTrace();
             }

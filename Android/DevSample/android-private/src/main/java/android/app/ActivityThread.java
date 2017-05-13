@@ -2,6 +2,8 @@ package android.app;
 
 import android.app.Application;
 import android.app.Instrumentation;
+import android.os.IBinder;
+import android.content.res.Configuration;
 
 import java.util.List;
 
@@ -26,4 +28,9 @@ public class ActivityThread {
     public final void installSystemProviders(List providers) {
         throw new RuntimeException("Stub!");
     }
+
+    public final Activity getActivity(IBinder token) {
+        throw new RuntimeException("Stub!");
+    }
+
 }

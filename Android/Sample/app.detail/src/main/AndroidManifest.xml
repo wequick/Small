@@ -10,6 +10,7 @@
         android:theme="@style/MyAppTheme" >
         <activity android:name=".MainActivity"
             android:launchMode="singleInstance"
+            android:configChanges="screenSize|orientation"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
