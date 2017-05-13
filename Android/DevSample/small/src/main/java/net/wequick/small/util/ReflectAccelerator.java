@@ -20,6 +20,7 @@ import android.app.Activity;
 import android.app.ActivityThread;
 import android.app.Application;
 import android.app.Instrumentation;
+import android.app.ResourcesManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -126,6 +127,7 @@ public class ReflectAccelerator {
     }
 
     public static int addAssetPath(AssetManager assets, String path) {
+//        return assets.addAssetPath(path);
         if (sAssetManager_addAssetPath_method == null) {
             sAssetManager_addAssetPath_method = getMethod(AssetManager.class,
                     "addAssetPath", new Class[]{String.class});
@@ -137,6 +139,7 @@ public class ReflectAccelerator {
     }
 
     public static int[] addAssetPaths(AssetManager assets, String[] paths) {
+//        return assets.addAssetPaths(paths);
         if (sAssetManager_addAssetPaths_method == null) {
             sAssetManager_addAssetPaths_method = getMethod(AssetManager.class,
                     "addAssetPaths", new Class[]{String[].class});
@@ -164,10 +167,8 @@ public class ReflectAccelerator {
             Collection<WeakReference<Resources>> references;
 
             if (Build.VERSION.SDK_INT >= 19) {
-                Class<?> resourcesManagerClass = Class.forName("android.app.ResourcesManager");
-                Method mGetInstance = resourcesManagerClass.getDeclaredMethod("getInstance", new Class[0]);
-                mGetInstance.setAccessible(true);
-                Object resourcesManager = mGetInstance.invoke(null, new Object[0]);
+                ResourcesManager resourcesManager = ResourcesManager.getInstance();
+                Class<?> resourcesManagerClass = ResourcesManager.class;
                 try {
                     Field fMActiveResources = resourcesManagerClass.getDeclaredField("mActiveResources");
                     fMActiveResources.setAccessible(true);
@@ -263,39 +264,6 @@ public class ReflectAccelerator {
                 // FIXME: we'd better to find the way to KEEP the weak reference.
                 sResourceImpls.put(resourceKey, new WeakReference<Object>(sMergedResourcesImpl));
             }
-        }
-    }
-
-    public static Object getActivityThread(Context context) {
-        try {
-            Class activityThread = Class.forName("android.app.ActivityThread");
-            // ActivityThread.currentActivityThread()
-            Method m = activityThread.getMethod("currentActivityThread", new Class[0]);
-            m.setAccessible(true);
-            Object thread = m.invoke(null, new Object[0]);
-            if (thread != null) return thread;
-
-            // context.@mLoadedApk.@mActivityThread
-            Field mLoadedApk = context.getClass().getField("mLoadedApk");
-            mLoadedApk.setAccessible(true);
-            Object apk = mLoadedApk.get(context);
-            Field mActivityThreadField = apk.getClass().getDeclaredField("mActivityThread");
-            mActivityThreadField.setAccessible(true);
-            return mActivityThreadField.get(apk);
-        } catch (Throwable ignore) {
-            throw new RuntimeException("Failed to get mActivityThread from context: " + context);
-        }
-    }
-
-    public static Application getApplication() {
-        try {
-            Class activityThread = Class.forName("android.app.ActivityThread");
-            // ActivityThread.currentActivityThread()
-            Method m = activityThread.getMethod("currentApplication", new Class[0]);
-            m.setAccessible(true);
-            return (Application) m.invoke(null, new Object[0]);
-        } catch (Throwable ignore) {
-            throw new RuntimeException("Failed to get current application!");
         }
     }
 

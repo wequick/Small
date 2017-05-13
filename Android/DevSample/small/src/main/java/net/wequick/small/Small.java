@@ -17,6 +17,7 @@
 package net.wequick.small;
 
 import android.app.Activity;
+import android.app.ActivityThread;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
@@ -83,12 +84,7 @@ public final class Small {
     }
 
     public static Application getContext() {
-        if (sContext == null) {
-            // While launching bundle independently, the `Small.setUp` may not be called,
-            // so lazy initialize this if needed.
-            sContext = ReflectAccelerator.getApplication();
-        }
-        return sContext;
+        return ActivityThread.currentApplication();
     }
 
     public static void setBaseUri(String url) {

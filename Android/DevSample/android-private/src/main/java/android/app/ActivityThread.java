@@ -1,9 +1,6 @@
 package android.app;
 
-import android.app.Application;
-import android.app.Instrumentation;
 import android.os.IBinder;
-import android.content.res.Configuration;
 
 import java.util.List;
 
@@ -14,6 +11,10 @@ import java.util.List;
 public class ActivityThread {
 
     public static ActivityThread currentActivityThread() {
+        throw new RuntimeException("Stub!");
+    }
+
+    public static Application currentApplication() {
         throw new RuntimeException("Stub!");
     }
 
