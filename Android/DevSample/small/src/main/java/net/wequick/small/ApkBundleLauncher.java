@@ -19,6 +19,7 @@ package net.wequick.small;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
+import android.app.ActivityThread;
 import android.app.Application;
 import android.app.Instrumentation;
 import android.content.ActivityNotFoundException;
@@ -109,7 +110,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
     private static final char REDIRECT_FLAG = '>';
 
-    private static Object sActivityThread;
+    private static ActivityThread sActivityThread;
     private static List<ProviderInfo> sProviders;
     private static List<ProviderInfo> mLazyInitProviders;
 
@@ -637,20 +638,20 @@ public class ApkBundleLauncher extends SoBundleLauncher {
     public void onCreate(Application app) {
         super.onCreate(app);
 
-        Object/*ActivityThread*/ thread;
+        ActivityThread thread;
         List<ProviderInfo> providers;
         Instrumentation base;
         ApkBundleLauncher.InstrumentationWrapper wrapper;
         Field f;
 
         // Get activity thread
-        thread = ReflectAccelerator.getActivityThread(app);
+        thread = ActivityThread.currentActivityThread();
 
         // Replace instrumentation
         try {
-            f = thread.getClass().getDeclaredField("mInstrumentation");
+            f = ActivityThread.class.getDeclaredField("mInstrumentation");
             f.setAccessible(true);
-            base = (Instrumentation) f.get(thread);
+            base = thread.getInstrumentation();
             wrapper = new ApkBundleLauncher.InstrumentationWrapper(base);
             f.set(thread, wrapper);
         } catch (Exception e) {
@@ -789,14 +790,8 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
         // Lazy init content providers
         if (mLazyInitProviders != null) {
-            try {
-                Method m = sActivityThread.getClass().getDeclaredMethod(
-                        "installContentProviders", Context.class, List.class);
-                m.setAccessible(true);
-                m.invoke(sActivityThread, app, mLazyInitProviders);
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to lazy init content providers: " + mLazyInitProviders);
-            }
+            sActivityThread.installSystemProviders(mLazyInitProviders);
+            mLazyInitProviders = null;
         }
 
         // Free temporary variables

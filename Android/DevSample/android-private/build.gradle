@@ -1,0 +1,19 @@
+apply plugin: 'java'
+
+configurations {
+    provided
+}
+
+sourceSets {
+    main {
+        compileClasspath += configurations.provided
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    provided files(new File('/Users/galen/Library/Android/sdk/platforms/android-25/android.jar'))
+}
+
+sourceCompatibility = "1.7"
+targetCompatibility = "1.7"
