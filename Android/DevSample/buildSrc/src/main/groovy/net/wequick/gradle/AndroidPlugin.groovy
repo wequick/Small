@@ -4,6 +4,9 @@ import com.android.build.gradle.api.BaseVariant
 import com.android.build.gradle.internal.pipeline.TransformTask
 import com.android.build.gradle.internal.transforms.ProGuardTransform
 import com.android.build.gradle.internal.tasks.PrepareLibraryTask
+import com.android.build.gradle.tasks.MergeManifests
+import net.wequick.gradle.util.AarPath
+import net.wequick.gradle.util.TaskUtils
 import org.gradle.api.Project
 
 class AndroidPlugin extends BasePlugin {
@@ -109,15 +112,26 @@ class AndroidPlugin extends BasePlugin {
      * So we need to remove all the unimplemented content providers from `Stub`.
      */
     protected void removeUnimplementedProviders() {
-        if (pluginType == PluginType.Library ||
-                pluginType == PluginType.Host) return // nothing to do with `lib.*` and host
+        if (pluginType == PluginType.Host) return // nothing to do with host
+        MergeManifests manifests = project.tasks.withType(MergeManifests.class)[0]
+        if (manifests.hasProperty('providers')) {
+            return
+        }
 
-        project.tasks.withType(PrepareLibraryTask.class).findAll {
-            def name = it.explodedDir.parentFile.name
-            return (rootSmall.hostStubProjects.find { it.name == name } != null)
-        }.each {
+        project.tasks.withType(PrepareLibraryTask.class).each {
             it.doLast { PrepareLibraryTask aar ->
-                File manifest = new File(aar.explodedDir, 'AndroidManifest.xml')
+                AarPath aarPath = TaskUtils.getBuildCache(aar)
+                File aarDir = aarPath.getOutputDir()
+                if (aarDir == null) {
+                    return
+                }
+
+                def aarName = aarPath.module.name
+                if (rootSmall.hostStubProjects.find { it.name == aarName } != null) {
+                    return
+                }
+
+                File manifest = new File(aarDir, 'AndroidManifest.xml')
                 def s = ''
                 boolean enteredProvider = false
                 boolean removed = false
@@ -197,9 +211,11 @@ class AndroidPlugin extends BasePlugin {
     protected void configureReleaseVariant(BaseVariant variant) {
         // Init default output file (*.apk)
         small.outputFile = variant.outputs[0].outputFile
-        small.explodeAarDirs = project.tasks
-                .withType(PrepareLibraryTask.class)
-                .collect { it.explodedDir }
+
+        small.buildCaches = new HashMap<String, File>()
+        project.tasks.withType(PrepareLibraryTask.class).each {
+            TaskUtils.collectAarBuildCacheDir(it, small.buildCaches)
+        }
 
         // Hook variant tasks
         variant.assemble.doLast {

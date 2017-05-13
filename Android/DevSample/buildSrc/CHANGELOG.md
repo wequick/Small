@@ -1,3 +1,72 @@
+## 1.2.0-beta5 (2017-05-13)
+
+Bugfixes:
+
+  - 修正 gradle cache 路径兼容问题
+  - 修正在插件模块未配置 `local.properties` 时可能出现的编译问题 (#473, @zhaoya188)
+
+## 1.2.0-beta4 (2017-05-09)
+
+Features:
+
+  - 增加 `gradlew smallLint` 方法，用于检测插件编译问题
+
+Bugfixes:
+
+  - 修正 transform 目录冲突引起的 syncLibs 异常 (@xufan)
+  - 修正误提示：'请使用 gradle-small 0.9 以上编译' 的问题 (#313)
+  - 修正 Jar 中的 assets 资源被重复打包进插件的问题 (@xufan)
+
+## 1.2.0-beta3 (2017-03-27)
+
+Bugfixes:
+
+  - 修正 Android Plugin 2.3.0 下未能正确保留插件模块 JNI 的问题 (@xufan)
+  - 修正span类型字符串(`<b>Hello</b>`)无法被正确编译的问题 (#335, @jasonrongdevelop)
+
+Other:
+
+  - 使用8个空格替代`\t`来打印编译log，以保证整齐
+
+## 1.2.0-beta2 (2017-03-21)
+
+Bugfixes:
+
+  - 适配 Android Plugin 2.3.0 兼容 Windows
+
+## 1.2.0-beta1 (2017-03-19)
+
+Features:
+
+  - 兼容 Android Plugin 2.3.0 (@xufan)
+
+## 1.1.0-alpha2 (2017-02-25)
+
+Features:
+
+  - 增加 `gradlew smallLint` 任务用于检查插件问题
+    - 检查是否包含重复类，以避免 pre-verified 与 AppCompat主题闪退问题
+
+  - `aarVersion` 默认与 `gradle-small` 版本保持一致
+
+Bugfixes:
+
+  - 修正第三方jar未被分离的问题 (#378)
+  - 修正第三方so未被正确打包进插件的问题 (#367, #381)
+  - 修正 `support-compat` 与 `support-core-utils` 冲突的问题
+  - 修正不包含资源的插件包在混淆时无法编译的问题
+
+Refactor:
+
+  - 导出 util.Log 类用于打印彩色日志
+  - 使用 taskGraph 监听来完成插件编译开始与结束日志
+
+## 1.1.0-beta4 (2016-12-12)
+
+Bugfixes:
+
+  - 修正无法正确引用 `app+stub` 模块中的代码和资源的问题 (#364, #371)
+
 ## 1.1.0-beta3 (2016-11-10)
 
 Features:

@@ -30,8 +30,8 @@ public class AndroidExtension extends BaseExtension {
     /** Task of R.class jar */
     Task jar
 
-    /** Tasks of aar exploder */
-    Set<File> explodeAarDirs
+    /** Map of build-cache file */
+    Map buildCaches
 
     AndroidExtension(Project project) {
         super(project)

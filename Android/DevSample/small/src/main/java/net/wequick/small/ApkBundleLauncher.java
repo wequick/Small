@@ -28,6 +28,8 @@ import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.ProviderInfo;
+import android.content.pm.ServiceInfo;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.os.Handler;
@@ -104,6 +106,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
     private static Instrumentation sHostInstrumentation;
     private static InstrumentationWrapper sBundleInstrumentation;
+    private static ActivityThreadHandlerCallback sActivityThreadHandlerCallback;
 
     private static final char REDIRECT_FLAG = '>';
 
@@ -285,6 +288,10 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
         private static final int LAUNCH_ACTIVITY = 100;
         private static final int CREATE_SERVICE = 114;
+        private static final int CONFIGURATION_CHANGED = 118;
+        private static final int ACTIVITY_CONFIGURATION_CHANGED = 125;
+
+        private Configuration mApplicationConfig;
 
         @Override
         public boolean handleMessage(Message msg) {
@@ -296,6 +303,13 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 case CREATE_SERVICE:
                     ensureServiceClassesLoadable(msg);
                     break;
+
+                case CONFIGURATION_CHANGED:
+                    recordConfigChanges(msg);
+                    break;
+
+                case ACTIVITY_CONFIGURATION_CHANGED:
+                    return relaunchActivityIfNeeded(msg);
 
                 default:
                     break;
@@ -335,10 +349,70 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         }
 
         private void ensureServiceClassesLoadable(Message msg) {
-            // Cause Small is only setup in current application process, if a service is specified
-            // with a different process('android:process=xx'), then we should also setup Small for
-            // that process so that the service classes can be successfully loaded.
-            Small.setUpOnDemand();
+            Object/*ActivityThread$CreateServiceData*/ data = msg.obj;
+            ServiceInfo info = ReflectAccelerator.getServiceInfo(data);
+            if (info == null) return;
+
+            String appProcessName = Small.getContext().getApplicationInfo().processName;
+            if (!appProcessName.equals(info.processName)) {
+                // Cause Small is only setup in current application process, if a service is specified
+                // with a different process('android:process=xx'), then we should also setup Small for
+                // that process so that the service classes can be successfully loaded.
+                Small.setUpOnDemand();
+            }
+        }
+
+        private void recordConfigChanges(Message msg) {
+            mApplicationConfig = (Configuration) msg.obj;
+        }
+
+        private boolean relaunchActivityIfNeeded(Message msg) {
+            try {
+                Field f = sActivityThread.getClass().getDeclaredField("mActivities");
+                f.setAccessible(true);
+                Map mActivities = (Map) f.get(sActivityThread);
+                Object /*ActivityThread$ActivityConfigChangeData*/ data = msg.obj;
+                Object token;
+                if (data instanceof IBinder) {
+                    token = data;
+                } else {
+                    f = data.getClass().getDeclaredField("activityToken");
+                    f.setAccessible(true);
+                    token = f.get(data);
+                }
+                Object /*ActivityClientRecord*/ r = mActivities.get(token);
+                Intent intent = ReflectAccelerator.getIntent(r);
+                String bundleActivityName = unwrapIntent(intent);
+                if (bundleActivityName == null) {
+                    return false;
+                }
+
+                f = r.getClass().getDeclaredField("activity");
+                f.setAccessible(true);
+                Activity activity = (Activity) f.get(r);
+                f = Activity.class.getDeclaredField("mCurrentConfig");
+                f.setAccessible(true);
+                Configuration activityConfig = (Configuration) f.get(activity);
+
+                // Calculate the changes
+                int configDiff = activityConfig.diff(mApplicationConfig);
+                if (configDiff == 0) {
+                    return false;
+                }
+
+                // Check if the activity can handle the changes
+                ActivityInfo bundleActivityInfo = sLoadedActivities.get(bundleActivityName);
+                if ((configDiff & (~bundleActivityInfo.configChanges)) == 0) {
+                    return false;
+                }
+
+                // The activity isn't handling the change, relaunch it.
+                return ReflectAccelerator.relaunchActivity(activity, sActivityThread, token);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return false;
         }
     }
 
@@ -363,6 +437,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 Context who, IBinder contextThread, IBinder token, Activity target,
                 Intent intent, int requestCode, android.os.Bundle options) {
             wrapIntent(intent);
+            ensureInjectMessageHandler(sActivityThread);
             return ReflectAccelerator.execStartActivity(mBase,
                     who, contextThread, token, target, intent, requestCode, options);
         }
@@ -373,6 +448,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 Context who, IBinder contextThread, IBinder token, Activity target,
                 Intent intent, int requestCode) {
             wrapIntent(intent);
+            ensureInjectMessageHandler(sActivityThread);
             return ReflectAccelerator.execStartActivity(mBase,
                     who, contextThread, token, target, intent, requestCode, null);
         }
@@ -386,6 +462,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 if (ai == null) break;
 
                 applyActivityInfo(activity, ai);
+                ReflectAccelerator.ensureCacheResources();
             } while (false);
             sHostInstrumentation.callActivityOnCreate(activity, icicle);
 
@@ -684,6 +761,35 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         }
     }
 
+    private static void ensureInjectMessageHandler(Object thread) {
+        try {
+            Field f = thread.getClass().getDeclaredField("mH");
+            f.setAccessible(true);
+            Handler ah = (Handler) f.get(thread);
+            f = Handler.class.getDeclaredField("mCallback");
+            f.setAccessible(true);
+
+            boolean needsInject = false;
+            if (sActivityThreadHandlerCallback == null) {
+                needsInject = true;
+            } else {
+                Object callback = f.get(ah);
+                if (callback != sActivityThreadHandlerCallback) {
+                    needsInject = true;
+                }
+            }
+
+            if (needsInject) {
+                // Inject message handler
+                sActivityThreadHandlerCallback = new ActivityThreadHandlerCallback();
+                f.set(ah, sActivityThreadHandlerCallback);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to replace message handler for thread: " + thread);
+        }
+    }
+
+
     public static void wrapIntent(Intent intent) {
         sBundleInstrumentation.wrapIntent(intent);
     }
@@ -759,16 +865,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         }
 
         // Inject message handler
-        try {
-            f = thread.getClass().getDeclaredField("mH");
-            f.setAccessible(true);
-            Handler ah = (Handler) f.get(thread);
-            f = Handler.class.getDeclaredField("mCallback");
-            f.setAccessible(true);
-            f.set(ah, new ApkBundleLauncher.ActivityThreadHandlerCallback());
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to replace message handler for thread: " + thread, e);
-        }
+        ensureInjectMessageHandler(thread);
 
         // Get providers
         Object/*AppBindData*/ data;
@@ -924,7 +1021,6 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         }
 
         if (pluginInfo.activities == null) {
-            bundle.setLaunchable(false);
             return;
         }
 
@@ -958,6 +1054,11 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         // Intent extras - class
         String activityName = bundle.getActivityName();
         if (!ActivityLauncher.containsActivity(activityName)) {
+            if (sLoadedActivities == null) {
+                throw new ActivityNotFoundException("Unable to find explicit activity class " +
+                        "{ " + activityName + " }");
+            }
+
             if (!sLoadedActivities.containsKey(activityName)) {
                 if (activityName.endsWith("Activity")) {
                     throw new ActivityNotFoundException("Unable to find explicit activity class " +

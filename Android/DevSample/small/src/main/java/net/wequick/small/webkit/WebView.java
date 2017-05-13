@@ -253,6 +253,16 @@ public class WebView extends android.webkit.WebView {
         }
 
         @Override
+        public void onProgressChanged(android.webkit.WebView view, int newProgress) {
+            super.onProgressChanged(view, newProgress);
+
+            if (sWebViewClient != null) {
+                WebView wv = (WebView) view;
+                sWebViewClient.onProgressChanged(wv.getActivity(), wv, newProgress);
+            }
+        }
+
+        @Override
         public boolean onJsAlert(android.webkit.WebView view, String url, String message,
                                  final android.webkit.JsResult result) {
             Context context = ((WebView) view).getActivity();
@@ -367,7 +377,7 @@ public class WebView extends android.webkit.WebView {
         public boolean shouldOverrideUrlLoading(android.webkit.WebView view, String url) {
             WebView wv = (WebView) view;
 
-            if (wv.mLoadingUrl != null && wv.mLoadingUrl.equals(url)) {
+            if (wv.mLoadingUrl != null && isSameUrl(url, wv.mLoadingUrl)) {
                 // reload by window.location.reload or something
                 return super.shouldOverrideUrlLoading(view, url);
             }
@@ -444,7 +454,7 @@ public class WebView extends android.webkit.WebView {
                 wv.mInjected = true;
             }
 
-            if (sWebViewClient != null && url.equals(wv.mLoadingUrl)) {
+            if (sWebViewClient != null && isSameUrl(url, wv.mLoadingUrl)) {
                 sWebViewClient.onPageFinished(wv.getActivity(), wv, url);
             }
         }
@@ -455,10 +465,24 @@ public class WebView extends android.webkit.WebView {
             super.onReceivedError(view, errorCode, description, failingUrl);
             Log.e("Web", "error: " + description);
             WebView wv = (WebView) view;
-            if (sWebViewClient != null && failingUrl.equals(wv.mLoadingUrl)) {
+            if (sWebViewClient != null && isSameUrl(failingUrl, wv.mLoadingUrl)) {
                 Context context = wv.getActivity();
                 sWebViewClient.onReceivedError(context, wv, errorCode, description, failingUrl);
             }
+        }
+    }
+
+    private static boolean isSameUrl(String url1, String url2) {
+        if (url1 == null) return url2 == null;
+        if (url2 == null) return false;
+
+        int len1 = url1.length();
+        int len2 = url2.length();
+        switch (len1 - len2) {
+            case 0: return url1.equals(url2);
+            case 1: return url1.indexOf(url2) == 0 && url1.charAt(len2) == '/';
+            case -1: return url2.indexOf(url1) == 0 && url2.charAt(len1) == '/';
+            default: return false;
         }
     }
 

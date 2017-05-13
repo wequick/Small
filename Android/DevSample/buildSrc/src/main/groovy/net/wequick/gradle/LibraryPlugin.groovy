@@ -64,12 +64,9 @@ class LibraryPlugin extends AppPlugin {
         } else { //< apply: 'com.android.library'
             // Cause `isBuildingRelease()' return false, at this time, super's
             // `hookJavacTask' will not be triggered. Provided the necessary jars here.
-            def smallJar = project.fileTree(
-                    dir: rootSmall.preBaseJarDir, include: [SMALL_JAR_PATTERN])
-            def libJars = project.fileTree(dir: rootSmall.preLibsJarDir,
-                    include: mDependentLibProjects.collect { "$it.name-${it.version}.jar" })
-            project.dependencies.add('provided', smallJar)
-            project.dependencies.add('provided', libJars)
+            getLibraryJars().each {
+                project.dependencies.add('provided', project.files(it))
+            }
 
             // Resolve the transform tasks
             project.preBuild.doLast {
@@ -82,7 +79,7 @@ class LibraryPlugin extends AppPlugin {
                     def requiredOutput = IntermediateFolderUtils.getContentLocation(
                             t.streamOutputFolder, 'main',
                             t.transform.outputTypes, t.transform.scopes,
-                            Format.DIRECTORY) // folders/2000/1f/main
+                            t.transform.name == 'proguard'? Format.JAR: Format.DIRECTORY) // folders/2000/1f/main
                     def requiredScope = requiredOutput.parentFile // folders/2000/1f
                     if (requiredScope.exists()) return
                     def typesDir = requiredScope.parentFile // folders/2000

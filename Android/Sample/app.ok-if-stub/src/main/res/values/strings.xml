@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">App.ok-if-stub</string>
-    <string name="hello">Hello World from app.ok-if-stub!</string>
     <string name="start_transition_activity">Start activity with transition</string>
     <string name="send_notification_with_taskstack">Send notification with TaskStackBuilder</string>
     <string name="send_notification_with_special">Send notification with PendingIntent.getActivity</string>

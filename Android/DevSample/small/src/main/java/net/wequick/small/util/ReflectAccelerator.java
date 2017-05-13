@@ -22,7 +22,9 @@ import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.ServiceInfo;
 import android.content.res.AssetManager;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
@@ -34,6 +36,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
 
 /**
  * This class consists exclusively of static methods that accelerate reflections.
@@ -45,6 +49,9 @@ public class ReflectAccelerator {
     // ActivityClientRecord
     private static Field sActivityClientRecord_intent_field;
     private static Field sActivityClientRecord_activityInfo_field;
+
+    private static ArrayMap<Object, WeakReference<Object>> sResourceImpls;
+    private static Object/*ResourcesImpl*/ sMergedResourcesImpl;
 
     private interface ExecStartActivityCaller {
         Instrumentation.ActivityResult execStartActivity(
@@ -173,6 +180,12 @@ public class ReflectAccelerator {
 
                     references = (Collection) mResourceReferences.get(resourcesManager);
                 }
+
+                if (Build.VERSION.SDK_INT >= 24) {
+                    Field fMResourceImpls = resourcesManagerClass.getDeclaredField("mResourceImpls");
+                    fMResourceImpls.setAccessible(true);
+                    sResourceImpls = (ArrayMap)fMResourceImpls.get(resourcesManager);
+                }
             } else {
                 Field fMActiveResources = activityThread.getClass().getDeclaredField("mActiveResources");
                 fMActiveResources.setAccessible(true);
@@ -194,9 +207,21 @@ public class ReflectAccelerator {
                     Field mResourcesImpl = Resources.class.getDeclaredField("mResourcesImpl");
                     mResourcesImpl.setAccessible(true);
                     Object resourceImpl = mResourcesImpl.get(resources);
-                    Field implAssets = resourceImpl.getClass().getDeclaredField("mAssets");
+                    Field implAssets;
+                    try {
+                        implAssets = resourceImpl.getClass().getDeclaredField("mAssets");
+                    } catch (NoSuchFieldException e) {
+                        // Compat for MiUI 8+
+                        implAssets = resourceImpl.getClass().getSuperclass().getDeclaredField("mAssets");
+                    }
                     implAssets.setAccessible(true);
                     implAssets.set(resourceImpl, newAssetManager);
+
+                    if (Build.VERSION.SDK_INT >= 24) {
+                        if (resources == app.getResources()) {
+                            sMergedResourcesImpl = resourceImpl;
+                        }
+                    }
                 }
 
                 resources.updateConfiguration(resources.getConfiguration(), resources.getDisplayMetrics());
@@ -219,6 +244,24 @@ public class ReflectAccelerator {
             }
         } catch (Throwable e) {
             throw new IllegalStateException(e);
+        }
+    }
+
+    public static void ensureCacheResources() {
+        if (Build.VERSION.SDK_INT < 24) return;
+        if (sResourceImpls == null || sMergedResourcesImpl == null) return;
+
+        Set<?> resourceKeys = sResourceImpls.keySet();
+        for (Object resourceKey : resourceKeys) {
+            WeakReference resourceImpl = (WeakReference)sResourceImpls.get(resourceKey);
+            if (resourceImpl != null && resourceImpl.get() == null) {
+                // Sometimes? the weak reference for the key was released by what
+                // we can not find the cache resources we had merged before.
+                // And the system will recreate a new one which only build with host resources.
+                // So we needs to restore the cache. Fix #429.
+                // FIXME: we'd better to find the way to KEEP the weak reference.
+                sResourceImpls.put(resourceKey, new WeakReference<Object>(sMergedResourcesImpl));
+            }
         }
     }
 
@@ -263,11 +306,41 @@ public class ReflectAccelerator {
                 who, contextThread, token, target, intent, requestCode, options);
     }
 
+    public static boolean relaunchActivity(Activity activity,
+                                           Object/*ActivityThread*/ thread,
+                                           Object/*IBinder*/ activityToken) {
+        if (Build.VERSION.SDK_INT >= 11) {
+            activity.recreate();
+            return true;
+        }
+
+        try {
+            Method m = thread.getClass().getDeclaredMethod("getApplicationThread");
+            m.setAccessible(true);
+            Object /*ActivityThread$ApplicationThread*/ appThread = m.invoke(thread);
+            Class[] types = new Class[]{IBinder.class, List.class, List.class,
+                    int.class, boolean.class, Configuration.class};
+            m = appThread.getClass().getMethod("scheduleRelaunchActivity", types);
+            m.setAccessible(true);
+            m.invoke(appThread, activityToken, null, null, 0, false, null);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
     public static Intent getIntent(Object/*ActivityClientRecord*/ r) {
         if (sActivityClientRecord_intent_field == null) {
             sActivityClientRecord_intent_field = getDeclaredField(r.getClass(), "intent");
         }
         return getValue(sActivityClientRecord_intent_field, r);
+    }
+
+    public static ServiceInfo getServiceInfo(Object/*ActivityThread$CreateServiceData*/ data) {
+        Field f = getDeclaredField(data.getClass(), "info");
+        return getValue(f, data);
     }
 
     public static void setActivityInfo(Object/*ActivityClientRecord*/ r, ActivityInfo ai) {
@@ -312,6 +385,10 @@ public class ReflectAccelerator {
     }
 
     private static <T> T getValue(Field field, Object target) {
+        if (field == null) {
+            return null;
+        }
+
         try {
             return (T) field.get(target);
         } catch (IllegalAccessException e) {
@@ -321,6 +398,10 @@ public class ReflectAccelerator {
     }
 
     private static void setValue(Field field, Object target, Object value) {
+        if (field == null) {
+            return;
+        }
+
         try {
             field.set(target, value);
         } catch (IllegalAccessException e) {

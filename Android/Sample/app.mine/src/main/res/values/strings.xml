@@ -4,4 +4,8 @@
     <string name="inter_start">startActivityForResult</string>
     <string name="pick">Pick</string>
     <string name="call_system">Call system intent</string>
+    <string name="play_video">Play video in raw</string>
+    <string name="test_span1"><u>test</u></string>
+    <string name="span">Hello <b>span</b> string! <i>Fix</i> <b><i>#335</i></b>!</string>
+    <string name="test_span2"><h1>test2</h1></string>
 </resources>

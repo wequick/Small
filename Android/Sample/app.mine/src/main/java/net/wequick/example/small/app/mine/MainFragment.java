@@ -90,6 +90,15 @@ public class MainFragment extends Fragment {
         TextView tvJni = (TextView) rootView.findViewById(R.id.jni_label);
         tvJni.setText(HelloPluginJni.stringFromJNI());
 
+        button = (Button) rootView.findViewById(R.id.play_video_button);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainFragment.this.getContext(), VideoActivity.class);
+                startActivity(intent);
+            }
+        });
+
         return rootView;
     }
 

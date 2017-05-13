@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    compile 'org.codehaus.groovy:groovy-all:2.4.4'
+    compile 'org.codehaus.groovy:groovy-all:2.4.7'
 }
 
 apply from: 'provided.gradle'
@@ -30,7 +30,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.3'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
     }
 }
 
@@ -112,8 +112,6 @@ task sourcesJar(type: Jar) {
 
 task javadocJar(type: Jar, dependsOn: groovydoc) {
     classifier = 'javadoc'
-    println groovydoc.destinationDir
-//    assert false
     from groovydoc.destinationDir
 }
 

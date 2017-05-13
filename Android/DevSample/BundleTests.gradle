@@ -1,0 +1,45 @@
+import net.wequick.gradle.test.BundleUnitTests
+
+class BundleTests extends BundleUnitTests {
+
+    BundleTests(def project) {
+        super(project)
+    }
+
+    /**
+     * 测试公共库的 assets 资源不会重复打包到业务插件中
+     */
+    def testShouldKeepJarAssetsInLib() {
+        File bundle = getBundle('net.wequick.example.small.app.home')
+        def out = aapt(['list', bundle.path])
+        out.eachLine { name ->
+            tAssert(name != 'assets/asset-should-only-in-lib-bundle.txt',
+                    'Assets duplicate')
+            tAssert(name != 'assets/jar-asset-should-only-in-lib.txt',
+                    'Jar assets duplicate')
+        }
+    }
+
+    /**
+     * 测试宿主分身的 assets 资源不会重复打包到插件中
+     */
+    def testShouldKeepJarAssetsInStub() {
+        File bundle = getBundle('net.wequick.example.small.app.home')
+        def out = aapt(['list', bundle.path])
+        out.eachLine { name ->
+            tAssert(name != 'assets/jar-asset-should-only-in-stub.txt',
+                    'Jar assets duplicate')
+        }
+    }
+
+    /**
+     * 测试业务模块的 *.so 文件可以被正确打包到其插件中
+     */
+    def testShouldRetainSoInApp() {
+        // lib/x86/libshould-keep-in-app-bundle.so
+        File bundle = getBundle('net.wequick.example.small.app.main')
+        def out = aapt(['list', bundle.path])
+        tAssert(out.contains('lib/x86/libshould-keep-in-app-bundle.so'),
+                'Native library missing')
+    }
+}

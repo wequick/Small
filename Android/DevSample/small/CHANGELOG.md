@@ -1,3 +1,50 @@
+## 1.2.0-beta5 (2017-05-13)
+
+版本同步
+
+## 1.2.0-beta4 (2017-05-09)
+
+Features:
+
+  - 支持在插件中配置 `android:configChanges` 属性
+  - 支持在 bundle.json 中的 `rules` 通过 "" key 来配置主路由
+
+Bugfixes:
+
+  - 修正在预装了 LBE 的系统上无法正确 hook mH 导致的崩溃问题 (@xufan)
+  - 修正插件manifest中未注册任何 Activity 时出现的空指针问题
+
+## 1.2.0-beta3 (2017-03-27)
+
+版本同步
+
+## 1.2.0-beta2 (2017-03-21)
+
+版本同步
+
+## 1.2.0-beta1 (2017-03-19)
+
+Bugfixes:
+
+  - 修正 7.0 下无法播放 raw 目录下视频的问题 (#429)
+
+## 1.1.0-alpha2 (2017-02-25)
+
+Bugfixes:
+
+  - 修正打包到assets下的apk包改变时未能正确被解压更新的问题
+  - 修正WebView判断加载相同url的错误
+
+Other:
+
+  - 导出WebView onProgressChanged事件
+
+## 1.1.0-alpha1 (2017-01-09)
+
+Bugfixes:
+
+  - 修正 MiUI8 资源无法合并的问题 (@xufan)
+
 ## 1.1.0-beta9 (2016-11-17)
 
 Bugfixes:

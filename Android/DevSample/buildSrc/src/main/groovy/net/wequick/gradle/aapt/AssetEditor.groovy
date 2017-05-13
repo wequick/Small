@@ -115,7 +115,6 @@ public class AssetEditor extends CppHexEditor {
         s.styles = [] // {name, firstChar, lastChar}
         s.stringsSize = 0
         s.stringLens = []
-        s.styleLens = []
         s.isUtf8 = (s.flags & ResStringFlag.UTF8_FLAG) != 0
 
         // Read offsets
@@ -157,12 +156,16 @@ public class AssetEditor extends CppHexEditor {
         // Read styles
         for (int i = 0; i < s.styleCount; i++) {
             seek(start + s.styleOffsets[i])
-            s.styles[i] = readStringPoolSpan()
+            s.styles[i] = readStringStyle()
         }
 
+        s.styleSize = tellp() - start
+
         // Validate styles end span
-        s.styleEnd = readBytes(8)
-        assert (Arrays.equals(s.styleEnd, ResStringPoolSpan.END_SPAN))
+        def end = readBytes(8)
+        assert (Arrays.equals(end, ResStringPoolSpan.END_SPAN))
+
+        s.styleEnd = end
 
         return s
     }
@@ -194,8 +197,8 @@ public class AssetEditor extends CppHexEditor {
         if (s.stringPadding > 0) writeBytes(new byte[s.stringPadding])
 
         // Write styles
-        s.styles.eachWithIndex { it, i ->
-            writeStringPoolSpan(it)
+        s.styles.each {
+            writeStringStyle(it)
         }
         if (s.styleEnd != null) writeBytes(s.styleEnd)
     }
@@ -213,22 +216,49 @@ public class AssetEditor extends CppHexEditor {
 //
 //    }
 
+    /** Read array of ResStringPool_span */
+    protected def readStringStyle() {
+        def spans = []
+        while (true) {
+            def span = readStringPoolSpan()
+            if (span.name == ResStringPoolSpan.END) {
+                break
+            }
+            spans.add(span)
+        }
+        return spans;
+    }
+
+    /** Write array of ResStringPool_span */
+    protected def writeStringStyle(spans) {
+        spans.each {
+            writeStringPoolSpan(it)
+        }
+        writeInt(ResStringPoolSpan.END)
+    }
+
     /** Read struct ResStringPool_span */
     protected def readStringPoolSpan() {
         def ss = [:]
         ss.name = readInt()
+        if (ss.name == ResStringPoolSpan.END) {
+            return ss
+        }
+
         ss.firstChar = readInt()
         ss.lastChar = readInt()
-        skip(4) // END: 0xFFFFFFFF
         return ss
     }
 
     /** Write struct ResStringPool_span */
     protected def writeStringPoolSpan(ss) {
         writeInt(ss.name)
+        if (ss.name == ResStringPoolSpan.END) {
+            return
+        }
+
         writeInt(ss.firstChar)
         writeInt(ss.lastChar)
-        writeInt(ResStringPoolSpan.END)
     }
 
     /** Get utf-8 from utf-16 */
@@ -237,8 +267,8 @@ public class AssetEditor extends CppHexEditor {
         int len = len16 / 2
         def buffer = new char[len]
         int i = 0;
-        for (int j = 0; j < len16; j+=2) {
-            char c = (char)u16str[j]
+        for (int j = 0; j < len16; j += 2) {
+            char c = (char) u16str[j]
             if (c == 0) {
                 buffer[i] = '\0'
                 break
@@ -291,7 +321,7 @@ public class AssetEditor extends CppHexEditor {
             def N = bytes.size()
             def data = new byte[N]
             for (int i = 0; i < N; i++) {
-                data[i] = (byte)bytes[i]
+                data[i] = (byte) bytes[i]
             }
             return [data: data, value: hb]
         } else {
@@ -310,19 +340,60 @@ public class AssetEditor extends CppHexEditor {
             def N = bytes.size()
             def data = new byte[N]
             for (int i = 0; i < N; i++) {
-                data[i] = (byte)bytes[i]
+                data[i] = (byte) bytes[i]
             }
             return [data: data, value: (hb << 1)]
         }
     }
-    /** Filter ResStringPool with specific string indexes */
+
     protected static def filterStringPool(sp, ids) {
+        filterStringPool(sp, ids, null)
+    }
+
+    /** Filter ResStringPool with specific string indexes */
+    protected static def filterStringPool(sp, ids, entries) {
         if (sp.stringsStart == 0) return sp
 
         def strings = []
         def offsets = []
         def lens = []
         def offset = 0
+        def stringCount = ids.size()
+        def entryDiff = 0
+
+        if (sp.styleCount > 0) {
+            // The styles indexes are related to the strings.
+            // As example:
+            //
+            //  <xml>
+            //      <string><b>Wequick</b><string>
+            //      <string><i>Small</i><string>
+            //  </xml>
+            //
+            // would be compiled to:
+            //
+            //  String #0: Wequick
+            //  String #1: Small
+            //  ...
+            //  String #M: b
+            //  String #N: i
+            //
+            //  Style #0: [name: M, firstChar: 0, lastChar: 6]
+            //  Style #1: [name: N, firstChar: 0, lastChar: 4]
+            //
+            // Hereby, resort the strings ordered by the ids to make sense.
+            ids.sort()
+        }
+
+        // Reset entry ids no matter if no styles
+        if (entries != null) {
+            for (int i = 0; i < stringCount; i++) {
+                def es = entries[ids[i]]
+                es.each {
+                    it.value.data = i
+                }
+            }
+        }
 
         // Filter strings
         ids.each {
@@ -334,12 +405,67 @@ public class AssetEditor extends CppHexEditor {
             def l = s.length
             offset += l + lenData.length + 1 // 1 for 0x0
         }
-        def newStringCount = strings.size()
-        def d = (sp.stringCount - newStringCount) * 4
+
+        // Filter styles
+        def styleSizeDiff = 0
+        if (sp.styleCount > 0) {
+            def styles = []
+            def styleOffsets = []
+            def styleOffset = 0
+
+            for (int i = 0; i < stringCount; i++) {
+                int id = ids[i]
+                if (id >= sp.styleCount) {
+                    break
+                }
+
+                styleOffsets.add(styleOffset)
+                def spans = sp.styles[id]
+                spans.each {
+                    if (it.name != ResStringPoolSpan.END) {
+                        def newName = ids.indexOf(it.name)
+                        if (newName == -1) {
+                            // Append the style tag string
+                            def s = sp.strings[it.name]
+                            strings.add(s)
+                            offsets.add(offset)
+                            def lenData = sp.stringLens[it.name]
+                            lens.add(lenData)
+                            def l = s.length
+                            offset += l + lenData.length + 1 // 1 for 0x0
+
+                            ids.add(it.name)
+                            it.name = stringCount
+                            stringCount++
+                        } else {
+                            it.name = newName
+                        }
+
+                        styleOffset += 12 // SPAN_SIZE
+                    }
+                }
+                styleOffset += 4 // END_SPAN
+                styles.add(spans)
+            }
+
+            def styleCount = styles.size()
+            entryDiff += sp.styleCount - styleCount
+            sp.styleCount = styleCount
+            sp.styles = styles
+            sp.styleOffsets = styleOffsets
+            styleSizeDiff = sp.styleSize - styleOffset
+            if (styleCount == 0) {
+                styleSizeDiff += ResStringPoolSpan.END_SPAN.size()
+            }
+            sp.styleSize = styleOffset
+        }
+
+        entryDiff += sp.stringCount - stringCount
+        def d = entryDiff * 4
         sp.strings = strings
         sp.stringOffsets = offsets
         sp.stringLens = lens
-        sp.stringCount = strings.size()
+        sp.stringCount = stringCount
 
         // Adjust strings start position
         sp.stringsStart -= d
@@ -357,8 +483,12 @@ public class AssetEditor extends CppHexEditor {
         sp.stringPadding = newStringPadding
 
         // Adjust styles start position
-        if (sp.stylesStart > 0) {
+        d += styleSizeDiff
+        if (sp.styleCount > 0) {
             sp.stylesStart = sp.stringsStart + sp.stringsSize + sp.stringPadding
+        } else {
+            sp.stylesStart = 0
+            sp.styleEnd = null
         }
 
         // Adjust entry size
@@ -366,7 +496,7 @@ public class AssetEditor extends CppHexEditor {
         sp.header.size = newSize
     }
 
-    /** Dump ResStringPool, as `aapt d xmlstrings' command */
+/** Dump ResStringPool, as `aapt d xmlstrings' command */
     protected static def dumpStringPool(pool) {
         def type = pool.flags == 0 ? 'UTF-16' : 'UTF-8'
         println "String pool of ${pool.stringCount} unique $type non-sorted strings, " +
@@ -387,4 +517,5 @@ public class AssetEditor extends CppHexEditor {
             }
         }
     }
+
 }

@@ -63,7 +63,7 @@ class AssetPlugin extends BundlePlugin {
 
             from srcDir
             into destDir
-        } << {
+        }.doLast {
             // Generate AndroidManifest.xml
             Aapt aapt = new Aapt(destDir, null, null, android.buildToolsRevision)
             def aaptTask = project.processReleaseResources
@@ -85,7 +85,7 @@ class AssetPlugin extends BundlePlugin {
             }
             inputs.dir srcDir
             outputs.file destFile
-        } << {
+        }.doLast {
             project.ant.zip(baseDir: srcDir, destFile: destFile)
         }
         if (sc == null) {
@@ -99,7 +99,7 @@ class AssetPlugin extends BundlePlugin {
                 srcFile = project.packageAsset.destFile
                 destFile = small.outputFile
             }
-        } << {
+        }.doLast {
             def dir = destFile.parentFile
             if (!dir.exists()) dir.mkdirs()
             ant.signjar(jar: srcFile, signedjar: destFile, keystore: sc.storeFile.path,

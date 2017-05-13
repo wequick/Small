@@ -92,20 +92,6 @@ abstract class BundlePlugin extends AndroidPlugin {
         if (appId == null) return null
 
         RootExtension rootExt = project.rootProject.small
-        def outputDir = rootExt.outputBundleDir
-        if (rootExt.buildToAssets) {
-            return new File(outputDir, "${appId}.apk")
-        } else {
-            def arch = System.properties['bundle.arch'] // Get from command line (-Dbundle.arch=xx)
-            if (arch == null) {
-                // Read from local.properties (bundle.arch=xx)
-                def prop = new Properties()
-                prop.load(project.rootProject.file('local.properties').newDataInputStream())
-                arch = prop.getProperty('bundle.arch')
-                if (arch == null) arch = 'armeabi' // Default
-            }
-            def so = "lib${appId.replaceAll('\\.', '_')}.so"
-            return new File(outputDir, "$arch/$so")
-        }
+        return rootExt.getBundleOutput(appId)
     }
 }

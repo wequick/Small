@@ -34,6 +34,10 @@ public class RootExtension extends BaseExtension {
     private static final String REQUIRED_AAR_VERSION = '1.0.0'
     private static final VersionNumber REQUIRED_AAR_REVISION = VersionNumber.parse(REQUIRED_AAR_VERSION)
 
+    /** The built version of gradle-small plugin */
+    public static final String PLUGIN_VERSION = '1.2.0-beta5'
+    public static final VersionNumber PLUGIN_REVISION = VersionNumber.parse(PLUGIN_VERSION)
+
     /** 
      * Version of aar net.wequick.small:small
      * default to `gradle-small' plugin version 
@@ -183,9 +187,14 @@ public class RootExtension extends BaseExtension {
 
     public String getAarVersion() {
         if (aarVersion == null) {
-            throw new RuntimeException(
-                    'Please specify Small aar version in your root build.gradle:\n' +
-                            "small {\n    aarVersion = '[the_version]'\n}")
+            // Try to use the version of gradle-small plugin
+            if (PLUGIN_REVISION < VersionNumber.parse('1.1.0-alpha2')) {
+                throw new RuntimeException(
+                        'Please specify Small aar version in your root build.gradle:\n' +
+                                "small {\n    aarVersion = '[the_version]'\n}")
+            }
+
+            return PLUGIN_VERSION
         }
 
         if (aarRevision == null) {
@@ -222,6 +231,27 @@ public class RootExtension extends BaseExtension {
             bundleModules.put(type, modules)
         }
         modules.addAll(names)
+    }
+
+    public File getBundleOutput(String bundleId) {
+        def outputDir = outputBundleDir
+        if (buildToAssets) {
+            return new File(outputDir, "${bundleId}.apk")
+        } else {
+            def arch = System.properties['bundle.arch'] // Get from command line (-Dbundle.arch=xx)
+            if (arch == null) {
+                // Read from local.properties (bundle.arch=xx)
+                def prop = new Properties()
+                def file = project.rootProject.file('local.properties')
+                if (file.exists()) {
+                    prop.load(file.newDataInputStream())
+                    arch = prop.getProperty('bundle.arch')
+                }
+                if (arch == null) arch = 'armeabi' // Default
+            }
+            def so = "lib${bundleId.replaceAll('\\.', '_')}.so"
+            return new File(outputDir, "$arch/$so")
+        }
     }
 
     /** Check if is building any libs (lib.*) */

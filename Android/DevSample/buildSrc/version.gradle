@@ -33,7 +33,7 @@ def updateVersions() {
     }
 }
 
-task checkVersions << {
+task ('checkVersions') .doLast {
     def changelog = project.file('CHANGELOG.md')
     if (!changelog.exists()) return
 
@@ -46,7 +46,7 @@ task checkVersions << {
     }
 }
 
-task updateVersions << {
+task ('updateVersions') .doLast {
     updateVersions()
 }
 
