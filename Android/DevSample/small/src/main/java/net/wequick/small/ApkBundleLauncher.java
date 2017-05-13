@@ -33,7 +33,6 @@ import android.content.pm.ServiceInfo;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
-import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.content.Context;
