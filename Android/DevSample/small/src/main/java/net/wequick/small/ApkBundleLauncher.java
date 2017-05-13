@@ -99,7 +99,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         String libraryPath;
         boolean nonResources; /** no resources.arsc */
         boolean lazy;
-        boolean mergedResources;
+        boolean resourcesMerged;
     }
 
     private static ConcurrentHashMap<String, LoadedApk> sLoadedApks;
@@ -226,7 +226,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 if (apk.nonResources) continue; // ignores the empty entry to fix #62
 
                 paths[i++] = apk.path; // add plugin asset path
-                apk.mergedResources = true;
+                apk.resourcesMerged = true;
             }
             if (i != paths.length) {
                 paths = Arrays.copyOf(paths, i);
@@ -237,7 +237,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
         private void appendAsset(LoadedApk apk) {
             if (apk.nonResources) return;
-            if (apk.mergedResources) return;
+            if (apk.resourcesMerged) return;
 
             Application app = Small.getContext();
             int N = mMergedAssetPaths.length;
@@ -245,8 +245,8 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             paths[N] = apk.path;
             ReflectAccelerator.mergeResources(app, sActivityThread, paths, true);
 
-            apk.mergedResources = true;
-            sBundleInstrumentation.markNeedsRecreateActivities();
+            apk.resourcesMerged = true;
+            sBundleInstrumentation.setNeedsRecreateActivities();
         }
 
         private void createApplications() {
@@ -551,7 +551,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             }.start();
         }
 
-        protected void markNeedsRecreateActivities() {
+        protected void setNeedsRecreateActivities() {
             if (mCreatedActivities == null) return;
 
             if (mNeedsRecreateActivities == null) {
