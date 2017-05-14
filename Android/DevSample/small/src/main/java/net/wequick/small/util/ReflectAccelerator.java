@@ -55,109 +55,21 @@ public class ReflectAccelerator {
     private static ArrayMap<Object, WeakReference<Object>> sResourceImpls;
     private static Object/*ResourcesImpl*/ sMergedResourcesImpl;
 
-    private interface ExecStartActivityCaller {
-        Instrumentation.ActivityResult execStartActivity(
-                Instrumentation instrumentation, Context who, IBinder contextThread, IBinder token,
-                Activity target, Intent intent, int requestCode, Bundle options);
-    }
-
-    private static ExecStartActivityCaller sExecStartActivityIMPL;
-
-    static {
-        if (Build.VERSION.SDK_INT <= 15) {
-            sExecStartActivityIMPL = new ExecStartActivityCaller() {
-
-                private Method execStartActivity;
-
-                @Override
-                public Instrumentation.ActivityResult execStartActivity(
-                        Instrumentation instrumentation, Context who, IBinder contextThread,
-                        IBinder token, Activity target, Intent intent, int requestCode, Bundle options) {
-                    if (execStartActivity == null) {
-                        Class[] types = new Class[] {Context.class, IBinder.class, IBinder.class,
-                                Activity.class, Intent.class, int.class};
-                        execStartActivity = getMethod(Instrumentation.class,
-                                "execStartActivity", types);
-                    }
-                    if (execStartActivity == null) return null;
-                    return invoke(execStartActivity, instrumentation,
-                            who, contextThread, token, target, intent, requestCode);
-                }
-            };
-        } else {
-            sExecStartActivityIMPL = new ExecStartActivityCaller() {
-
-                private Method execStartActivity;
-
-                @Override
-                public Instrumentation.ActivityResult execStartActivity(
-                        Instrumentation instrumentation, Context who, IBinder contextThread,
-                        IBinder token, Activity target, Intent intent, int requestCode, Bundle options) {
-                    if (execStartActivity == null) {
-                        Class[] types = new Class[] {Context.class, IBinder.class, IBinder.class,
-                                Activity.class, Intent.class, int.class, android.os.Bundle.class};
-                        execStartActivity = getMethod(Instrumentation.class,
-                                "execStartActivity", types);
-                    }
-                    if (execStartActivity == null) return null;
-                    return invoke(execStartActivity, instrumentation,
-                            who, contextThread, token, target, intent, requestCode, options);
-                }
-            };
-        }
-    }
-
     private ReflectAccelerator() { /** cannot be instantiated */ }
 
     //______________________________________________________________________________________________
     // API
 
-    public static AssetManager newAssetManager() {
-        AssetManager assets;
-        try {
-            assets = AssetManager.class.newInstance();
-        } catch (InstantiationException e1) {
-            e1.printStackTrace();
-            return null;
-        } catch (IllegalAccessException e1) {
-            e1.printStackTrace();
-            return null;
-        }
-        return assets;
-    }
-
-    public static int addAssetPath(AssetManager assets, String path) {
-//        return assets.addAssetPath(path);
-        if (sAssetManager_addAssetPath_method == null) {
-            sAssetManager_addAssetPath_method = getMethod(AssetManager.class,
-                    "addAssetPath", new Class[]{String.class});
-        }
-        if (sAssetManager_addAssetPath_method == null) return 0;
-        Integer ret = invoke(sAssetManager_addAssetPath_method, assets, path);
-        if (ret == null) return 0;
-        return ret;
-    }
-
-    public static int[] addAssetPaths(AssetManager assets, String[] paths) {
-//        return assets.addAssetPaths(paths);
-        if (sAssetManager_addAssetPaths_method == null) {
-            sAssetManager_addAssetPaths_method = getMethod(AssetManager.class,
-                    "addAssetPaths", new Class[]{String[].class});
-        }
-        if (sAssetManager_addAssetPaths_method == null) return null;
-        return invoke(sAssetManager_addAssetPaths_method, assets, new Object[]{paths});
-    }
-
     public static void mergeResources(Application app, Object activityThread, String[] assetPaths,
                                       boolean updateActivities) {
         AssetManager newAssetManager;
         if (Build.VERSION.SDK_INT < 24) {
-            newAssetManager = newAssetManager();
+            newAssetManager = new AssetManager();
         } else {
             // On Android 7.0+, this should contains a WebView asset as base. #347
             newAssetManager = app.getAssets();
         }
-        addAssetPaths(newAssetManager, assetPaths);
+        newAssetManager.addAssetPaths(assetPaths);
 
         try {
             Method mEnsureStringBlocks = AssetManager.class.getDeclaredMethod("ensureStringBlocks", new Class[0]);
@@ -265,14 +177,6 @@ public class ReflectAccelerator {
                 sResourceImpls.put(resourceKey, new WeakReference<Object>(sMergedResourcesImpl));
             }
         }
-    }
-
-    public static Instrumentation.ActivityResult execStartActivity(
-            Instrumentation instrumentation,
-            Context who, IBinder contextThread, IBinder token, Activity target,
-            Intent intent, int requestCode, android.os.Bundle options) {
-        return sExecStartActivityIMPL.execStartActivity(instrumentation,
-                who, contextThread, token, target, intent, requestCode, options);
     }
 
     public static Intent getIntent(Object/*ActivityClientRecord*/ r) {

@@ -142,10 +142,10 @@ public class BundleParser {
         AssetManager assmgr = null;
         boolean assetError = true;
         try {
-            assmgr = ReflectAccelerator.newAssetManager();
+            assmgr = new AssetManager();
             if (assmgr == null) return false;
 
-            int cookie = ReflectAccelerator.addAssetPath(assmgr, mArchiveSourcePath);
+            int cookie = assmgr.addAssetPath(mArchiveSourcePath);
             if(cookie != 0) {
                 parser = assmgr.openXmlResourceParser(cookie, "AndroidManifest.xml");
                 assetError = false;

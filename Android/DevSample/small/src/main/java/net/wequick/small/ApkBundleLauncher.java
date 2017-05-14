@@ -33,6 +33,7 @@ import android.content.pm.ServiceInfo;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.content.Context;
@@ -440,8 +441,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 Intent intent, int requestCode, android.os.Bundle options) {
             wrapIntent(intent);
             ensureInjectMessageHandler(sActivityThread);
-            return ReflectAccelerator.execStartActivity(mBase,
-                    who, contextThread, token, target, intent, requestCode, options);
+            return mBase.execStartActivity(who, contextThread, token, target, intent, requestCode, options);
         }
 
         /** @Override V15-
@@ -451,8 +451,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 Intent intent, int requestCode) {
             wrapIntent(intent);
             ensureInjectMessageHandler(sActivityThread);
-            return ReflectAccelerator.execStartActivity(mBase,
-                    who, contextThread, token, target, intent, requestCode, null);
+            return mBase.execStartActivity(who, contextThread, token, target, intent, requestCode);
         }
 
         @Override
