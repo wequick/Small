@@ -90,7 +90,6 @@ public class Bundle {
     // Thread & Handler
     private static final int MSG_COMPLETE = 1;
     private static LoadBundleHandler sHandler;
-    private static LoadBundleThread sThread;
 
     private String mPackageName;
     private String uriString;
@@ -235,10 +234,9 @@ public class Bundle {
         }
 
         // Asynchronous
-        if (sThread == null) {
-            sThread = new LoadBundleThread(context);
+        if (sHandler == null) {
             sHandler = new LoadBundleHandler(listener);
-            sThread.start();
+            new LoadBundleThread(context).start();
         }
     }
 
@@ -872,7 +870,6 @@ public class Bundle {
                         mListener.onComplete();
                     }
                     mListener = null;
-                    sThread = null;
                     sHandler = null;
                     break;
             }
