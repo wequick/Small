@@ -372,10 +372,11 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 // Get activity token
                 Object /*ActivityThread$ActivityConfigChangeData*/ data = msg.obj;
                 IBinder token;
+                Field f;
                 if (data instanceof IBinder) {
                     token = (IBinder) data;
                 } else {
-                    Field f = data.getClass().getDeclaredField("activityToken");
+                    f = data.getClass().getDeclaredField("activityToken");
                     f.setAccessible(true);
                     token = (IBinder) f.get(data);
                 }
@@ -937,8 +938,6 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             Log.e(TAG, "Could not find any APK bundles!");
             return;
         }
-
-        final Application app = Small.getContext();
 
         // Merge all the resources in bundles and replace the host one
         mApkLoader.mergeResources();
