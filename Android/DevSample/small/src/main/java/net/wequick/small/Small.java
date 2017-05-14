@@ -62,7 +62,6 @@ public final class Small {
     private static final String SHARED_PREFERENCES_BUNDLE_MODIFIES = "small.app-modifies";
     private static final String SHARED_PREFERENCES_BUNDLE_UPGRADES = "small.app-upgrades";
 
-    private static Application sContext = null;
     private static String sBaseUri = ""; // base url of uri
     private static boolean sIsNewHostApp; // first launched or upgraded
     private static boolean sHasSetUp;
@@ -134,12 +133,6 @@ public final class Small {
     }
 
     public static void preSetUp(Application context) {
-        if (sContext != null) {
-            return;
-        }
-
-        sContext = context;
-
         // Register default bundle launchers
         registerLauncher(new ActivityLauncher());
         registerLauncher(new ApkBundleLauncher());
@@ -148,12 +141,6 @@ public final class Small {
     }
 
     public static void setUp(Context context, OnCompleteListener listener) {
-        if (sContext == null) {
-            // Tips for CODE-BREAKING
-            throw new UnsupportedOperationException(
-                    "Please call `Small.preSetUp' in your application first");
-        }
-
         if (sHasSetUp) {
             if (listener != null) {
                 listener.onComplete();
