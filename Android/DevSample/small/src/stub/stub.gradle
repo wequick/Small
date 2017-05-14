@@ -1,0 +1,93 @@
+/*
+ * Copyright 2015-present wequick.net
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License. You may obtain
+ * a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
+ */
+
+android {
+    // If add following script, :app:assembleDebug would not compile the :small project,
+    // but we'd better create the product flavor so that the IDE can highlights the codes.
+    // FIXME: Resolve the code highlighting
+//    productFlavors {
+//        stub
+//    }
+}
+
+task('compileAndroidStub', type: JavaCompile) {
+    def sources = fileTree(dir: 'src/stub/java', includes: ['**/*.java']) // android.sourceSets['stub'].java.sourceFiles
+    ext {
+        destDir = new File(project.buildDir, 'intermediates/android-stubs/classes')
+    }
+
+    inputs.dir sources
+    outputs.dir destDir
+
+    source = sources
+    destinationDir = destDir
+    classpath = project.files(destDir)
+    classpath += project.files(project.android.bootClasspath[0])
+
+    sourceCompatibility = 1.7
+    targetCompatibility = 1.7
+}
+
+task('packageAndroidStub', dependsOn: ['compileAndroidStub']) {
+    def androidJar = android.bootClasspath[0]
+    ext {
+        srcFile = androidJar
+        srcDir = compileAndroidStub.destDir
+        destFile = new File(project.buildDir, 'outputs/android.jar')
+    }
+
+    inputs.file srcFile
+    inputs.dir srcDir
+    outputs.file destFile
+}.doLast {
+    // Collect re-exported classes
+    def parentPathLen = srcDir.path.length() + 1
+    def renewClasses = []
+    srcDir.eachFileRecurse(groovy.io.FileType.FILES, {
+        if (!it.name.endsWith('.class')) return
+
+        renewClasses.add(it.path.substring(parentPathLen))
+    })
+    if (renewClasses.size() == 0) return
+
+    // Copy android.jar
+    GFileUtils.copyFile(srcFile, destFile)
+
+    // Update android.jar
+    def nullOutput = new ByteArrayOutputStream()
+    // TODO: Got the jar exe for Windows
+    def jarExe = 'jar'
+    project.exec {
+        executable jarExe
+        workingDir srcDir
+        args '-uf', destFile
+        args renewClasses
+
+        standardOutput = nullOutput
+    }
+}
+
+afterEvaluate {
+    project.tasks.withType(JavaCompile).each {
+        if (it.name == 'compileAndroidStub') return;
+
+        it.dependsOn 'packageAndroidStub'
+        it.doFirst {
+            // Override boot class path (android.jar)
+            it.options.compilerArgs.add("-Xbootclasspath/p:${packageAndroidStub.destFile.path}")
+        }
+    }
+}
