@@ -23,7 +23,6 @@ android {
 }
 
 dependencies {
-    testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:25.1.0'
     provided 'com.android.support:support-v4:25.1.0'
 }
