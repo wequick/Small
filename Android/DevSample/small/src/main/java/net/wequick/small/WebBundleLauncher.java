@@ -21,7 +21,6 @@ import android.content.Context;
 import android.os.Build;
 
 import net.wequick.small.webkit.WebActivity;
-import net.wequick.small.webkit.WebView;
 
 /**
  * This class launch the plugin html file with an internal {@link WebActivity}.

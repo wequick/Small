@@ -27,7 +27,6 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 
 import net.wequick.small.util.ApplicationUtils;
-import net.wequick.small.util.ReflectAccelerator;
 import net.wequick.small.webkit.JsHandler;
 import net.wequick.small.webkit.WebView;
 import net.wequick.small.webkit.WebViewClient;

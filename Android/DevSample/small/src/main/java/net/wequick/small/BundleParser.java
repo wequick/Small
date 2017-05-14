@@ -20,7 +20,6 @@ import android.util.SparseIntArray;
 import android.util.TypedValue;
 
 import net.wequick.small.util.JNIUtils;
-import net.wequick.small.util.ReflectAccelerator;
 
 import org.xmlpull.v1.XmlPullParserException;
 

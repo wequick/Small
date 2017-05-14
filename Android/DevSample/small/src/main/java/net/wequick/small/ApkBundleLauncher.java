@@ -33,7 +33,6 @@ import android.content.pm.ServiceInfo;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
-import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.content.Context;
@@ -371,15 +370,12 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         private boolean relaunchActivityIfNeeded(Message msg) {
             try {
                 // Get activity token
-                Field f = sActivityThread.getClass().getDeclaredField("mActivities");
-                f.setAccessible(true);
-                Map mActivities = (Map) f.get(sActivityThread);
                 Object /*ActivityThread$ActivityConfigChangeData*/ data = msg.obj;
                 IBinder token;
                 if (data instanceof IBinder) {
                     token = (IBinder) data;
                 } else {
-                    f = data.getClass().getDeclaredField("activityToken");
+                    Field f = data.getClass().getDeclaredField("activityToken");
                     f.setAccessible(true);
                     token = (IBinder) f.get(data);
                 }

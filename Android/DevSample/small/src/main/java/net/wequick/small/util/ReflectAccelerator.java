@@ -16,21 +16,15 @@
 
 package net.wequick.small.util;
 
-import android.app.Activity;
 import android.app.ActivityThread;
 import android.app.Application;
-import android.app.Instrumentation;
 import android.app.ResourcesManager;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ServiceInfo;
 import android.content.res.AssetManager;
-import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Build;
-import android.os.Bundle;
-import android.os.IBinder;
 import android.util.ArrayMap;
 
 import java.lang.ref.WeakReference;
@@ -38,16 +32,12 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Set;
 
 /**
  * This class consists exclusively of static methods that accelerate reflections.
  */
 public class ReflectAccelerator {
-    // AssetManager.addAssetPath
-    private static Method sAssetManager_addAssetPath_method;
-    private static Method sAssetManager_addAssetPaths_method;
     // ActivityClientRecord
     private static Field sActivityClientRecord_intent_field;
     private static Field sActivityClientRecord_activityInfo_field;
