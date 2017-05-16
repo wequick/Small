@@ -37,11 +37,9 @@ import android.os.Message;
 import android.util.Log;
 import android.view.Window;
 
-import net.wequick.small.Small;
 import net.wequick.small.internal.InstrumentationInternal;
 import net.wequick.small.util.ReflectAccelerator;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -77,9 +75,7 @@ class ApkInstrumentation extends Instrumentation
     private ActivityThread mThread;
     private ActivityThreadHandlerCallback mHandlerCallback;
     
-    ApkInstrumentation(Instrumentation base,
-                              ActivityThread thread,
-                              List<ProviderInfo> providers) {
+    ApkInstrumentation(Instrumentation base, ActivityThread thread, List<ProviderInfo> providers) {
         mBase = base;
         mAllProviders = providers;
         mThread = thread;
@@ -130,18 +126,7 @@ class ApkInstrumentation extends Instrumentation
         mCreatedActivities.add(activity.hashCode());
 
         // Reset activity instrumentation if it was modified by some other applications #245
-        try {
-            Field f = Activity.class.getDeclaredField("mInstrumentation");
-            f.setAccessible(true);
-            Object instrumentation = f.get(activity);
-            if (instrumentation != this) {
-                f.set(activity, this);
-            }
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
+        ReflectAccelerator.ensureInjectInstrumentation(activity, this);
     }
 
     @Override
@@ -452,18 +437,13 @@ class ApkInstrumentation extends Instrumentation
 
     private void ensureInjectMessageHandler() {
         try {
-            Field f = ActivityThread.class.getDeclaredField("mH");
-            f.setAccessible(true);
-            Handler ah = (Handler) f.get(mThread);
-            f = Handler.class.getDeclaredField("mCallback");
-            f.setAccessible(true);
-
+            Handler ah = ReflectAccelerator.getHandler(mThread);
             boolean needsInject = false;
             if (mHandlerCallback == null) {
                 mHandlerCallback = new ActivityThreadHandlerCallback();
                 needsInject = true;
             } else {
-                Object callback = f.get(ah);
+                Handler.Callback callback = ReflectAccelerator.getCallback(ah);
                 if (callback != mHandlerCallback) {
                     needsInject = true;
                 }
@@ -471,7 +451,7 @@ class ApkInstrumentation extends Instrumentation
 
             if (needsInject) {
                 // Inject message handler
-                f.set(ah, mHandlerCallback);
+                ReflectAccelerator.setCallback(ah, mHandlerCallback);
             }
         } catch (Exception e) {
             throw new RuntimeException("Failed to replace message handler for thread: " + mThread);
@@ -608,16 +588,7 @@ class ApkInstrumentation extends Instrumentation
         private boolean relaunchActivityIfNeeded(Message msg) {
             try {
                 // Get activity token
-                Object /*ActivityThread$ActivityConfigChangeData*/ data = msg.obj;
-                IBinder token;
-                Field f;
-                if (data instanceof IBinder) {
-                    token = (IBinder) data;
-                } else {
-                    f = data.getClass().getDeclaredField("activityToken");
-                    f.setAccessible(true);
-                    token = (IBinder) f.get(data);
-                }
+                IBinder token = ReflectAccelerator.getToken(msg);
 
                 // Check if is a bundle activity
                 Activity activity = mThread.getActivity(token);
@@ -628,9 +599,7 @@ class ApkInstrumentation extends Instrumentation
                 }
 
                 // Get the configuration of the activity
-                f = Activity.class.getDeclaredField("mCurrentConfig");
-                f.setAccessible(true);
-                Configuration activityConfig = (Configuration) f.get(activity);
+                Configuration activityConfig = ReflectAccelerator.getConfiguration(activity);
 
                 // Calculate the changes of activity configuration with the application one
                 int configDiff = activityConfig.diff(mApplicationConfig);

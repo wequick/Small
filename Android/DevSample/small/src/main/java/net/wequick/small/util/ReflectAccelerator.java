@@ -16,15 +16,21 @@
 
 package net.wequick.small.util;
 
+import android.app.Activity;
 import android.app.ActivityThread;
 import android.app.Application;
+import android.app.Instrumentation;
 import android.app.ResourcesManager;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ServiceInfo;
 import android.content.res.AssetManager;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Build;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Message;
 import android.util.ArrayMap;
 
 import java.lang.ref.WeakReference;
@@ -38,14 +44,18 @@ import java.util.Set;
  * This class consists exclusively of static methods that accelerate reflections.
  */
 public class ReflectAccelerator {
-    // ActivityClientRecord
-    private static Field sActivityClientRecord_intent_field;
-    private static Field sActivityClientRecord_activityInfo_field;
+    private static Field ActivityClientRecord_intent;
+    private static Field ActivityClientRecord_activityInfo;
+    private static Field Activity_mInstrumentation;
+    private static Field ActivityThread$ActivityConfigChangeData_activityToken;
+    private static Field Activity_mCurrentConfig;
+    private static Field ActivityThread_mH;
+    private static Field Handler_mCallback;
 
     private static ArrayMap<Object, WeakReference<Object>> sResourceImpls;
     private static Object/*ResourcesImpl*/ sMergedResourcesImpl;
 
-    private ReflectAccelerator() { /** cannot be instantiated */ }
+    private ReflectAccelerator() { /* cannot be instantiated */ }
 
     //______________________________________________________________________________________________
     // API
@@ -170,10 +180,10 @@ public class ReflectAccelerator {
     }
 
     public static Intent getIntent(Object/*ActivityClientRecord*/ r) {
-        if (sActivityClientRecord_intent_field == null) {
-            sActivityClientRecord_intent_field = getDeclaredField(r.getClass(), "intent");
+        if (ActivityClientRecord_intent == null) {
+            ActivityClientRecord_intent = getDeclaredField(r.getClass(), "intent");
         }
-        return getValue(sActivityClientRecord_intent_field, r);
+        return getValue(ActivityClientRecord_intent, r);
     }
 
     public static ServiceInfo getServiceInfo(Object/*ActivityThread$CreateServiceData*/ data) {
@@ -182,13 +192,64 @@ public class ReflectAccelerator {
     }
 
     public static void setActivityInfo(Object/*ActivityClientRecord*/ r, ActivityInfo ai) {
-        if (sActivityClientRecord_activityInfo_field == null) {
-            sActivityClientRecord_activityInfo_field = getDeclaredField(
+        if (ActivityClientRecord_activityInfo == null) {
+            ActivityClientRecord_activityInfo = getDeclaredField(
                     r.getClass(), "activityInfo");
         }
-        setValue(sActivityClientRecord_activityInfo_field, r, ai);
+        setValue(ActivityClientRecord_activityInfo, r, ai);
     }
 
+    public static void ensureInjectInstrumentation(Activity activity, Instrumentation instrumentation) {
+        if (Activity_mInstrumentation == null) {
+            Activity_mInstrumentation = getDeclaredField(
+                    Activity.class, "mInstrumentation");
+        }
+        if (getValue(Activity_mInstrumentation, activity) != instrumentation) {
+            setValue(Activity_mInstrumentation, activity, instrumentation);
+        }
+    }
+
+    public static IBinder getToken(Message msg) {
+        Object /*ActivityThread$ActivityConfigChangeData*/ data = msg.obj;
+        if (data instanceof IBinder) {
+            return (IBinder) data;
+        }
+
+        if (ActivityThread$ActivityConfigChangeData_activityToken == null) {
+            ActivityThread$ActivityConfigChangeData_activityToken = getDeclaredField(
+                    data.getClass(), "activityToken");
+        }
+        return getValue(ActivityThread$ActivityConfigChangeData_activityToken, data);
+    }
+
+    public static Handler getHandler(ActivityThread thread) {
+        if (ActivityThread_mH == null) {
+            ActivityThread_mH = getDeclaredField(ActivityThread.class, "mH");
+        }
+        return getValue(ActivityThread_mH, thread);
+    }
+
+    public static Handler.Callback getCallback(Handler handler) {
+        if (Handler_mCallback == null) {
+            Handler_mCallback = getDeclaredField(Handler.class, "mCallback");
+        }
+        return getValue(Handler_mCallback, handler);
+    }
+
+    public static void setCallback(Handler handler, Handler.Callback callback) {
+        if (Handler_mCallback == null) {
+            Handler_mCallback = getDeclaredField(Handler.class, "mCallback");
+        }
+        setValue(Handler_mCallback, handler, callback);
+    }
+
+    public static Configuration getConfiguration(Activity activity) {
+        if (Activity_mCurrentConfig == null) {
+            Activity_mCurrentConfig = getDeclaredField(Activity.class, "mCurrentConfig");
+        }
+        return getValue(Activity_mCurrentConfig, activity);
+    }
+    
     //______________________________________________________________________________________________
     // Private
 
@@ -198,7 +259,7 @@ public class ReflectAccelerator {
             method.setAccessible(true);
             return method;
         } catch (NoSuchMethodException e) {
-            return null;
+            throw new RuntimeException(e);
         }
     }
 
@@ -208,7 +269,7 @@ public class ReflectAccelerator {
             field.setAccessible(true);
             return field;
         } catch (NoSuchFieldException e) {
-            return null;
+            throw new RuntimeException(e);
         }
     }
 
@@ -216,9 +277,7 @@ public class ReflectAccelerator {
         try {
             return (T) method.invoke(target, args);
         } catch (Exception e) {
-            // Ignored
-            e.printStackTrace();
-            return null;
+            throw new RuntimeException(e);
         }
     }
 
@@ -230,8 +289,7 @@ public class ReflectAccelerator {
         try {
             return (T) field.get(target);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
-            return null;
+            throw new RuntimeException(e);
         }
     }
 
@@ -243,8 +301,7 @@ public class ReflectAccelerator {
         try {
             field.set(target, value);
         } catch (IllegalAccessException e) {
-            // Ignored
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 }
