@@ -33,7 +33,7 @@ import net.wequick.small.webkit.WebActivity;
  * @see WebActivity
  * @see net.wequick.small.webkit.WebView
  */
-public class WebBundleLauncher extends AssetBundleLauncher {
+class WebBundleLauncher extends AssetBundleLauncher {
 
     private static final String FD_BASE = "small_web";
     private static final String FILE_INDEX = "index.html";

@@ -52,7 +52,7 @@ import java.util.List;
  *
  * @see ActivityLauncher
  */
-public class ApkBundleLauncher extends SoBundleLauncher {
+class ApkBundleLauncher extends SoBundleLauncher {
 
     private static final String TAG = "ApkBundleLauncher";
     private static final String FD_STORAGE = "storage";

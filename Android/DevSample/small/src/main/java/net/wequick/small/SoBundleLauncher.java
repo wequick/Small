@@ -34,7 +34,7 @@ import java.io.File;
  *     <li>{@link WebBundleLauncher} resolve the native web bundle</li>
  * </ul>
  */
-public abstract class SoBundleLauncher extends BundleLauncher implements BundleExtractor {
+abstract class SoBundleLauncher extends BundleLauncher implements BundleExtractor {
 
     private static final String TAG = "SoBundle";
 

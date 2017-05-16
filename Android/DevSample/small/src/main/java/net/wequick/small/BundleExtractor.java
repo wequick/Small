@@ -22,7 +22,7 @@ import java.io.File;
  * the BundleParser to specify the extraction behavior of each entries in the bundle archive.
  *
  */
-public interface BundleExtractor {
+interface BundleExtractor {
 
     /** The path to extract the bundle entries */
     File getExtractPath(Bundle bundle);

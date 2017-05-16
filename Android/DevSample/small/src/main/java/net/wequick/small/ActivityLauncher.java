@@ -42,11 +42,11 @@ import java.util.HashSet;
  *     add <i>"Activity"</i> suffix and do a second try.</li>
  * </ul>
  */
-public class ActivityLauncher extends BundleLauncher {
+class ActivityLauncher extends BundleLauncher {
 
     private static HashSet<String> sActivityClasses;
 
-    protected static boolean containsActivity(String name) {
+    static boolean containsActivity(String name) {
         return sActivityClasses != null && sActivityClasses.contains(name);
     }
 

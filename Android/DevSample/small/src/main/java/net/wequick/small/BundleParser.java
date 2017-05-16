@@ -54,7 +54,7 @@ import java.util.zip.ZipFile;
  *
  * Furthermore, this class will also collect the <b>&lt;intent-filter&gt;</b> information for each activity.
  */
-public class BundleParser {
+class BundleParser {
 
     private static final String TAG = "BundleParser";
 
@@ -62,46 +62,46 @@ public class BundleParser {
      * https://github.com/android/platform_frameworks_base/blob/gingerbread-release/core%2Fres%2Fres%2Fvalues%2Fpublic.xml
      */
     private static final class R {
-        public static final class styleable {
+        static final class styleable {
             // manifest
-            public static final int[] AndroidManifest = {0x0101021b, 0x0101021c};
-            public static final int AndroidManifest_versionCode = 0;
-            public static final int AndroidManifest_versionName = 1;
+            static final int[] AndroidManifest = {0x0101021b, 0x0101021c};
+            static final int AndroidManifest_versionCode = 0;
+            static final int AndroidManifest_versionName = 1;
             // application
-            public static int[] AndroidManifestApplication = {
+            static int[] AndroidManifestApplication = {
                     0x01010000, 0x01010001, 0x01010003, 0x010102d3
             };
-            public static int AndroidManifestApplication_theme = 0;
-            public static int AndroidManifestApplication_label = 1; // for ABIs (Depreciated)
-            public static int AndroidManifestApplication_name = 2;
-            public static int AndroidManifestApplication_hardwareAccelerated = 3;
+            static int AndroidManifestApplication_theme = 0;
+            static int AndroidManifestApplication_label = 1; // for ABIs (Depreciated)
+            static int AndroidManifestApplication_name = 2;
+            static int AndroidManifestApplication_hardwareAccelerated = 3;
             // activity
-            public static int[] AndroidManifestActivity = {
+            static int[] AndroidManifestActivity = {
                     0x01010000, 0x01010001, 0x01010002, 0x01010003,
                     0x0101001d, 0x0101001e, 0x0101001f, 0x0101022b,
                     0x010102d3
             };
-            public static int AndroidManifestActivity_theme = 0;
-            public static int AndroidManifestActivity_label = 1;
-            public static int AndroidManifestActivity_icon = 2;
-            public static int AndroidManifestActivity_name = 3;
-            public static int AndroidManifestActivity_launchMode = 4;
-            public static int AndroidManifestActivity_screenOrientation = 5;
-            public static int AndroidManifestActivity_configChanges = 6;
-            public static int AndroidManifestActivity_windowSoftInputMode = 7;
-            public static int AndroidManifestActivity_hardwareAccelerated = 8;
+            static int AndroidManifestActivity_theme = 0;
+            static int AndroidManifestActivity_label = 1;
+            static int AndroidManifestActivity_icon = 2;
+            static int AndroidManifestActivity_name = 3;
+            static int AndroidManifestActivity_launchMode = 4;
+            static int AndroidManifestActivity_screenOrientation = 5;
+            static int AndroidManifestActivity_configChanges = 6;
+            static int AndroidManifestActivity_windowSoftInputMode = 7;
+            static int AndroidManifestActivity_hardwareAccelerated = 8;
             // data (for intent-filter)
-            public static int[] AndroidManifestData = {
+            static int[] AndroidManifestData = {
                     0x01010026, 0x01010027, 0x01010028, 0x01010029,
                     0x0101002a, 0x0101002b, 0x0101002c
             };
-            public static int AndroidManifestData_mimeType = 0;
-            public static int AndroidManifestData_scheme = 1;
-            public static int AndroidManifestData_host = 2;
-            public static int AndroidManifestData_port = 3;
-            public static int AndroidManifestData_path = 4;
-            public static int AndroidManifestData_pathPrefix = 5;
-            public static int AndroidManifestData_pathPattern = 6;
+            static int AndroidManifestData_mimeType = 0;
+            static int AndroidManifestData_scheme = 1;
+            static int AndroidManifestData_host = 2;
+            static int AndroidManifestData_port = 3;
+            static int AndroidManifestData_path = 4;
+            static int AndroidManifestData_pathPrefix = 5;
+            static int AndroidManifestData_pathPattern = 6;
         }
     }
 
@@ -122,13 +122,13 @@ public class BundleParser {
     private Context mContext;
     private ZipFile mZipFile;
 
-    public BundleParser(File sourceFile, String packageName) {
+    private BundleParser(File sourceFile, String packageName) {
         mArchiveSourcePath = sourceFile.getPath();
         mPackageName = packageName;
         mContext = Small.getContext();
     }
 
-    public static BundleParser parsePackage(File sourceFile, String packageName) {
+    static BundleParser parsePackage(File sourceFile, String packageName) {
         if (sourceFile == null || !sourceFile.exists()) return null;
 
         BundleParser bp = new BundleParser(sourceFile, packageName);
@@ -137,13 +137,11 @@ public class BundleParser {
         return bp;
     }
 
-    public boolean parsePackage() {
+    private boolean parsePackage() {
         AssetManager assmgr = null;
         boolean assetError = true;
         try {
             assmgr = new AssetManager();
-            if (assmgr == null) return false;
-
             int cookie = assmgr.addAssetPath(mArchiveSourcePath);
             if(cookie != 0) {
                 parser = assmgr.openXmlResourceParser(cookie, "AndroidManifest.xml");
@@ -271,7 +269,7 @@ public class BundleParser {
         return false;
     }
 
-    public boolean collectActivities() {
+    boolean collectActivities() {
         if (mPackageInfo == null || mPackageInfo.applicationInfo == null) return false;
         AttributeSet attrs = parser;
 
@@ -372,7 +370,7 @@ public class BundleParser {
         return false;
     }
 
-    public boolean verifyAndExtract(Bundle bundle, BundleExtractor extractor) {
+    boolean verifyAndExtract(Bundle bundle, BundleExtractor extractor) {
         WeakReference<byte[]> readBufferRef;
         byte[] readBuffer = null;
         synchronized (this.getClass()) {
@@ -690,23 +688,23 @@ public class BundleParser {
         return null;
     }
 
-    public PackageInfo getPackageInfo() {
+    PackageInfo getPackageInfo() {
         return mPackageInfo;
     }
 
-    public String getSourcePath() {
+    String getSourcePath() {
         return mArchiveSourcePath;
     }
 
-    public ConcurrentHashMap<String, List<IntentFilter>> getIntentFilters() {
+    ConcurrentHashMap<String, List<IntentFilter>> getIntentFilters() {
         return mIntentFilters;
     }
 
-    public String getLibraryDirectory() {
+    String getLibraryDirectory() {
         return mLibDir;
     }
 
-    public String getDefaultActivityName() {
+    String getDefaultActivityName() {
         if (mPackageInfo == null || mPackageInfo.activities == null) return null;
         if (mLauncherActivityName != null) return mLauncherActivityName;
         return mPackageInfo.activities[0].name;
@@ -717,7 +715,7 @@ public class BundleParser {
      * it doesn't make sense until your bundle was built by `gradle-small` 0.9.0 or above.
      * @return <tt>true</tt> if doesn't have any resources
      */
-    public boolean isNonResources() {
+    boolean isNonResources() {
         return mNonResources;
     }
 

@@ -35,7 +35,7 @@ import java.net.URL;
  * <p>The <i>internal activity</i> parse the asset file and display it.
  *
  */
-public abstract class AssetBundleLauncher extends SoBundleLauncher {
+abstract class AssetBundleLauncher extends SoBundleLauncher {
 
     private static final String TAG = "AssetBundleLauncher";
 

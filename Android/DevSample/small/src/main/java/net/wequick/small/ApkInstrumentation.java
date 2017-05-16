@@ -52,7 +52,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Class for redirect activity from Stub(AndroidManifest.xml) to Real(Plugin)
  */
-public class ApkInstrumentation extends Instrumentation
+class ApkInstrumentation extends Instrumentation
         implements InstrumentationInternal {
 
     private static final String TAG = "ApkInstrumentation";
@@ -77,7 +77,7 @@ public class ApkInstrumentation extends Instrumentation
     private ActivityThread mThread;
     private ActivityThreadHandlerCallback mHandlerCallback;
     
-    public ApkInstrumentation(Instrumentation base,
+    ApkInstrumentation(Instrumentation base,
                               ActivityThread thread,
                               List<ProviderInfo> providers) {
         mBase = base;
@@ -216,7 +216,7 @@ public class ApkInstrumentation extends Instrumentation
         activity.setRequestedOrientation(ai.screenOrientation);
     }
 
-    protected void setNeedsRecreateActivities() {
+    void setNeedsRecreateActivities() {
         if (mCreatedActivities == null) return;
 
         if (mNeedsRecreateActivities == null) {
@@ -297,7 +297,7 @@ public class ApkInstrumentation extends Instrumentation
         return super.onException(obj, e);
     }
 
-    public void wrapIntent(Intent intent) {
+    void wrapIntent(Intent intent) {
         ComponentName component = intent.getComponent();
         String realClazz;
         if (component == null) {
@@ -333,7 +333,7 @@ public class ApkInstrumentation extends Instrumentation
         intent.setComponent(new ComponentName(Small.getContext(), stubClazz));
     }
 
-    public void lazyInstallProviders() {
+    void lazyInstallProviders() {
         if (mLazyInitProviders != null) {
             mThread.installSystemProviders(mLazyInitProviders);
             mLazyInitProviders = null;
@@ -478,7 +478,7 @@ public class ApkInstrumentation extends Instrumentation
         }
     }
 
-    public void addActivities(ActivityInfo[] activities) {
+    void addActivities(ActivityInfo[] activities) {
         if (mLoadedActivities == null) {
             mLoadedActivities = new ConcurrentHashMap<String, ActivityInfo>();
         }
@@ -487,7 +487,7 @@ public class ApkInstrumentation extends Instrumentation
         }
     }
 
-    public void addIntentFilters(ConcurrentHashMap<String, List<IntentFilter>> filters) {
+    void addIntentFilters(ConcurrentHashMap<String, List<IntentFilter>> filters) {
         if (filters == null) return;
 
         if (mLoadedIntentFilters == null) {
@@ -496,7 +496,7 @@ public class ApkInstrumentation extends Instrumentation
         mLoadedIntentFilters.putAll(filters);
     }
 
-    public String resolveActivity(String activityName) {
+    String resolveActivity(String activityName) {
         if (mLoadedActivities == null) {
             throw new ActivityNotFoundException("Unable to find explicit activity class " +
                     "{ " + activityName + " }");

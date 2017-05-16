@@ -22,7 +22,7 @@ import android.content.pm.ApplicationInfo;
 /**
  * A context wrapper that redirect some host environments to plugin
  */
-public final class ApkContext extends ContextWrapper {
+final class ApkContext extends ContextWrapper {
 
     private ApkInfo mApk;
 

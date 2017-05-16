@@ -34,7 +34,7 @@ import dalvik.system.DexFile;
  * If a bundle was marked as <t>lazy</t> in bundle.json, then we will lazy-load the APK
  * until the class of the APK was firstly required.
  */
-public class ApkClassLoader extends ClassLoader {
+class ApkClassLoader extends ClassLoader {
 
     private static final String FILE_DEX = "bundle.dex";
 
@@ -42,12 +42,12 @@ public class ApkClassLoader extends ClassLoader {
     private String[] mMergedAssetPaths;
     private ApkInstrumentation mInstrumentation;
 
-    public ApkClassLoader(ClassLoader parent, ApkInstrumentation instrumentation) {
+    ApkClassLoader(ClassLoader parent, ApkInstrumentation instrumentation) {
         super(parent);
         mInstrumentation = instrumentation;
     }
 
-    public void addApk(String packageName, Bundle bundle) {
+    void addApk(String packageName, Bundle bundle) {
         ApkInfo apk = new ApkInfo();
         BundleParser parser = bundle.getParser();
         PackageInfo pluginInfo = parser.getPackageInfo();
@@ -157,11 +157,11 @@ public class ApkClassLoader extends ClassLoader {
         return super.findLibrary(libname);
     }
 
-    public boolean isEmpty() {
+    boolean isEmpty() {
         return mApks == null;
     }
 
-    public boolean hasApk(String packageName) {
+    boolean hasApk(String packageName) {
         if (mApks == null) return false;
 
         for (ApkInfo apk : mApks) {
@@ -172,7 +172,7 @@ public class ApkClassLoader extends ClassLoader {
         return false;
     }
 
-    public void mergeResources() {
+    void mergeResources() {
         Application app = Small.getContext();
         String[] paths = new String[mApks.size() + 1];
         paths[0] = app.getPackageResourcePath(); // add host asset path
@@ -204,7 +204,7 @@ public class ApkClassLoader extends ClassLoader {
         mInstrumentation.setNeedsRecreateActivities();
     }
 
-    public void createApplications() {
+    void createApplications() {
         Application app = Small.getContext();
         for (ApkInfo apk : mApks) {
             if (apk.lazy) continue;
