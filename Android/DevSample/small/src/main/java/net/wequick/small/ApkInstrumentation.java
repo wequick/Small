@@ -425,16 +425,6 @@ class ApkInstrumentation extends Instrumentation
         }
     }
 
-    private void setStubQueue(String mode, String realActivityClazz) {
-        int launchMode = mode.charAt(0) - '0';
-        int stubIndex = mode.charAt(1) - '0';
-        int offset = (launchMode - 1) * STUB_ACTIVITIES_COUNT + stubIndex;
-        if (mStubQueue == null) {
-            mStubQueue = new String[STUB_ACTIVITIES_COUNT * 3];
-        }
-        mStubQueue[offset] = realActivityClazz;
-    }
-
     private void ensureInjectMessageHandler() {
         try {
             Handler ah = ReflectAccelerator.getHandler(mThread);

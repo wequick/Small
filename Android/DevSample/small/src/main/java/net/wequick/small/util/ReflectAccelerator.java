@@ -253,30 +253,12 @@ public class ReflectAccelerator {
     //______________________________________________________________________________________________
     // Private
 
-    private static Method getMethod(Class cls, String methodName, Class[] types) {
-        try {
-            Method method = cls.getMethod(methodName, types);
-            method.setAccessible(true);
-            return method;
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     private static Field getDeclaredField(Class cls, String fieldName) {
         try {
             Field field = cls.getDeclaredField(fieldName);
             field.setAccessible(true);
             return field;
         } catch (NoSuchFieldException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static <T> T invoke(Method method, Object target, Object... args) {
-        try {
-            return (T) method.invoke(target, args);
-        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
