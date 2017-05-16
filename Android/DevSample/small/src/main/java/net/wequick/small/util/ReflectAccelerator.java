@@ -50,8 +50,8 @@ public class ReflectAccelerator {
     //______________________________________________________________________________________________
     // API
 
-    public static void mergeResources(Application app, Object activityThread, String[] assetPaths,
-                                      boolean updateActivities) {
+    public static void mergeResources(Application app, String[] assetPaths, boolean updateActivities) {
+        ActivityThread activityThread = ActivityThread.currentActivityThread();
         AssetManager newAssetManager;
         if (Build.VERSION.SDK_INT < 24) {
             newAssetManager = new AssetManager();

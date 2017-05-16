@@ -142,6 +142,17 @@ public class Bundle {
         return null;
     }
 
+    public static <T extends BundleLauncher> T findLauncher(Class<? extends BundleLauncher> launcherClass) {
+        if (sBundleLaunchers == null) return null;
+
+        for (BundleLauncher launcher : sBundleLaunchers) {
+            if (launcher.getClass() == launcherClass) {
+                return (T) launcher;
+            }
+        }
+        return null;
+    }
+
     /**
      * Update bundle.json and apply settings
      * @param data the manifest JSON object

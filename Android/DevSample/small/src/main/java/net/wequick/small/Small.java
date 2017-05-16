@@ -301,7 +301,10 @@ public final class Small {
     }
 
     public static void wrapIntent(Intent intent) {
-        ApkBundleLauncher.wrapIntent(intent);
+        ApkBundleLauncher launcher = Bundle.findLauncher(ApkBundleLauncher.class);
+        if (launcher == null) return;
+
+        launcher.wrapIntent(intent);
     }
 
     public static <T> T createObject(String type, String uriString, Context context) {
