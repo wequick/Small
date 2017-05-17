@@ -516,10 +516,13 @@ public class BundleParser {
                     if (!dir.exists()) {
                         dir.mkdirs();
                     }
-                    if (!extractFile.exists()) {
-                        if (!extractFile.createNewFile()) {
-                            throw new RuntimeException("Failed to create file: " + extractFile);
+                    if (extractFile.exists()) {
+                        if (!extractFile.delete()) {
+                            throw new RuntimeException("Failed to delete file: " + extractFile);
                         }
+                    }
+                    if (!extractFile.createNewFile()) {
+                        throw new RuntimeException("Failed to create file: " + extractFile);
                     }
                     InputStream is = zipFile.getInputStream(je);
                     out = new RandomAccessFile(extractFile, "rw");
