@@ -105,7 +105,10 @@ public class AarPath {
         if (parentName == 'jars') {
             // **/appcompat-v7/23.2.1/jars/classes.jar
             // => appcompat-v7-23.2.1.jar
-            // TODO: handle this
+            temp = inputFile.parentFile.parentFile
+            module.version = temp.name; temp = temp.parentFile
+            module.name = temp.name; temp = temp.parentFile
+            module.group = temp.name
         } else if (parentName == 'libs') {
             // Sample/lib.utils/libs/mylib.jar
             //        ^^^^^^^^^ project
