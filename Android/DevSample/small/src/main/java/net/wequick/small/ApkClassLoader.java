@@ -88,6 +88,49 @@ class ApkClassLoader extends ClassLoader {
         }
     }
 
+    void setUp() {
+        Application app = Small.getContext();
+
+        // Merge all the resources in bundles and replace the host one
+        String[] paths = new String[mApks.size() + 1];
+        paths[0] = app.getPackageResourcePath(); // add host asset path
+        int i = 1;
+        for (ApkInfo apk : mApks) {
+            if (apk.nonResources) continue; // ignores the empty entry to fix #62
+
+            paths[i++] = apk.path; // add plugin asset path
+            apk.resourcesMerged = true;
+        }
+        if (i != paths.length) {
+            paths = Arrays.copyOf(paths, i);
+        }
+        mMergedAssetPaths = paths;
+        ReflectAccelerator.mergeResources(app, paths, false);
+
+        // Trigger all the bundle application `onCreate' event
+        final ArrayList<ApkInfo> lazyApks = new ArrayList<ApkInfo>();
+        for (ApkInfo apk : mApks) {
+            if (apk.lazy) {
+                lazyApks.add(apk);
+                continue;
+            }
+
+            createApplication(apk, app);
+        }
+
+        // Load the `lazy' dex files in background
+        if (lazyApks.size() == 0) return;
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (ApkInfo apk : lazyApks) {
+                    loadApkLocked(apk);
+                }
+            }
+        }, "net.wequick.small.apk.preload").start();
+    }
+
     @Override
     protected Class<?> findClass(String name) throws ClassNotFoundException {
         Class<?> clazz;
@@ -113,10 +156,12 @@ class ApkClassLoader extends ClassLoader {
             boolean isInBundle = name.startsWith(apk.packageName);
             if (!isInBundle) continue;
 
-            loadApk(apk);
-            clazz = apk.dexFile.loadClass(name, this);
-            if (clazz != null) {
-                return clazz;
+            DexFile dexFile = loadApkLocked(apk);
+            if (dexFile != null) {
+                clazz = dexFile.loadClass(name, this);
+                if (clazz != null) {
+                    return clazz;
+                }
             }
         }
 
@@ -126,20 +171,19 @@ class ApkClassLoader extends ClassLoader {
     private void loadApk(ApkInfo apk) {
         if (apk.dexFile != null) return;
 
-        try {
-            apk.dexFile = DexFile.loadDex(apk.path, apk.optDexPath, 0);
+        apk.initDexFile();
 
-            if (apk.lazy) {
-                // Merge the apk asset to the host
-                appendAsset(apk);
+        if (apk.lazy) {
+            // Merge the apk asset to the host
+            appendAsset(apk);
 
-                // Initialize the apk application.
-                createApplication(apk, Small.getContext());
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to load dex for apk: '" +
-                    apk.packageName + "'!", e);
+            // Initialize the apk application.
+            createApplication(apk, Small.getContext());
         }
+    }
+
+    private DexFile loadApkLocked(ApkInfo apk) {
+        return apk.loadDexFileLocked();
     }
 
     @Override
@@ -172,24 +216,6 @@ class ApkClassLoader extends ClassLoader {
         return false;
     }
 
-    void mergeResources() {
-        Application app = Small.getContext();
-        String[] paths = new String[mApks.size() + 1];
-        paths[0] = app.getPackageResourcePath(); // add host asset path
-        int i = 1;
-        for (ApkInfo apk : mApks) {
-            if (apk.nonResources) continue; // ignores the empty entry to fix #62
-
-            paths[i++] = apk.path; // add plugin asset path
-            apk.resourcesMerged = true;
-        }
-        if (i != paths.length) {
-            paths = Arrays.copyOf(paths, i);
-        }
-        mMergedAssetPaths = paths;
-        ReflectAccelerator.mergeResources(app, paths, false);
-    }
-
     private void appendAsset(ApkInfo apk) {
         if (apk.nonResources) return;
         if (apk.resourcesMerged) return;
@@ -202,15 +228,6 @@ class ApkClassLoader extends ClassLoader {
 
         apk.resourcesMerged = true;
         mInstrumentation.setNeedsRecreateActivities();
-    }
-
-    void createApplications() {
-        Application app = Small.getContext();
-        for (ApkInfo apk : mApks) {
-            if (apk.lazy) continue;
-
-            createApplication(apk, app);
-        }
     }
 
     private void createApplication(final ApkInfo apk, final Context base) {

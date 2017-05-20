@@ -145,11 +145,8 @@ class ApkBundleLauncher extends SoBundleLauncher {
             return;
         }
 
-        // Merge all the resources in bundles and replace the host one
-        mApkLoader.mergeResources();
-
-        // Trigger all the bundle application `onCreate' event
-        mApkLoader.createApplications();
+        // Set up the loader
+        mApkLoader.setUp();
 
         // Lazy install content providers
         mInstrumentation.lazyInstallProviders();
