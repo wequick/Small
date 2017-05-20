@@ -19,11 +19,13 @@
     },
     {
       "uri": "home",
-      "pkg": "net.wequick.example.small.app.home"
+      "pkg": "net.wequick.example.small.app.home",
+      "lazy": true
     },
     {
       "uri": "mine",
-      "pkg": "net.wequick.example.small.app.mine"
+      "pkg": "net.wequick.example.small.app.mine",
+      "lazy": true
     },
     {
       "uri": "detail",
@@ -36,7 +38,8 @@
     {
       "uri": "stub",
       "type": "app",
-      "pkg": "net.wequick.example.small.appok_if_stub"
+      "pkg": "net.wequick.example.small.appok_if_stub",
+      "lazy": true
     },
     {
       "uri": "about",
