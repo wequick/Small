@@ -1463,7 +1463,11 @@ class AppPlugin extends BundlePlugin {
                     String type = it.@type
                     if (type != null) { // <file name="activity_main" ... type="layout"/>
                         def name = it.@name
-                        if (type == 'mipmap' && name == 'ic_launcher') return // NO NEED IN BUNDLE
+                        if (type == 'mipmap'
+                                && (name == 'ic_launcher' || name == 'ic_launcher_round')) {
+                            // NO NEED IN BUNDLE
+                            return
+                        }
                         def key = new SymbolParser.Entry(type, name) // layout/activity_main
                         outTypeEntries.add(key)
                         return
