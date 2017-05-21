@@ -1,3 +1,9 @@
+## 1.2.0-alpha2 (2017-05-21)
+
+Bugfixes:
+
+  - 修正远程引用 gradle-small 时未能兼容 Kotlin 的问题
+
 ## 1.2.0-alpha1 (2017-05-21)
 
 Features:
