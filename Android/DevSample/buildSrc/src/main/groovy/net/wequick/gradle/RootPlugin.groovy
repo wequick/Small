@@ -1,6 +1,7 @@
 package net.wequick.gradle
 
 import net.wequick.gradle.aapt.SymbolParser
+import net.wequick.gradle.support.KotlinCompat
 import net.wequick.gradle.tasks.LintTask
 import net.wequick.gradle.util.DependenciesUtils
 import net.wequick.gradle.util.Log
@@ -147,6 +148,8 @@ class RootPlugin extends BasePlugin {
                 }
             }
         }
+
+        compatVendors()
     }
 
     protected void configVersions(Project p, RootExtension.AndroidConfig base) {
@@ -553,6 +556,13 @@ class RootPlugin extends BasePlugin {
             jarPw.close()
             aarPw.flush()
             aarPw.close()
+        }
+    }
+
+    private void compatVendors() {
+        // Check if has kotlin
+        project.afterEvaluate {
+            KotlinCompat.compat(project, small.kotlin)
         }
     }
 
