@@ -24,7 +24,8 @@
   "icon": "", 
   "birdseed_version": 5, 
   "toc": [
-    "home", 
+    "home",
+    "cases",
     "feature",
     "quickstart",
     "tutorial",
@@ -86,6 +87,12 @@
     },
     "router": {
       "name": "插件路由"
+    },
+    "cases": {
+      "name": "接入案例",
+      "categories": [
+        "landing"
+      ]
     }
   },
   "copyright_text": "© 2016 Wequick.net. 保留一切权利。"
