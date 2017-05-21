@@ -1,3 +1,10 @@
+## 1.2.0-alpha1 (2017-05-21)
+
+Bugfixes:
+
+  - 修正插件升级时覆盖 so 文件的问题 (#477, @zhaoya188)
+  - 确保调用插件 Activity 前能成功拦截 Instrumentation
+
 ## 1.2.0-beta5 (2017-05-13)
 
 版本同步

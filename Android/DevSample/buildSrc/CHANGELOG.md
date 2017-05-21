@@ -1,3 +1,17 @@
+## 1.2.0-alpha1 (2017-05-21)
+
+Features:
+
+  - 支持 Kotlin
+
+Bugfixes:
+
+  - 修正 AarPath 解析问题 (#485)
+
+Performance:
+
+  - 对插件移除新版 AS 自动生成的 `ic_launcher_round.png` 资源
+
 ## 1.2.0-beta5 (2017-05-13)
 
 Bugfixes:
