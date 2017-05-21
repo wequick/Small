@@ -118,15 +118,16 @@ class ApkInstrumentation extends Instrumentation
             applyActivityInfo(activity, ai);
             ReflectAccelerator.ensureCacheResources();
         } while (false);
+
+        // Reset activity instrumentation if it was modified by some other applications #245
+        ReflectAccelerator.ensureInjectInstrumentation(activity, this);
+
         mBase.callActivityOnCreate(activity, icicle);
 
         if (mCreatedActivities == null) {
             mCreatedActivities = new ArrayList<>();
         }
         mCreatedActivities.add(activity.hashCode());
-
-        // Reset activity instrumentation if it was modified by some other applications #245
-        ReflectAccelerator.ensureInjectInstrumentation(activity, this);
     }
 
     @Override
