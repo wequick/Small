@@ -1,4 +1,4 @@
-include ':small', ':android-private'
+include ':small'
 
 def externalModules = [
         ':app', ':app+stub',
