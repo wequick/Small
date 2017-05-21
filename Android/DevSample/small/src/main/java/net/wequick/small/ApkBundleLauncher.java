@@ -294,7 +294,6 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 applyActivityInfo(activity, ai);
                 ReflectAccelerator.ensureCacheResources();
             } while (false);
-            sHostInstrumentation.callActivityOnCreate(activity, icicle);
 
             // Reset activity instrumentation if it was modified by some other applications #245
             if (sBundleInstrumentation != null) {
@@ -311,6 +310,8 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                     e.printStackTrace();
                 }
             }
+
+            sHostInstrumentation.callActivityOnCreate(activity, icicle);
         }
 
         @Override
