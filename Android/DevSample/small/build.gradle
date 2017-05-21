@@ -48,6 +48,8 @@ task ('changes') .doLast {
     loc = date.indexOf(')')
     date = date.substring(0, loc)
 
-    def log = "git log --since=$date --oneline ${project.projectDir}"
-    println log.execute().text
+    project.exec {
+        executable 'git'
+        args 'log', '--pretty=format:%cd #%h @%cn %s', '--date=short', "--since=$date", project.projectDir
+    }
 }
