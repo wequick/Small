@@ -1003,8 +1003,6 @@ class AppPlugin extends BundlePlugin {
 
         hookJavac(small.javac, variant.buildType.minifyEnabled)
 
-        hookKotlinCompile()
-
         def transformTasks = project.tasks.withType(TransformTask.class)
         def mergeJniLibsTask = transformTasks.find {
             it.transform.name == 'mergeJniLibs' && it.variantName == variant.name
@@ -1153,6 +1151,9 @@ class AppPlugin extends BundlePlugin {
 
         small.splitAars = smallLibAars
         small.retainedAars = mUserLibAars
+
+        // Compat for Kotlin
+        hookKotlinCompile()
     }
 
     protected static def collectAarsOfLibrary(Project lib, HashSet outAars) {
@@ -1406,12 +1407,10 @@ class AppPlugin extends BundlePlugin {
     }
 
     private def hookKotlinCompile() {
-        project.tasks.all {
-            if (it.name.startsWith('compile')
-                    && it.name.endsWith('Kotlin')
-                    && it.hasProperty('classpath')) {
-                addClasspath(it)
-            }
+        project.tasks.findAll {
+            it.name.startsWith('compile') && it.name.endsWith('Kotlin') && it.hasProperty('classpath')
+        }.each {
+            addClasspath(it)
         }
     }
 
