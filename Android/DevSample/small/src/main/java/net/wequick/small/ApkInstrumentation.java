@@ -59,16 +59,15 @@ class ApkInstrumentation extends Instrumentation
     private static final String STUB_ACTIVITY_PREFIX = PACKAGE_NAME + ".A";
     private static final String STUB_ACTIVITY_TRANSLUCENT = STUB_ACTIVITY_PREFIX + '1';
     private static final char REDIRECT_FLAG = '>';
+    private static final int STUB_ACTIVITIES_COUNT = 4;
 
     private Instrumentation mBase;
-    private static final int STUB_ACTIVITIES_COUNT = 4;
     private ArrayList<Integer> mNeedsRecreateActivities;
     private ArrayList<Integer> mCreatedActivities;
     
     private List<ProviderInfo> mAllProviders;
     private List<ProviderInfo> mLazyInitProviders;
     
-//    private ConcurrentHashMap<String, ApkInfo> sLoadedApks;
     private ConcurrentHashMap<String, ActivityInfo> mLoadedActivities;
     private ConcurrentHashMap<String, List<IntentFilter>> mLoadedIntentFilters;
 
