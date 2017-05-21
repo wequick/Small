@@ -1003,6 +1003,8 @@ class AppPlugin extends BundlePlugin {
 
         hookJavac(small.javac, variant.buildType.minifyEnabled)
 
+        hookKotlinCompile()
+
         def transformTasks = project.tasks.withType(TransformTask.class)
         def mergeJniLibsTask = transformTasks.find {
             it.transform.name == 'mergeJniLibs' && it.variantName == variant.name
@@ -1396,14 +1398,28 @@ class AppPlugin extends BundlePlugin {
         }
     }
 
+    protected def addClasspath(Task javac) {
+        javac.doFirst {
+            // Dynamically provided jars
+            javac.classpath += project.files(getLibraryJars().findAll{ it.exists() })
+        }
+    }
+
+    private def hookKotlinCompile() {
+        project.tasks.all {
+            if (it.name.startsWith('compile')
+                    && it.name.endsWith('Kotlin')
+                    && it.hasProperty('classpath')) {
+                addClasspath(it)
+            }
+        }
+    }
+
     /**
      * Hook javac task to split libraries' R.class
      */
     private def hookJavac(Task javac, boolean minifyEnabled) {
-        javac.doFirst { JavaCompile it ->
-            // Dynamically provided jars
-            it.classpath += project.files(getLibraryJars().findAll{ it.exists() })
-        }
+        addClasspath(javac)
         javac.doLast { JavaCompile it ->
             if (minifyEnabled) return // process later in proguard task
             if (!small.splitRJavaFile.exists()) return
