@@ -1587,6 +1587,14 @@ class AppPlugin extends BundlePlugin {
         int d = maxPP - minPP
         int hash = bundleName.hashCode() & maxHash
         int pp = (hash * d / maxHash) + minPP
+        if (sPackageIdBlackList.contains(pp)) {
+            pp = (pp + maxPP) >> 1
+        }
         return pp
     }
+
+    private static sPackageIdBlackList = [
+            0x03 // HTC
+            ,0x10 // Xiao Mi
+    ] as ArrayList<Integer>
 }
