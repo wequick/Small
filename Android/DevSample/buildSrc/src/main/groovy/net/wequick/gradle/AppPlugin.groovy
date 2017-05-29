@@ -467,7 +467,7 @@ class AppPlugin extends BundlePlugin {
             return false
         }
 
-        def path = "$group/$name/$version"
+        String path = "$group/$name/$version"
         def aar = [path: path, group: group, name: node.name, version: version]
         File aarOutput = small.buildCaches.get(path)
         if (aarOutput != null) {
