@@ -146,14 +146,9 @@ public class AarPath {
                 // Local AAR
                 // Sample/vendor-aar/vendor-aar.aar
                 //        ^^^^^^^^^^ project
-                if (aarProject.configurations.hasProperty('default')) {
-                    def config = aarProject.configurations.default
-                    if (config.allArtifacts.find { it.file == inputFile }) {
-                        module.version = aarProject.version
-                        module.name = aarProject.name
-                        module.group = aarProject.group ?: inputFile.parentFile.parentFile.name
-                    }
-                }
+                module.version = aarProject.version
+                module.name = aarProject.name
+                module.group = aarProject.group ?: inputFile.parentFile.parentFile.name
             } else if (inputPath.contains('exploded-aar')) {
                 // [BUILD_DIR]/intermediates/exploded-aar/com.android.support/support-v4/25.1.0
                 //                                        ^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^ ^^^^^^
