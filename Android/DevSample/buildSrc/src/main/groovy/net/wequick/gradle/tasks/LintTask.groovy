@@ -15,16 +15,8 @@
  */
 package net.wequick.gradle.tasks
 
-import com.android.build.gradle.internal.pipeline.TransformTask
-import com.android.build.gradle.tasks.ProcessAndroidResources
-import com.android.sdklib.BuildToolInfo
-import groovy.io.FileType
-import net.wequick.gradle.RootExtension
 import net.wequick.gradle.test.UnitTests
-import net.wequick.gradle.util.AnsiUtils
-import net.wequick.gradle.util.Log
 import org.gradle.api.DefaultTask
-import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
 
 class LintTask extends DefaultTask {

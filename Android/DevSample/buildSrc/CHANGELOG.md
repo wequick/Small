@@ -1,3 +1,16 @@
+## 1.2.0-alpha3 (2017-05-31)
+
+Bugfixes:
+
+  - 修正未正确保留第三方资源导致的第三方 R 类找不到异常 (#483, #461)
+  - 插件资源分段算法添加黑名单过滤 (#481)
+  - 解决未开启 `buildCache` 时，解析 AarPath 出现 `Failed to parse aar module` 的问题
+
+Performance:
+
+  - `cleanLib`, `cleanBundle` 任务不再清空 debug 模式下的编译数据，避免 R 文件飘红，影响开发
+  - 避免在 `app-D.txt` 里重复添加 `support-compat` 与 `support-core-utils` 依赖
+
 ## 1.2.0-alpha2 (2017-05-21)
 
 Bugfixes:
