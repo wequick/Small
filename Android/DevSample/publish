@@ -1,0 +1,4 @@
+#!/bin/sh
+./gradlew smallLint -q
+./gradlew -p buildSrc bintrayUpload
+./gradlew -p small bintrayUpload

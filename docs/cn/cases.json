@@ -1,0 +1,14 @@
+[
+  {
+    "name": "酷狗音乐",
+    "desc": "音乐总有新玩法",
+    "android": "http://download.kugou.com/android.html",
+    "icon": "http://is1.mzstatic.com/image/thumb/Purple122/v4/29/3e/9b/293e9b70-cb64-6b68-9d6a-8ea9ef1ddafc/source/175x175bb.jpg"
+  },
+  {
+    "name": "永辉生活",
+    "desc": "原产地到餐桌一站式服务",
+    "android": "",
+    "icon": "http://is3.mzstatic.com/image/thumb/Purple122/v4/36/b2/dc/36b2dc84-d4d7-4627-b706-4283ea28f396/source/175x175bb.jpg"
+  }
+]

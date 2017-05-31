@@ -5,6 +5,7 @@ import com.android.build.gradle.api.BaseVariant
 import com.android.build.gradle.internal.pipeline.IntermediateFolderUtils
 import com.android.build.gradle.internal.pipeline.TransformTask
 import com.android.build.gradle.internal.transforms.ProGuardTransform
+import net.wequick.gradle.tasks.CleanBundleTask
 import org.apache.commons.io.FileUtils
 import org.gradle.api.Project
 
@@ -105,7 +106,7 @@ class LibraryPlugin extends AppPlugin {
     protected void createTask() {
         super.createTask()
 
-        project.task('cleanLib', dependsOn: 'clean')
+        project.task('cleanLib', type: CleanBundleTask)
         project.task('buildLib', dependsOn: 'assembleRelease')
 
         project.tasks.remove(project.cleanBundle)

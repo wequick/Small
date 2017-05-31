@@ -35,7 +35,7 @@ public class RootExtension extends BaseExtension {
     private static final VersionNumber REQUIRED_AAR_REVISION = VersionNumber.parse(REQUIRED_AAR_VERSION)
 
     /** The built version of gradle-small plugin */
-    public static final String PLUGIN_VERSION = '1.2.0-beta5'
+    public static final String PLUGIN_VERSION = '1.2.0-alpha2'
     public static final VersionNumber PLUGIN_REVISION = VersionNumber.parse(PLUGIN_VERSION)
 
     /** 
@@ -59,12 +59,18 @@ public class RootExtension extends BaseExtension {
     boolean strictSplitResources = true
 
     /**
-     * The default android version configuration
+     * The default android configurations
      * - compileSdkVersion
      * - buildToolsVersion
      * - support library version (AppCompat and etc.)
      */
     protected AndroidConfig android
+
+    /**
+     * The default kotlin configurations
+     * - version, the kotlin tools version
+     */
+    protected KotlinConfig kotlin
 
     /**
      * If <tt>true</tt> build plugins to host assets as *.apk,
@@ -311,5 +317,14 @@ public class RootExtension extends BaseExtension {
         int compileSdkVersion
         String buildToolsVersion
         String supportVersion
+    }
+
+    public def kotlin(Closure closure) {
+        kotlin = new KotlinConfig()
+        project.configure(kotlin, closure)
+    }
+
+    class KotlinConfig {
+        String version
     }
 }

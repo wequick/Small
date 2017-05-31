@@ -1,6 +1,7 @@
 package net.wequick.gradle
 
 import com.android.build.gradle.api.BaseVariant
+import net.wequick.gradle.tasks.CleanBundleTask
 import org.gradle.api.Project
 
 class HostPlugin extends AndroidPlugin {
@@ -50,7 +51,7 @@ class HostPlugin extends AndroidPlugin {
     protected void createTask() {
         super.createTask()
 
-        project.task('cleanLib', dependsOn: 'clean')
+        project.task('cleanLib', type: CleanBundleTask)
         project.task('buildLib')
     }
 
