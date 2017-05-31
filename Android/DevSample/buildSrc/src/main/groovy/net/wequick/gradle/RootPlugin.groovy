@@ -524,8 +524,13 @@ class RootPlugin extends BasePlugin {
             // Hereby we also mark 'support-compat' has compiled in host.
             // FIXME: any influence of this?
             if (lib == small.hostProject) {
-                aarPw.println "com.android.support:support-compat:+"
-                aarPw.println "com.android.support:support-core-utils:+"
+                String[] builtinAars = ['com.android.support:support-compat:+',
+                                        'com.android.support:support-core-utils:+']
+                builtinAars.each {
+                    if (!aarKeys.contains(it)) {
+                        aarPw.println it
+                    }
+                }
             }
 
             allDependencies.each { d ->
