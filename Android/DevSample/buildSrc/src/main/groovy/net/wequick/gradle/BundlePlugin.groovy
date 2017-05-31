@@ -17,6 +17,7 @@ package net.wequick.gradle
 
 import com.android.build.gradle.api.BaseVariant
 import com.android.build.gradle.internal.dsl.BuildType
+import net.wequick.gradle.tasks.CleanBundleTask
 import org.gradle.api.Project
 
 /**
@@ -78,7 +79,7 @@ abstract class BundlePlugin extends AndroidPlugin {
     protected void createTask() {
         super.createTask()
 
-        project.task('cleanBundle', dependsOn: 'clean')
+        project.task('cleanBundle', type: CleanBundleTask)
         project.task('buildBundle', dependsOn: 'assembleRelease')
     }
 
