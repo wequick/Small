@@ -8,7 +8,13 @@
   {
     "name": "永辉生活",
     "desc": "原产地到餐桌一站式服务",
-    "android": "",
+    "android": "http://www.wandoujia.com/apps/cn.yonghui.hyd",
     "icon": "http://is3.mzstatic.com/image/thumb/Purple122/v4/36/b2/dc/36b2dc84-d4d7-4627-b706-4283ea28f396/source/175x175bb.jpg"
+  },
+  {
+    "name": "小伙伴TV",
+    "desc": "2-12岁儿童动画片视频",
+    "android": "http://down.znds.com/apk/app/2015/0623/2530.html",
+    "icon": "http://img.znds.com/uploads/new/150623/9-15062309245A36.png"
   }
 ]
