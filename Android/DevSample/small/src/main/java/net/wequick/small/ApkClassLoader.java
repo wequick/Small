@@ -18,14 +18,16 @@ package net.wequick.small;
 import android.app.Application;
 import android.app.Instrumentation;
 import android.content.Context;
-import android.content.pm.PackageInfo;
 
 import net.wequick.small.util.ReflectAccelerator;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Enumeration;
 
 import dalvik.system.DexFile;
 
@@ -35,8 +37,6 @@ import dalvik.system.DexFile;
  * until the class of the APK was firstly required.
  */
 class ApkClassLoader extends ClassLoader {
-
-    private static final String FILE_DEX = "bundle.dex";
 
     private ArrayList<ApkInfo> mApks;
     private String[] mMergedAssetPaths;
@@ -48,25 +48,7 @@ class ApkClassLoader extends ClassLoader {
     }
 
     void addApk(String packageName, Bundle bundle) {
-        ApkInfo apk = new ApkInfo();
-        BundleParser parser = bundle.getParser();
-        PackageInfo pluginInfo = parser.getPackageInfo();
-
-        apk.packageName = packageName;
-        apk.path = parser.getSourcePath();
-        apk.nonResources = parser.isNonResources();
-        if (pluginInfo.applicationInfo != null) {
-            apk.applicationName = pluginInfo.applicationInfo.className;
-        }
-        apk.packagePath = bundle.getExtractPath();
-        apk.optDexPath = new File(apk.packagePath, FILE_DEX).getAbsolutePath();
-        apk.lazy = bundle.isLazy();
-
-        // Record the native libraries path with specify ABI
-        String libDir = parser.getLibraryDirectory();
-        if (libDir != null) {
-            apk.libraryPath = new File(apk.packagePath, libDir).getAbsolutePath();
-        }
+        ApkInfo apk = new ApkInfo(packageName, bundle);
 
         // Add to loading queue
         addApk(apk);
@@ -200,6 +182,31 @@ class ApkClassLoader extends ClassLoader {
         }
 
         return null;
+    }
+
+    @Override
+    protected URL findResource(String name) {
+        for (ApkInfo apk : mApks) {
+            URL url = apk.findResource(name);
+            if (url != null) {
+                return url;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    protected Enumeration<URL> findResources(String name) throws IOException {
+        // codes from
+        // https://android.googlesource.com/platform/libcore-snapshot/+/ics-mr1/dalvik/src/main/java/dalvik/system/DexPathList.java#349
+        ArrayList<URL> result = new ArrayList<URL>();
+        for (ApkInfo apk : mApks) {
+            URL url = apk.findResource(name);
+            if (url != null) {
+                result.add(url);
+            }
+        }
+        return Collections.enumeration(result);
     }
 
     boolean isEmpty() {
