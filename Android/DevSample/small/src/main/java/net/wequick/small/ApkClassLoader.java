@@ -187,18 +187,19 @@ class ApkClassLoader extends ClassLoader {
     }
 
     @Override
-    protected String findLibrary(String libname) {
+    protected String findLibrary(String libraryName) {
+        String fileName = System.mapLibraryName(libraryName);
+
         for (ApkInfo apk : mApks) {
             if (apk.libraryPath == null) continue;
 
-            File lib = new File(apk.libraryPath, "lib" + libname + ".so");
-            if (lib.exists()) {
-                System.out.println("!!! Find library " + libname + " from " + apk.packageName);
-                return lib.getAbsolutePath();
+            File lib = new File(apk.libraryPath, fileName);
+            if (lib.exists() && lib.isFile() && lib.canRead()) {
+                return lib.getPath();
             }
         }
 
-        return super.findLibrary(libname);
+        return null;
     }
 
     boolean isEmpty() {
