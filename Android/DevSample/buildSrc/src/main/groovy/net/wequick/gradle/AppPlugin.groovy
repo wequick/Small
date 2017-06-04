@@ -32,10 +32,10 @@ import net.wequick.gradle.aapt.SymbolParser
 import net.wequick.gradle.transform.StripAarTransform
 import net.wequick.gradle.util.AarPath
 import net.wequick.gradle.util.ClassFileUtils
+import net.wequick.gradle.util.DependenciesUtils
 import net.wequick.gradle.util.JNIUtils
 import net.wequick.gradle.util.Log
 import net.wequick.gradle.util.ZipUtils
-import net.wequick.gradle.util.TaskUtils
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.DependencySet
@@ -187,16 +187,35 @@ class AppPlugin extends BundlePlugin {
     }
 
     protected void resolveReleaseDependencies() {
+        // Strip the support-annotations for all configurations.
+        // Note that while resolve dependencies for 'annotationProcessor' configuration,
+        // it will throw an exception: "Could not find com.android.support:support-annotations:xxx"
+        // if we haven't done this.
+        project.configurations.each {
+            it.exclude group: 'com.android.support', module: 'support-annotations'
+        }
+
+        // Resolve the 'annotationProcessor' configuration, and keep all the runtime modules
+        // which are used to compile user-defined annotations from ButterKnife and etc.
+        // The Android Gradle Plugin would strip them later for us.
+        def runtimeModules = []
+        runtimeModules.addAll DependenciesUtils.getAllDependencies(project, "annotationProcessor")
+
         // Pre-split all the jar dependencies (deep level)
         def compile = project.configurations.compile
-        compile.exclude group: 'com.android.support', module: 'support-annotations'
         rootSmall.preLinkJarDir.listFiles().each { file ->
             if (!file.name.endsWith('D.txt')) return
             if (file.name.startsWith(project.name)) return
 
             file.eachLine { line ->
                 def module = line.split(':')
-                compile.exclude group: module[0], module: module[1]
+                def group = module[0]
+                def name = module[1]
+                if (runtimeModules.find { it.moduleGroup == group && it.moduleName == name }) {
+                    return
+                }
+
+                compile.exclude group: group, module: name
             }
         }
     }
