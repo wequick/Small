@@ -38,7 +38,7 @@ import dalvik.system.DexFile;
  */
 class ApkClassLoader extends ClassLoader {
 
-    private ArrayList<ApkInfo> mApks;
+    private ArrayList<ApkElement> mApks;
     private String[] mMergedAssetPaths;
     private ApkInstrumentation mInstrumentation;
 
@@ -48,13 +48,13 @@ class ApkClassLoader extends ClassLoader {
     }
 
     void addApk(String packageName, Bundle bundle) {
-        ApkInfo apk = new ApkInfo(packageName, bundle);
+        ApkElement apk = new ApkElement(packageName, bundle);
 
         // Add to loading queue
         addApk(apk);
     }
 
-    private void addApk(final ApkInfo apk) {
+    private void addApk(final ApkElement apk) {
         if (mApks == null) {
             mApks = new ArrayList<>();
         }
@@ -77,7 +77,7 @@ class ApkClassLoader extends ClassLoader {
         String[] paths = new String[mApks.size() + 1];
         paths[0] = app.getPackageResourcePath(); // add host asset path
         int i = 1;
-        for (ApkInfo apk : mApks) {
+        for (ApkElement apk : mApks) {
             if (apk.nonResources) continue; // ignores the empty entry to fix #62
 
             paths[i++] = apk.path; // add plugin asset path
@@ -90,8 +90,8 @@ class ApkClassLoader extends ClassLoader {
         ReflectAccelerator.mergeResources(app, paths, false);
 
         // Trigger all the bundle application `onCreate' event
-        final ArrayList<ApkInfo> lazyApks = new ArrayList<ApkInfo>();
-        for (ApkInfo apk : mApks) {
+        final ArrayList<ApkElement> lazyApks = new ArrayList<ApkElement>();
+        for (ApkElement apk : mApks) {
             if (apk.lazy) {
                 lazyApks.add(apk);
                 continue;
@@ -106,7 +106,7 @@ class ApkClassLoader extends ClassLoader {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                for (ApkInfo apk : lazyApks) {
+                for (ApkElement apk : lazyApks) {
                     loadApkLocked(apk);
                 }
             }
@@ -120,7 +120,7 @@ class ApkClassLoader extends ClassLoader {
         if (mApks == null) return super.findClass(name);
 
         // Find class in loaded bundles
-        for (ApkInfo bundle : mApks) {
+        for (ApkElement bundle : mApks) {
             if (bundle.dexFile != null) {
                 clazz = bundle.dexFile.loadClass(name, this);
                 if (clazz != null) {
@@ -130,7 +130,7 @@ class ApkClassLoader extends ClassLoader {
         }
 
         // Find class in lazy-load bundles
-        for (ApkInfo apk : mApks) {
+        for (ApkElement apk : mApks) {
             if (apk.dexFile != null) continue;
             // FIXME: Check if the class is in a apk
             // As now, we simply check if the class name is starts with the apk package name,
@@ -150,7 +150,7 @@ class ApkClassLoader extends ClassLoader {
         return super.findClass(name);
     }
 
-    private void loadApk(ApkInfo apk) {
+    private void loadApk(ApkElement apk) {
         if (apk.dexFile != null) return;
 
         apk.initDexFile();
@@ -164,7 +164,7 @@ class ApkClassLoader extends ClassLoader {
         }
     }
 
-    private DexFile loadApkLocked(ApkInfo apk) {
+    private DexFile loadApkLocked(ApkElement apk) {
         return apk.loadDexFileLocked();
     }
 
@@ -172,7 +172,7 @@ class ApkClassLoader extends ClassLoader {
     protected String findLibrary(String libraryName) {
         String fileName = System.mapLibraryName(libraryName);
 
-        for (ApkInfo apk : mApks) {
+        for (ApkElement apk : mApks) {
             if (apk.libraryPath == null) continue;
 
             File lib = new File(apk.libraryPath, fileName);
@@ -186,7 +186,7 @@ class ApkClassLoader extends ClassLoader {
 
     @Override
     protected URL findResource(String name) {
-        for (ApkInfo apk : mApks) {
+        for (ApkElement apk : mApks) {
             URL url = apk.findResource(name);
             if (url != null) {
                 return url;
@@ -200,7 +200,7 @@ class ApkClassLoader extends ClassLoader {
         // codes from
         // https://android.googlesource.com/platform/libcore-snapshot/+/ics-mr1/dalvik/src/main/java/dalvik/system/DexPathList.java#349
         ArrayList<URL> result = new ArrayList<URL>();
-        for (ApkInfo apk : mApks) {
+        for (ApkElement apk : mApks) {
             URL url = apk.findResource(name);
             if (url != null) {
                 result.add(url);
@@ -216,7 +216,7 @@ class ApkClassLoader extends ClassLoader {
     boolean hasApk(String packageName) {
         if (mApks == null) return false;
 
-        for (ApkInfo apk : mApks) {
+        for (ApkElement apk : mApks) {
             if (apk.packageName.equals(packageName)) {
                 return true;
             }
@@ -224,7 +224,7 @@ class ApkClassLoader extends ClassLoader {
         return false;
     }
 
-    private void appendAsset(ApkInfo apk) {
+    private void appendAsset(ApkElement apk) {
         if (apk.nonResources) return;
         if (apk.resourcesMerged) return;
 
@@ -238,7 +238,7 @@ class ApkClassLoader extends ClassLoader {
         mInstrumentation.setNeedsRecreateActivities();
     }
 
-    private void createApplication(final ApkInfo apk, final Context base) {
+    private void createApplication(final ApkElement apk, final Context base) {
         String clazz = apk.applicationName;
         if (clazz == null) return;
 

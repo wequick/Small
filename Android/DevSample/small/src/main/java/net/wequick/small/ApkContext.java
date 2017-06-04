@@ -24,9 +24,9 @@ import android.content.pm.ApplicationInfo;
  */
 final class ApkContext extends ContextWrapper {
 
-    private ApkInfo mApk;
+    private ApkElement mApk;
 
-    public ApkContext(Context base, ApkInfo apk) {
+    public ApkContext(Context base, ApkElement apk) {
         super(base);
         mApk = apk;
     }

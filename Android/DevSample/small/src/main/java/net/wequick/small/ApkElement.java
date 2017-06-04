@@ -25,7 +25,7 @@ import java.util.zip.ZipFile;
 
 import dalvik.system.DexFile;
 
-class ApkInfo {
+class ApkElement {
     private static final String FILE_DEX = "bundle.dex";
 
     String packageName;
@@ -44,7 +44,7 @@ class ApkInfo {
     boolean lazy;
     boolean resourcesMerged;
     
-    ApkInfo(String pkg, Bundle bundle) {
+    ApkElement(String pkg, Bundle bundle) {
         BundleParser parser = bundle.getParser();
         PackageInfo pluginInfo = parser.getPackageInfo();
 
