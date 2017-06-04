@@ -37,10 +37,8 @@ class ApkElement {
     ZipFile zipFile;
     String optDexPath;
     String libraryPath;
+    /** no resources.arsc entry */
     boolean nonResources;
-    /**
-     * no resources.arsc
-     */
     boolean lazy;
     boolean resourcesMerged;
     
