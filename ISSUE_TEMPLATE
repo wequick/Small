@@ -1,0 +1,76 @@
+<!--
+  感谢使用 Small 插件化框架。
+  为方便问题追踪与定位，我们提供了本模板来方便您填写问题。
+  请确认您已阅读本模板段首的贡献指南，严格遵循其约定。
+  请填写本模板中 <!- -> 区间内的内容。
+-->
+
+- [x] 我已阅读并理解 **[贡献指南](https://github.com/wequick/Small/blob/master/贡献指南.md)**，严格遵循其约定。
+
+# 错误报告
+
+## 你做了什么？
+
+<!--
+  使问题重现的最后一根稻草（做了会出问题，不做就没问题）
+  比如：我在插件模块中使用了`DataBinding`. 我尝试了[...]方法，但结果是[...]
+ -->
+
+## 你期望的结果是什么？
+
+<!--
+  预期中的结果。
+  比如：Small能够正确编译数据绑定，并正确运行。
+ -->
+
+## 实际结果是什么？
+
+<!--
+  填写实际发生的结果与详细的堆栈错误信息。
+  比如，“Small发生编译报错，报错信息如下：”，或者“Small发生运行报错，报错信息如下：”
+  为提高可读性，报错信息请使用 ``` 代码块区间包住。
+  特别地，编译报错信息，你需要添加 --stacktrace 参数来打印堆栈，
+        其中包含net.wequick.gradle包名下的错误。
+ -->
+
+## Small环境
+
+### Compile-time
+
+<!-- 编译时环境，粘贴 ./gradlew small 输出开始 -->
+
+```
+  gradle-small plugin : 1.0.0-alpha2 (project)
+            small aar : 1.1.0-beta5 (project)
+          gradle core : 2.10
+       android plugin : 2.0.0
+                   OS : Mac OS X 10.12 (x86_64)
+```
+
+### Bundles
+
+|  type  |       name       |   PP   |          file           |    size    |
+|--------|------------------|--------|-------------------------|------------|
+|  host  |  app             |        |                         |            |
+|  app   |  app.main        |  0x77  |  *_main.so (x86)        |  10.9 KB   |
+|  app   |  app.mine        |  0x16  |  *_mine.so (x86)        |  35.5 KB   |
+|  app   |  app.detail      |  0x67  |  *_detail.so (x86)      |  6.6 KB    |
+|  app   |  app.home        |  0x70  |  *_home.so (x86)        |  10.4 KB   |
+|  lib   |  lib.afterutils  |  0x45  |  *_afterutils.so (x86)  |  21.2 KB   |
+|  lib   |  lib.analytics   |  0x76  |  *_analytics.so (x86)   |  125.7 KB  |
+|  lib   |  lib.utils       |  0x73  |  *_utils.so (x86)       |  46 KB     |
+|  lib   |  lib.style       |  0x79  |  *_style.so (x86)       |  44.9 KB   |
+|  web   |  web.about       |        |  *_about.so (x86)       |  24.3 KB   |
+
+
+<!-- 编译时环境，粘贴 ./gradlew small 输出结束 -->
+
+<!-- 运行时环境，当运行时crash提供 -->
+
+### Runtime
+
+```
+  Device : Samsung Nexus S
+     SDK : Android 7.0
+     ABI : armeabi-v7a
+```
