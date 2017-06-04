@@ -20,6 +20,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 /**
  * Created by galen on 15/11/12.
  */
@@ -29,12 +32,16 @@ public class MainFragment extends Fragment {
     private static final int REQUEST_CODE_COLOR = 1000;
     private static final int REQUEST_CODE_CONTACTS = 1001;
 
+    @BindView(R.id.lib_label) TextView tvLib;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         TextView tvSection = (TextView) rootView.findViewById(R.id.section_label);
         tvSection.setText(R.string.hello);
         tvSection.setTextColor(getResources().getColor(R.color.colorAccent));
+
+        ButterKnife.bind(this, rootView);
 
         Button button = (Button) rootView.findViewById(R.id.inter_start_button);
         button.setOnClickListener(new View.OnClickListener() {
@@ -81,11 +88,8 @@ public class MainFragment extends Fragment {
             e.printStackTrace();
         }
 
-        // TODO: Following will crash, try to fix it
-//        getResources().openRawResourceFd(R.raw.greet);
-
-        TextView tvLib = (TextView) rootView.findViewById(R.id.lib_label);
-        tvLib.setText(Greet.hello());
+//        TextView tvLib = (TextView) rootView.findViewById(R.id.lib_label);
+        tvLib.setText(Greet.hello() + " (ButterKnife 8)");
 
         TextView tvJni = (TextView) rootView.findViewById(R.id.jni_label);
         tvJni.setText(HelloPluginJni.stringFromJNI());

@@ -8,7 +8,12 @@ import android.widget.TextView;
 
 import net.wequick.small.Small;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class MainActivity extends AppCompatActivity {
+
+    @BindView(R.id.tvFrom) TextView tvFrom;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,11 +26,13 @@ public class MainActivity extends AppCompatActivity {
         setTitle("Detail");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+        ButterKnife.bind(this);
+
         Uri uri = Small.getUri(this);
         if (uri != null) {
             String from = uri.getQueryParameter("from");
             if (from != null) {
-                TextView tvFrom = (TextView) findViewById(R.id.tvFrom);
+//                TextView tvFrom = (TextView) findViewById(R.id.tvFrom);
                 tvFrom.setText("-- Greet from " + from);
             }
         }
