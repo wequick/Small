@@ -61,6 +61,18 @@ public class MainFragment extends Fragment {
             String greet = br.readLine();
             is.close();
 
+            // Test loading resource from class loader
+            is = getContext().getClassLoader().getResourceAsStream("assets/greet.txt");
+            if (is == null) {
+                throw new RuntimeException("Can not load resource by class loader");
+            }
+            br = new BufferedReader(new InputStreamReader(is));
+            String greet2 = br.readLine();
+            is.close();
+            if (!greet.equals(greet2)) {
+                throw new RuntimeException("Can not load resource by class loader");
+            }
+
             TextView tvAssets = (TextView) rootView.findViewById(R.id.assets_label);
             tvAssets.setText("assets/greet.txt: " + greet);
 
