@@ -97,7 +97,9 @@ class AndroidPlugin extends BasePlugin {
             }
         }
         preBuild.doLast {
-            removeUnimplementedProviders()
+            if (!released) {
+                removeUnimplementedProviders()
+            }
         }
     }
 
@@ -113,9 +115,13 @@ class AndroidPlugin extends BasePlugin {
      */
     protected void removeUnimplementedProviders() {
         if (pluginType == PluginType.Host) return // nothing to do with host
+
+        final def appId = android.defaultConfig.applicationId
+        if (appId == null) return // nothing to do with non-app module
+
         MergeManifests manifests = project.tasks.withType(MergeManifests.class)[0]
         if (manifests.hasProperty('providers')) {
-            return
+            return // can be simply stripped from providers
         }
 
         project.tasks.withType(PrepareLibraryTask.class).each {
@@ -151,7 +157,6 @@ class AndroidPlugin extends BasePlugin {
                         providerLines = ''
                     }
 
-                    final def appId = android.defaultConfig.applicationId
                     final def nameTag = 'android:name="'
                     loc = line.indexOf(nameTag)
                     if (loc >= 0) {
