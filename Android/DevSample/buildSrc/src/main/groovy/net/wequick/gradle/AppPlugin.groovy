@@ -1386,14 +1386,28 @@ class AppPlugin extends BundlePlugin {
 
             // Re-add updated entries.
             // $ aapt add resources.ap_ file1 file2 ...
-            project.exec {
-                executable aaptExe
-                workingDir unzipApDir
-                args 'add', apFile.path
-                args updatedResources
+            def nullOutput = new ByteArrayOutputStream()
+            if (System.properties['os.name'].toLowerCase().contains('windows')) {
+                // Avoid the command becomes too long to execute on Windows.
+                updatedResources.each { res ->
+                    project.exec {
+                        executable aaptExe
+                        workingDir unzipApDir
+                        args 'add', apFile.path, res
 
-                // store the output instead of printing to the console
-                standardOutput = new ByteArrayOutputStream()
+                        standardOutput = nullOutput
+                    }
+                }
+            } else {
+                project.exec {
+                    executable aaptExe
+                    workingDir unzipApDir
+                    args 'add', apFile.path
+                    args updatedResources
+
+                    // store the output instead of printing to the console
+                    standardOutput = new ByteArrayOutputStream()
+                }
             }
         }
     }
