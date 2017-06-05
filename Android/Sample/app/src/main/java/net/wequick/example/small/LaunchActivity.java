@@ -32,6 +32,15 @@ public class LaunchActivity extends Activity {
         Small.setUp(LaunchActivity.this, new net.wequick.small.Small.OnCompleteListener() {
             @Override
             public void onComplete() {
+                // 测试可以使用 Class.forName 加载
+                try {
+                    Class c = Class.forName("net.wequick.example.small.app.main.MainActivity");
+                    System.out.println("Class.forName: " + c.getName());
+                } catch (Exception e) {
+                    throw new RuntimeException("Cannot use Class.forName");
+                }
+                // --------------------------------
+
                 long tEnd = System.nanoTime();
                 se.putLong("setUpFinish", tEnd).apply();
                 long offset = tEnd - tStart;
