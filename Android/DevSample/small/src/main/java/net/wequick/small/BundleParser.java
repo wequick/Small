@@ -223,24 +223,6 @@ public class BundleParser {
                         app.className = null;
                     }
 
-                    // Get the label value which used as ABI flags.
-                    // This is depreciated, we read it from the `platformBuildVersionCode` instead.
-                    // TODO: Remove this if the gradle-small 0.9.0 or above being widely used.
-                    if (abiFlags == 0) {
-                        TypedValue label = new TypedValue();
-                        if (sa.getValue(R.styleable.AndroidManifestApplication_label, label)) {
-                            if (label.type == TypedValue.TYPE_STRING) {
-                                abiFlags = Integer.parseInt(label.string.toString());
-                            } else {
-                                abiFlags = label.data;
-                            }
-                        }
-                        if (abiFlags != 0) {
-                            throw new RuntimeException("Please recompile " + mPackageName
-                                    + " use gradle-small 0.9.0 or above");
-                        }
-                    }
-
                     app.theme = sa.getResourceId(
                             R.styleable.AndroidManifestApplication_theme, 0);
 

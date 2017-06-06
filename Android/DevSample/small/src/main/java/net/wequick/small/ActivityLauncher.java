@@ -21,9 +21,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 
+import java.io.File;
 import java.util.HashSet;
 
 /**
@@ -55,15 +54,10 @@ public class ActivityLauncher extends BundleLauncher {
         super.setUp(context);
 
         // Read the registered classes in host's manifest file
-        PackageInfo pi;
-        try {
-            pi = context.getPackageManager().getPackageInfo(
-                    context.getPackageName(), PackageManager.GET_ACTIVITIES);
-        } catch (PackageManager.NameNotFoundException ignored) {
-            // Never reach
-            return;
-        }
-        ActivityInfo[] as = pi.activities;
+        File sourceFile = new File(context.getApplicationInfo().sourceDir);
+        BundleParser parser = BundleParser.parsePackage(sourceFile, context.getPackageName());
+        parser.collectActivities();
+        ActivityInfo[] as = parser.getPackageInfo().activities;
         if (as != null) {
             sActivityClasses = new HashSet<String>();
             for (ActivityInfo ai : as) {
