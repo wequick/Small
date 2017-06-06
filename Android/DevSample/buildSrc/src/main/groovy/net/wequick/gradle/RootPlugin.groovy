@@ -2,6 +2,7 @@ package net.wequick.gradle
 
 import net.wequick.gradle.aapt.SymbolParser
 import net.wequick.gradle.support.KotlinCompat
+import net.wequick.gradle.tasks.CleanBundleTask
 import net.wequick.gradle.tasks.LintTask
 import net.wequick.gradle.util.DependenciesUtils
 import net.wequick.gradle.util.Log
@@ -145,6 +146,8 @@ class RootPlugin extends BasePlugin {
                             it.dependencies.add('compile', stub)
                         }
                     }
+
+                    stub.task('cleanLib', type: CleanBundleTask)
                 }
             }
         }
