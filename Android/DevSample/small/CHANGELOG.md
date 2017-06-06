@@ -1,3 +1,9 @@
+## 1.2.0-alpha4 (2017-06-06)
+
+Performance:
+
+  - 使用 BundleParser 来收集宿主 activities, 避免可能的多进程触发 AMS 调度 (#488)
+
 ## 1.2.0-alpha3 (2017-05-31)
 
 版本同步

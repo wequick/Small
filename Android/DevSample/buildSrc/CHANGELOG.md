@@ -1,3 +1,10 @@
+## 1.2.0-alpha4 (2017-06-06)
+
+Bugfixes:
+
+  - 避免当分身 manifest 包含 provider 时，无法同步 lib.* 模块的问题 (#486)
+  - 避免在 Windows 系统下，更新插件资源调用的 `aapt add` 命令行过长导致的无法运行问题
+
 ## 1.2.0-alpha3 (2017-05-31)
 
 Bugfixes:
