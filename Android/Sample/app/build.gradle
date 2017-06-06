@@ -45,6 +45,10 @@ android {
     productFlavors.all { flavor ->
         flavor.manifestPlaceholders = [UMENG_CHANNEL_VALUE: name]
     }
+
+    dataBinding {
+        enabled true
+    }
 }
 
 dependencies {

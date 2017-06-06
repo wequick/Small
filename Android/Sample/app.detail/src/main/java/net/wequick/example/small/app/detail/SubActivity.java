@@ -1,9 +1,11 @@
 package net.wequick.example.small.app.detail;
 
 import android.app.Activity;
+import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.View;
+
+import net.wequick.example.small.app.detail.databinding.ActivitySubBinding;
 
 /**
  * Created by galen on 16/4/11.
@@ -13,13 +15,9 @@ public class SubActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        View v = LayoutInflater.from(this).inflate(R.layout.activity_sub, null);
-        setContentView(v);
-        v.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
+
+        ActivitySubBinding binding = DataBindingUtil.inflate(LayoutInflater.from(this), R.layout.activity_sub, null,false);
+        setContentView(binding.getRoot());
+        binding.setHandlers(new MyHandler());
     }
 }
