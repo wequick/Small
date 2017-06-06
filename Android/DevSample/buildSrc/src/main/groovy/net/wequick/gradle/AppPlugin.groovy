@@ -187,22 +187,9 @@ class AppPlugin extends BundlePlugin {
     }
 
     protected void resolveReleaseDependencies() {
-        // Strip the support-annotations for all configurations.
-        // Note that while resolve dependencies for 'annotationProcessor' configuration,
-        // it will throw an exception: "Could not find com.android.support:support-annotations:xxx"
-        // if we haven't done this.
-        project.configurations.each {
-            it.exclude group: 'com.android.support', module: 'support-annotations'
-        }
-
-        // Resolve the 'annotationProcessor' configuration, and keep all the runtime modules
-        // which are used to compile user-defined annotations from ButterKnife and etc.
-        // The Android Gradle Plugin would strip them later for us.
-        def runtimeModules = []
-        runtimeModules.addAll DependenciesUtils.getAllDependencies(project, "annotationProcessor")
-
         // Pre-split all the jar dependencies (deep level)
         def compile = project.configurations.compile
+        compile.exclude group: 'com.android.support', module: 'support-annotations'
         rootSmall.preLinkJarDir.listFiles().each { file ->
             if (!file.name.endsWith('D.txt')) return
             if (file.name.startsWith(project.name)) return
@@ -211,13 +198,15 @@ class AppPlugin extends BundlePlugin {
                 def module = line.split(':')
                 def group = module[0]
                 def name = module[1]
-                if (runtimeModules.find { it.moduleGroup == group && it.moduleName == name }) {
-                    return
-                }
-
                 compile.exclude group: group, module: name
             }
         }
+
+        // Provide all the jars
+        def includes = ['*.jar']
+        def jars = project.fileTree(dir: rootSmall.preBaseJarDir, include: includes)
+        jars += project.fileTree(dir: rootSmall.preLibsJarDir, include: includes)
+        project.dependencies.add("provided", jars)
     }
 
     @Override
