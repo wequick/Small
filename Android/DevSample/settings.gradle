@@ -1,4 +1,4 @@
-include ':small'
+include ':small', ':small-databinding'
 
 def externalModules = [
         ':app', ':app+stub',
