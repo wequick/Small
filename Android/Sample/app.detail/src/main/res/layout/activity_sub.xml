@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
-    <data>
-        <variable name="handlers" type="net.wequick.example.small.app.detail.MyHandler"/>
-    </data>
-    <LinearLayout
+<!--<layout>-->
+    <!--<data>-->
+        <!--<variable name="handlers" type="net.wequick.example.small.app.detail.MyHandler"/>-->
+    <!--</data>-->
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:orientation="vertical" android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:onClick="@{handlers::finish}">
+        android:layout_height="match_parent">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -31,4 +30,4 @@
 
 
     </LinearLayout>
-</layout>
+<!--</layout>-->
