@@ -87,6 +87,9 @@ public class RootExtension extends BaseExtension {
     /** Project of Small AAR module */
     protected Project smallProject
 
+    /** Project of Small data-binding AAR module */
+    protected Project smallBindingProject;
+
     /** Project of host */
     protected Project hostProject
 

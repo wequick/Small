@@ -72,6 +72,11 @@ class RootPlugin extends BasePlugin {
                     return
                 }
 
+                if (it.name == 'small-databinding') {
+                    rootExt.smallBindingProject = it
+                    return
+                }
+
                 if (it.name == rootExt.hostModuleName) {
                     // Host
                     it.apply plugin: HostPlugin

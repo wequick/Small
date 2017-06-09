@@ -32,7 +32,6 @@ import net.wequick.gradle.aapt.SymbolParser
 import net.wequick.gradle.transform.StripAarTransform
 import net.wequick.gradle.util.AarPath
 import net.wequick.gradle.util.ClassFileUtils
-import net.wequick.gradle.util.DependenciesUtils
 import net.wequick.gradle.util.JNIUtils
 import net.wequick.gradle.util.Log
 import net.wequick.gradle.util.ZipUtils
@@ -1443,6 +1442,10 @@ class AppPlugin extends BundlePlugin {
     private def hookJavac(Task javac, boolean minifyEnabled) {
         addClasspath(javac)
         javac.doLast { JavaCompile it ->
+            if (android.dataBinding.enabled) {
+                hookDataBinding(javac)
+            }
+
             if (minifyEnabled) return // process later in proguard task
             if (!small.splitRJavaFile.exists()) return
 
@@ -1463,6 +1466,51 @@ class AppPlugin extends BundlePlugin {
 
             Log.success "[${project.name}] split R.class..."
         }
+    }
+
+    protected void hookDataBinding(JavaCompile javac) {
+        // Move android.databinding.DataBinderMapper to [pkg].databinding.DataBinderMapper
+        final String targetJavaName = 'DataBinderMapper.java'
+        File genSourceDir = new File(project.buildDir, 'generated/source')
+        File aptDir = new File(genSourceDir, 'apt/release')
+        File bindingPkgDir = new File(aptDir, 'android/databinding')
+        File dataBinderMapperJava = new File(bindingPkgDir, targetJavaName)
+        InputStreamReader ir = new InputStreamReader(new FileInputStream(dataBinderMapperJava))
+        String code = ''
+        String line
+        while ((line = ir.readLine()) != null) {
+            if (line.startsWith('package android.databinding;')) {
+                code += "package ${small.packageName}.databinding;\n"
+            } else {
+                code += line + '\n'
+            }
+        }
+        ir.close()
+
+        File smallBindingPkgDir = new File(aptDir, "$small.packagePath/databinding")
+        if (!smallBindingPkgDir.exists()) {
+            smallBindingPkgDir.mkdirs()
+        }
+        dataBinderMapperJava = new File(smallBindingPkgDir, targetJavaName)
+        dataBinderMapperJava.write(code)
+
+        project.ant.javac(srcdir: smallBindingPkgDir,
+                source: javac.sourceCompatibility,
+                target: javac.targetCompatibility,
+                destdir: javac.destinationDir,
+                includes: targetJavaName,
+                sourcepath: aptDir.path,
+                classpath: javac.classpath.asPath,
+                bootclasspath: android.bootClasspath.join(';'),
+                includeantruntime: false)
+
+        // Delete classes in package 'android.databinding'
+        File bindingClassesDir = new File(javac.destinationDir, 'android/databinding')
+        if (bindingClassesDir.exists()) {
+            bindingClassesDir.deleteDir()
+        }
+
+        Log.success "[${project.name}] split databinding classes..."
     }
 
     /**
