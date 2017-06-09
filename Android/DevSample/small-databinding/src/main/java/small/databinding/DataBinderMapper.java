@@ -1,46 +1,55 @@
-package net.wequick.small;
+package small.databinding;
 
 import android.databinding.ViewDataBinding;
 import android.databinding.DataBindingComponent;
+import android.util.Log;
 import android.view.View;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
-/**
- * Created by galen on 07/06/2017.
- */
+import net.wequick.small.Small;
 
 public class DataBinderMapper {
 
-    private HashMap<String, DataBinderMappable> dataBinderMappers;
+    private static final String TAG = "SmallDataBinding";
+    private static final int PASSING_LAYOUT_ID = 1;
+
+    private HashMap<String, DataBinderMapperWrapper> dataBinderMappers;
     private ArrayList<String> unresolvedPackages;
     private String bindingLayoutTag;
     private String bindingPackageName;
 
     private String getPackageName(int resId) {
-        return Small.getContext().getResources().getResourcePackageName(resId);
+        try {
+            return Small.getContext().getResources().getResourcePackageName(resId);
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to get package name from resource id: "
+                    + String.format("0x%08x", resId));
+            return null;
+        }
     }
 
-    private DataBinderMappable getSubMapper(View view) {
-        return getSubMapper(getPackageName(view.getId()));
+    private DataBinderMapperWrapper getSubMapper(int layoutId) {
+        return getSubMapper(getPackageName(layoutId));
     }
 
-    private DataBinderMappable getSubMapper(String pkg) {
+    private DataBinderMapperWrapper getSubMapper(String pkg) {
+        if (pkg == null) {
+            return null;
+        }
+
         if (unresolvedPackages != null && unresolvedPackages.contains(pkg)) {
             return null;
         }
 
-        DataBinderMappable subMapper = null;
+        DataBinderMapperWrapper subMapper = null;
         if (dataBinderMappers != null) {
             subMapper = dataBinderMappers.get(pkg);
         }
         if (subMapper == null) {
-            try {
-                Class bindingClass = Class.forName(pkg + ".databinding.DataBinderMapper");
-                subMapper = (DataBinderMappable) bindingClass.getConstructors()[0].newInstance();
-            } catch (Exception e) {
-                e.printStackTrace();
+            subMapper = DataBinderMapperWrapper.wrap(pkg);
+            if (subMapper == null) {
                 if (unresolvedPackages == null) {
                     unresolvedPackages = new ArrayList<>();
                 }
@@ -57,13 +66,13 @@ public class DataBinderMapper {
         return subMapper;
     }
 
-    public ViewDataBinding getDataBinder(DataBindingComponent bindingComponent, android.view.View view, int layoutId) {
-        DataBinderMappable subMapper = getSubMapper(view);
+    public ViewDataBinding getDataBinder(DataBindingComponent bindingComponent, View view, int layoutId) {
+        DataBinderMapperWrapper subMapper = getSubMapper(layoutId);
         if (subMapper == null) {
             return null;
         }
 
-        layoutId = subMapper.getLayoutId(bindingLayoutTag);
+        layoutId = subMapper.getLayoutId((String) view.getTag());
         if (layoutId == 0) {
             bindingPackageName = null;
             throw new IllegalArgumentException("View is not a binding layout");
@@ -72,13 +81,13 @@ public class DataBinderMapper {
         return subMapper.getDataBinder(bindingComponent, view, layoutId);
     }
 
-    ViewDataBinding getDataBinder(DataBindingComponent bindingComponent, android.view.View[] views, int layoutId) {
-        DataBinderMappable subMapper = getSubMapper(views[0]);
+    ViewDataBinding getDataBinder(DataBindingComponent bindingComponent, View[] views, int layoutId) {
+        DataBinderMapperWrapper subMapper = getSubMapper(layoutId);
         if (subMapper == null) {
             return null;
         }
 
-        layoutId = subMapper.getLayoutId(bindingLayoutTag);
+        layoutId = subMapper.getLayoutId((String) views[0].getTag());
         if (layoutId == 0) {
             bindingPackageName = null;
             throw new IllegalArgumentException("View is not a binding layout");
@@ -88,8 +97,9 @@ public class DataBinderMapper {
     }
 
     int getLayoutId(String tag) {
-        bindingLayoutTag = tag;
-        return 1;
+        // Passing a non-zero layout id so that we can invoke the `getDataBinder' method
+        // in which we'll resolve the real layout id.
+        return PASSING_LAYOUT_ID;
     }
 
     String convertBrIdToString(int id) {
@@ -97,7 +107,7 @@ public class DataBinderMapper {
             return null;
         }
 
-        DataBinderMappable subMapper = getSubMapper(bindingPackageName);
+        DataBinderMapperWrapper subMapper = getSubMapper(bindingPackageName);
         if (subMapper == null) {
             return null;
         }

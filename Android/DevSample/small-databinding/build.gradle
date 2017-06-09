@@ -9,9 +9,6 @@ android {
         targetSdkVersion 25
         versionCode 1
         versionName "1.0"
-
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
     }
     buildTypes {
         release {
@@ -22,15 +19,50 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
-    compile 'com.android.support:appcompat-v7:25.3.1'
-    testCompile 'junit:junit:4.12'
-
     provided project(':small')
     provided 'com.android.databinding:library:1.3.1'
     provided 'com.android.databinding:baseLibrary:2.3.0'
     provided 'com.android.databinding:adapters:1.3.1'
+}
+
+//
+// Script to provided 'android.databinding.DataBindingComponent' class
+//
+
+afterEvaluate {
+    Jar stubJarTask = project.tasks['packageStubDataBindingClasses']
+    JavaCompile stubJavac = project.tasks['compileStubDataBindingWithJavac']
+    stubJarTask.dependsOn stubJavac
+    project.tasks.withType(JavaCompile.class).each {
+        if (it == stubJavac) return
+
+        it.dependsOn stubJarTask
+        it.doFirst {
+            it.classpath += project.fileTree(dir: stubJarTask.destinationDir, include: ['*.jar'])
+        }
+    }
+}
+
+project.task('compileStubDataBindingWithJavac', type: JavaCompile) { JavaCompile javac ->
+    File sourceDir = new File(project.projectDir, 'src/main/stub')
+    File destinationDir = new File(project.buildDir, 'intermediates/classes/stub')
+
+    javac.source = sourceDir
+    javac.destinationDir destinationDir
+
+    javac.classpath = project.configurations.getByName('compile')
+    javac.inputs.dir sourceDir
+    javac.outputs.dir destinationDir
+}
+
+project.task('packageStubDataBindingClasses', type: Jar) { Jar jar ->
+    File classesDir = compileStubDataBindingWithJavac.destinationDir
+    File destinationDir = new File(project.buildDir, 'intermediates/jar/stub')
+
+    jar.extensions.add('classesDir', classesDir)
+    jar.inputs.dir classesDir
+    jar.outputs.dir destinationDir
+
+    jar.from classesDir
+    jar.destinationDir destinationDir
 }
