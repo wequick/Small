@@ -11,3 +11,4 @@ int color colorLight 0x79040001
 int color colorPrimary 0x79040002
 int color colorPrimaryDark 0x79040003
 int anim my_fade_in 0x79050000
+int layout activity_main 0x79060000
