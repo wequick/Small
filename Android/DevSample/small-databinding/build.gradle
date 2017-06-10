@@ -1,68 +1,61 @@
-apply plugin: 'com.android.library'
-
-android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.3"
-
-    defaultConfig {
-        minSdkVersion 9
-        targetSdkVersion 25
-        versionCode 1
-        versionName "1.0"
+buildscript {
+    repositories {
+        jcenter()
     }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:2.3.0'
     }
 }
 
-dependencies {
-    provided project(':small')
-    provided 'com.android.databinding:library:1.3.1'
-    provided 'com.android.databinding:baseLibrary:2.3.0'
-    provided 'com.android.databinding:adapters:1.3.1'
-}
-
-//
-// Script to provided 'android.databinding.DataBindingComponent' class
-//
-
-afterEvaluate {
-    Jar stubJarTask = project.tasks['packageStubDataBindingClasses']
-    JavaCompile stubJavac = project.tasks['compileStubDataBindingWithJavac']
-    stubJarTask.dependsOn stubJavac
-    project.tasks.withType(JavaCompile.class).each {
-        if (it == stubJavac) return
-
-        it.dependsOn stubJarTask
-        it.doFirst {
-            it.classpath += project.fileTree(dir: stubJarTask.destinationDir, include: ['*.jar'])
-        }
+allprojects {
+    repositories {
+        jcenter()
     }
 }
 
-project.task('compileStubDataBindingWithJavac', type: JavaCompile) { JavaCompile javac ->
-    File sourceDir = new File(project.projectDir, 'src/main/stub')
-    File destinationDir = new File(project.buildDir, 'intermediates/classes/stub')
+apply from: 'base.gradle'
 
-    javac.source = sourceDir
-    javac.destinationDir destinationDir
-
-    javac.classpath = project.configurations.getByName('compile')
-    javac.inputs.dir sourceDir
-    javac.outputs.dir destinationDir
+//--------------------------------------------------------------------------------------------------
+// Scripts to install plugin to local repository [~/.m2/repository]
+// > ./gradlew install
+//--------------------------------------------------------------------------------------------------
+task install(type: GradleBuild, dependsOn: 'clean') {
+    buildFile = 'install.gradle'
+    tasks = ['install']
 }
 
-project.task('packageStubDataBindingClasses', type: Jar) { Jar jar ->
-    File classesDir = compileStubDataBindingWithJavac.destinationDir
-    File destinationDir = new File(project.buildDir, 'intermediates/jar/stub')
+//--------------------------------------------------------------------------------------------------
+// Scripts to upload plugin to Bintray/JCenter [https://bintray.com/]
+// > ./gradlew bintrayUpload
+//--------------------------------------------------------------------------------------------------
+task bintrayUpload(type: GradleBuild, dependsOn: 'clean') {
+    buildFile = 'publish.gradle'
+    tasks = ['bintrayUpload']
+}
 
-    jar.extensions.add('classesDir', classesDir)
-    jar.inputs.dir classesDir
-    jar.outputs.dir destinationDir
+task doc(type: GradleBuild) {
+    buildFile = 'publish.gradle'
+    tasks = ['javadoc']
+}
 
-    jar.from classesDir
-    jar.destinationDir destinationDir
+//--------------------------------------------------------------------------------------------------
+// Helper scripts
+//--------------------------------------------------------------------------------------------------
+task ('changes') .doLast {
+    def changelog = project.file('CHANGELOG.md')
+    if (!changelog.exists()) return
+    def br = new BufferedReader(new FileReader(changelog))
+    def top = br.readLine()
+    br.close()
+
+    def loc = top.indexOf('(')
+    if (loc < 0) return
+    def date = top.substring(loc + 1)
+    loc = date.indexOf(')')
+    date = date.substring(0, loc)
+
+    project.exec {
+        executable 'git'
+        args 'log', '--pretty=format:%cd #%h @%cn %s', '--date=short', "--since=$date", project.projectDir
+    }
 }

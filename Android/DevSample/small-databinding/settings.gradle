@@ -1,0 +1,4 @@
+rootProject.name = 'databinding'
+//
+//include ':small'
+//project(':small').projectDir = new File("../small")
