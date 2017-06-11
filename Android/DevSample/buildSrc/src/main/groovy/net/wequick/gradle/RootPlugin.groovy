@@ -175,9 +175,11 @@ class RootPlugin extends BasePlugin {
             def cfg = p.configurations.compile
             def supportDependencies = []
             cfg.dependencies.each { d ->
-                if (d.group == 'com.android.support' && d.version != sv) {
-                    supportDependencies.add(d)
-                }
+                if (d.group != 'com.android.support') return
+                if (d.name == 'multidex') return
+                if (d.version == sv) return
+
+                supportDependencies.add(d)
             }
             cfg.dependencies.removeAll(supportDependencies)
             supportDependencies.each { d ->
@@ -369,7 +371,7 @@ class RootPlugin extends BasePlugin {
         }
         def cfg = p.configurations.compile
         def supportLib = cfg.dependencies.find { d ->
-            d.group == 'com.android.support'
+            d.group == 'com.android.support' && d.name != 'multidex'
         }
         def supportVer = supportLib != null ? supportLib.version : ''
         return [sdk: sdk,
