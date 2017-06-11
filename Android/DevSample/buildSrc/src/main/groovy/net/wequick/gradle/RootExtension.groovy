@@ -35,10 +35,10 @@ public class RootExtension extends BaseExtension {
     private static final VersionNumber REQUIRED_AAR_REVISION = VersionNumber.parse(REQUIRED_AAR_VERSION)
 
     /** The built version of gradle-small plugin */
-    public static final String PLUGIN_VERSION = '1.2.0-alpha5'
+    public static final String PLUGIN_VERSION = '1.3.0-beta1'
     public static final VersionNumber PLUGIN_REVISION = VersionNumber.parse(PLUGIN_VERSION)
 
-    private static final String BINDING_AAR_VERSION = '1.0.2'
+    private static final String BINDING_AAR_VERSION = '1.1.0'
 
     /** 
      * Version of aar net.wequick.small:small

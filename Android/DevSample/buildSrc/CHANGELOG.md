@@ -1,3 +1,12 @@
+## 1.3.0-beta1 (2017-06-12)
+
+Features:
+
+  - 支持 `annotationProcessor`，包括 ButterKnife8, Dagger2 等
+  - 支持 `dataBinding`
+
+    > 需要在宿主 build.gradle 里开启 `dataBinding`
+
 ## 1.2.0-alpha5 (2017-06-11)
 
 Bugfixes:

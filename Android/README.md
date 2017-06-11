@@ -26,14 +26,14 @@
     ```groovy
     buildscript  {
         dependencies {
-            classpath 'net.wequick.tools.build:gradle-small:1.2.0-alpha5'
+            classpath 'net.wequick.tools.build:gradle-small:1.3.0-beta1'
         }
     }
     
     apply plugin: 'net.wequick.small'
     
     small {
-        aarVersion = '1.2.0-alpha5'
+        aarVersion = '1.3.0-beta1'
     }
     ```
     
