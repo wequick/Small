@@ -16,46 +16,111 @@ allprojects {
 apply from: 'base.gradle'
 
 //--------------------------------------------------------------------------------------------------
-// Scripts to install plugin to local repository [~/.m2/repository]
-// > ./gradlew install
-//--------------------------------------------------------------------------------------------------
-task install(type: GradleBuild, dependsOn: 'clean') {
-    buildFile = 'install.gradle'
-    tasks = ['install']
-}
-
-//--------------------------------------------------------------------------------------------------
 // Scripts to upload plugin to Bintray/JCenter [https://bintray.com/]
 // > ./gradlew bintrayUpload
 //--------------------------------------------------------------------------------------------------
-task bintrayUpload(type: GradleBuild, dependsOn: 'clean') {
-    buildFile = 'publish.gradle'
-    tasks = ['bintrayUpload']
-}
-
-task doc(type: GradleBuild) {
-    buildFile = 'publish.gradle'
-    tasks = ['javadoc']
-}
-
-//--------------------------------------------------------------------------------------------------
-// Helper scripts
-//--------------------------------------------------------------------------------------------------
-task ('changes') .doLast {
-    def changelog = project.file('CHANGELOG.md')
-    if (!changelog.exists()) return
-    def br = new BufferedReader(new FileReader(changelog))
-    def top = br.readLine()
-    br.close()
-
-    def loc = top.indexOf('(')
-    if (loc < 0) return
-    def date = top.substring(loc + 1)
-    loc = date.indexOf(')')
-    date = date.substring(0, loc)
-
-    project.exec {
-        executable 'git'
-        args 'log', '--pretty=format:%cd #%h @%cn %s', '--date=short', "--since=$date", project.projectDir
+buildscript {
+    repositories {
+        mavenCentral()
     }
+    dependencies {
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
+    }
+}
+
+apply plugin: 'com.github.dcendents.android-maven'
+
+buildscript {
+    dependencies {
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6'
+    }
+}
+
+apply plugin: 'com.jfrog.bintray'
+
+def gitUrl = "${siteUrl}.git"
+def issueUrl = "${siteUrl}/issues"
+
+def licenseIds = ['Apache-2.0']
+def licenseNames = ['The Apache Software License, Version 2.0']
+def licenseUrls = ['http://www.apache.org/licenses/LICENSE-2.0.txt']
+def inception = '2015'
+
+def username = 'Galen Lin'
+
+install {
+    repositories {
+        mavenInstaller {
+            pom.artifactId = rootProject.name
+            pom.project {
+                packaging 'jar'
+                name mavenDesc
+                url siteUrl
+
+                inceptionYear inception
+
+                licenses {
+                    licenseNames.eachWithIndex { ln, li ->
+                        license {
+                            name ln
+                            url licenseUrls[li]
+                        }
+                    }
+                }
+                developers {
+                    developer {
+                        name username
+                    }
+                }
+                scm {
+                    connection gitUrl
+                    developerConnection gitUrl
+                    url siteUrl
+                }
+            }
+        }
+    }
+}
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+task javadoc(type: Javadoc) {
+    failOnError = false
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    options.locale = 'en_US'
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+
+// Bintray upload
+bintray.user = project.hasProperty('bintrayUser') ? project.property('bintrayUser') :
+        System.getenv('BINTRAY_USER')
+bintray.key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') :
+        System.getenv('BINTRAY_API_KEY')
+bintray.apiUrl = 'https://api.bintray.com'
+bintray.configurations = ['archives']
+bintray.pkg {
+    userOrg = "wequick"
+    repo = "maven"
+    name = "${project.group}:${rootProject.name}"
+    desc = mavenDesc
+    websiteUrl = siteUrl
+    vcsUrl = gitUrl
+    issueTrackerUrl = issueUrl
+    licenses = licenseIds
+    labels = project.tags.split(',')
+    publish = true
+    publicDownloadNumbers = true
 }
