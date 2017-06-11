@@ -38,11 +38,18 @@ public class RootExtension extends BaseExtension {
     public static final String PLUGIN_VERSION = '1.2.0-alpha4'
     public static final VersionNumber PLUGIN_REVISION = VersionNumber.parse(PLUGIN_VERSION)
 
+    private static final String BINDING_AAR_VERSION = '1.0.2'
+
     /** 
      * Version of aar net.wequick.small:small
      * default to `gradle-small' plugin version 
      */
     String aarVersion
+
+    /**
+     * Version of aar net.wequick.support:databinding
+     */
+    String bindingAarVersion
 
     /**
      * Host module name
@@ -220,6 +227,16 @@ public class RootExtension extends BaseExtension {
         }
 
         return aarVersion
+    }
+
+    public String getBindingAarVersion() {
+        if (bindingAarVersion != null) return bindingAarVersion
+
+        return BINDING_AAR_VERSION
+    }
+
+    public void setBindingAarVersion(String version) {
+        bindingAarVersion = version
     }
 
     Map<String, Set<String>> bundleModules = [:]

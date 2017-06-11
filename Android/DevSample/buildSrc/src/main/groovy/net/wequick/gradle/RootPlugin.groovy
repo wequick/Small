@@ -258,6 +258,32 @@ class RootPlugin extends BasePlugin {
                 }
             }
 
+            // small databinding
+            if (small.hostProject.android.dataBinding.enabled) {
+                print String.format('%24s', 'small binding aar : ')
+                if (small.smallBindingProject != null) {
+                    def prop = new Properties()
+                    prop.load(small.smallBindingProject.file('gradle.properties').newDataInputStream())
+                    println "${prop.getProperty('version')} (project)"
+                } else {
+                    def aarVersion = small.bindingAarVersion
+                    def module = small.hostProject.configurations.compile
+                            .resolvedConfiguration.firstLevelModuleDependencies.find {
+                        it.moduleGroup == 'small.support' && it.moduleName == 'databinding'
+                    }
+                    File pluginDir = module.moduleArtifacts.first().file.parentFile
+                    if (pluginDir.name == module.moduleVersion) {
+                        // local maven:
+                        // ~/.m2/repository/net/wequick/tools/build/gradle-small/1.0.0-beta9/gradle-small-1.0.0-beta9.jar
+                        println "$aarVersion (local maven)"
+                    } else {
+                        // remote maven:
+                        // ~/.gradle/caches/modules-2/files-2.1/net.wequick.tools.build/gradle-small/1.0.0-beta9/8db229545a888ab25e210a9e574c0261e6a7a52d/gradle-small-1.0.0-beta9.jar
+                        println "$aarVersion (maven)"
+                    }
+                }
+            }
+
             // gradle version
             print String.format('%24s', 'gradle core : ')
             println project.gradle.gradleVersion

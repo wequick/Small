@@ -42,7 +42,7 @@ class HostPlugin extends AndroidPlugin {
                 if (rootSmall.smallProject != null) {
                     project.dependencies.add('compile', rootSmall.smallBindingProject)
                 } else {
-                    project.dependencies.add('compile', "${SMALL_BINDING_AAR_PREFIX}$rootSmall.aarVersion")
+                    project.dependencies.add('compile', "${SMALL_BINDING_AAR_PREFIX}$rootSmall.bindingAarVersion")
                 }
             }
         }
