@@ -1478,12 +1478,29 @@ class AppPlugin extends BundlePlugin {
         InputStreamReader ir = new InputStreamReader(new FileInputStream(dataBinderMapperJava))
         String code = ''
         String line
+        def rules = [
+                [from: 'package android.databinding;', to: "package ${small.packageName}.databinding;", full: true],
+                [from: 'class DataBinderMapper', to: 'class DataBinderMapper implements small.databinding.DataBinderMappable'],
+                [from: '    android.databinding.ViewDataBinding getDataBinder', to: '    public android.databinding.ViewDataBinding getDataBinder'],
+                [from: '    int getLayoutId', to: '    public int getLayoutId'],
+                [from: '    String convertBrIdToString', to: '    public String convertBrIdToString']
+        ]
         while ((line = ir.readLine()) != null) {
-            if (line.startsWith('package android.databinding;')) {
-                code += "package ${small.packageName}.databinding;\n"
-            } else {
-                code += line + '\n'
+            boolean parsed = false
+            for (Map rule : rules) {
+                if (!rule.parsed && line.startsWith(rule.from)) {
+                    if (rule.full) {
+                        code += rule.to + '\n'
+                    } else {
+                        code += line.replace(rule.from, rule.to) + '\n'
+                    }
+                    rule.parsed = parsed = true
+                    break
+                }
             }
+            if (parsed) continue
+
+            code += line + '\n'
         }
         ir.close()
 

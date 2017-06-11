@@ -21,6 +21,7 @@ import android.databinding.DataBindingComponent;
 import android.util.Log;
 import android.view.View;
 
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -31,7 +32,7 @@ public class DataBinderMapper {
     private static final String TAG = "SmallDataBinding";
     private static final int PASSING_LAYOUT_ID = 1;
 
-    private HashMap<String, DataBinderMapperWrapper> dataBinderMappers;
+    private HashMap<String, DataBinderMappable> dataBinderMappers;
     private ArrayList<String> unresolvedPackages;
     private String bindingPackageName;
 
@@ -45,11 +46,11 @@ public class DataBinderMapper {
         }
     }
 
-    private DataBinderMapperWrapper getSubMapper(int layoutId) {
+    private DataBinderMappable getSubMapper(int layoutId) {
         return getSubMapper(getPackageName(layoutId));
     }
 
-    private DataBinderMapperWrapper getSubMapper(String pkg) {
+    private DataBinderMappable getSubMapper(String pkg) {
         if (pkg == null) {
             return null;
         }
@@ -58,18 +59,22 @@ public class DataBinderMapper {
             return null;
         }
 
-        DataBinderMapperWrapper subMapper = null;
+        DataBinderMappable subMapper = null;
         if (dataBinderMappers != null) {
             subMapper = dataBinderMappers.get(pkg);
         }
         if (subMapper == null) {
-            subMapper = DataBinderMapperWrapper.wrap(pkg);
-            if (subMapper == null) {
+            try {
+                Class bindingClass = Class.forName(pkg + ".databinding.DataBinderMapper");
+                Constructor constructor = bindingClass.getConstructor(new Class[]{});
+                constructor.setAccessible(true);
+                subMapper = (DataBinderMappable) constructor.newInstance();
+            } catch (Exception e) {
                 if (unresolvedPackages == null) {
                     unresolvedPackages = new ArrayList<>();
                 }
                 unresolvedPackages.add(pkg);
-                return null;
+                throw new RuntimeException("Failed to get DataBinderMapper for package '" + pkg + "'.", e);
             }
         }
 
@@ -82,7 +87,7 @@ public class DataBinderMapper {
     }
 
     public ViewDataBinding getDataBinder(DataBindingComponent bindingComponent, View view, int layoutId) {
-        DataBinderMapperWrapper subMapper = getSubMapper(layoutId);
+        DataBinderMappable subMapper = getSubMapper(layoutId);
         if (subMapper == null) {
             return null;
         }
@@ -97,7 +102,7 @@ public class DataBinderMapper {
     }
 
     ViewDataBinding getDataBinder(DataBindingComponent bindingComponent, View[] views, int layoutId) {
-        DataBinderMapperWrapper subMapper = getSubMapper(layoutId);
+        DataBinderMappable subMapper = getSubMapper(layoutId);
         if (subMapper == null) {
             return null;
         }
@@ -122,7 +127,7 @@ public class DataBinderMapper {
             return null;
         }
 
-        DataBinderMapperWrapper subMapper = getSubMapper(bindingPackageName);
+        DataBinderMappable subMapper = getSubMapper(bindingPackageName);
         if (subMapper == null) {
             return null;
         }
