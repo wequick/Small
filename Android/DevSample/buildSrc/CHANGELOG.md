@@ -1,3 +1,10 @@
+## 1.2.0-alpha5 (2017-06-11)
+
+Bugfixes:
+
+  - 修正全局 `supportVersion` 导致的 `multidex` 依赖无法解析问题 (#456)
+  - 修正 `cleanLib` 没有 clean 宿主分身的问题
+
 ## 1.2.0-alpha4 (2017-06-06)
 
 Bugfixes:

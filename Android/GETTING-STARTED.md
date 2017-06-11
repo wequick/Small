@@ -32,7 +32,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:1.3.0'
-        classpath 'net.wequick.tools.build:gradle-small:1.2.0-alpha4'
+        classpath 'net.wequick.tools.build:gradle-small:1.2.0-alpha5'
     }
 }
 
@@ -47,7 +47,7 @@ apply plugin: 'net.wequick.small'
 
 ```groovy
 small {
-    aarVersion = '1.2.0-alpha4'
+    aarVersion = '1.2.0-alpha5'
 }
 ```
 
