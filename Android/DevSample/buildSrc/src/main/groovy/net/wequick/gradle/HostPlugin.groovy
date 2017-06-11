@@ -70,14 +70,14 @@ class HostPlugin extends AndroidPlugin {
     protected void configureDebugVariant(BaseVariant variant) {
         super.configureDebugVariant(variant)
 
-        hookDataBinding(variant.javaCompile)
+        hookDataBinding(variant.javaCompile, variant.dirName)
     }
 
     @Override
     protected void configureReleaseVariant(BaseVariant variant) {
         super.configureReleaseVariant(variant)
 
-        hookDataBinding(variant.javaCompile)
+        hookDataBinding(variant.javaCompile, variant.dirName)
 
         if (small.jar != null) return // Handle once for multi flavors
 
@@ -93,12 +93,16 @@ class HostPlugin extends AndroidPlugin {
         project.buildLib.dependsOn small.jar
     }
 
-    def hookDataBinding(JavaCompile javac) {
+    def hookDataBinding(JavaCompile javac, String variantDirName) {
         if (!android.dataBinding.enabled) return
 
         javac.doLast {
             // Recompile android.databinding.DataBinderMapper
-            File aptDir = new File(project.buildDir, 'generated/source/apt/wequick/debug')
+            File aptDir = new File(project.buildDir, "generated/source/apt/$variantDirName")
+            if (!aptDir.exists()) {
+                return
+            }
+
             File bindingPkgDir = new File(aptDir, 'android/databinding')
             File dataBinderMapperJava = new File(bindingPkgDir, 'DataBinderMapper.java')
             InputStreamReader ir = new InputStreamReader(new FileInputStream(dataBinderMapperJava))

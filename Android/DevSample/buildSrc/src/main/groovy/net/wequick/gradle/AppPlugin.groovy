@@ -1008,7 +1008,7 @@ class AppPlugin extends BundlePlugin {
 
         hookAapt(small.aapt)
 
-        hookJavac(small.javac, variant.buildType.minifyEnabled)
+        hookJavac(small.javac, variant)
 
         hookKotlinCompile()
 
@@ -1439,13 +1439,14 @@ class AppPlugin extends BundlePlugin {
     /**
      * Hook javac task to split libraries' R.class
      */
-    private def hookJavac(Task javac, boolean minifyEnabled) {
+    private def hookJavac(Task javac, BaseVariant variant) {
         addClasspath(javac)
         javac.doLast { JavaCompile it ->
             if (android.dataBinding.enabled) {
-                hookDataBinding(javac)
+                hookDataBinding(javac, variant.dirName)
             }
 
+            boolean minifyEnabled = variant.buildType.minifyEnabled
             if (minifyEnabled) return // process later in proguard task
             if (!small.splitRJavaFile.exists()) return
 
@@ -1468,11 +1469,11 @@ class AppPlugin extends BundlePlugin {
         }
     }
 
-    protected void hookDataBinding(JavaCompile javac) {
+    protected void hookDataBinding(JavaCompile javac, String variantDirName) {
         // Move android.databinding.DataBinderMapper to [pkg].databinding.DataBinderMapper
         final String targetJavaName = 'DataBinderMapper.java'
         File genSourceDir = new File(project.buildDir, 'generated/source')
-        File aptDir = new File(genSourceDir, 'apt/release')
+        File aptDir = new File(genSourceDir, "apt/$variantDirName")
         File bindingPkgDir = new File(aptDir, 'android/databinding')
         File dataBinderMapperJava = new File(bindingPkgDir, targetJavaName)
         InputStreamReader ir = new InputStreamReader(new FileInputStream(dataBinderMapperJava))
