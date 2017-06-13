@@ -71,6 +71,7 @@ public class StripAarTransform extends Transform {
             it.jarInputs.each {
                 // Strip jars in aar or build-cache under android plugin 2.3.0+
                 File src = it.file
+                println("striparr inputs=" + src.path)
                 AarPath aarPath = new AarPath(project, src)
                 for (aar in small.splitAars) {
                     if (aarPath.explodedFromAar(aar)) {
@@ -79,6 +80,10 @@ public class StripAarTransform extends Transform {
                 }
 
                 String destName = aarPath.module.fileName
+                //prevent aar have some local jar included in libs cause destName override as same one
+                if (src.parentFile.name.contains("libs")) {
+                    destName = destName + "-" + src.name.substring(0,src.name.lastIndexOf("."))
+                }
                 File dest = outputProvider.getContentLocation(
                         destName, it.contentTypes, it.scopes, Format.JAR)
                 FileUtils.copyFile(it.file, dest)
