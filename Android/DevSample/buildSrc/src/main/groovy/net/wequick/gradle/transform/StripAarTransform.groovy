@@ -71,7 +71,6 @@ public class StripAarTransform extends Transform {
             it.jarInputs.each {
                 // Strip jars in aar or build-cache under android plugin 2.3.0+
                 File src = it.file
-                println("striparr inputs=" + src.path)
                 AarPath aarPath = new AarPath(project, src)
                 for (aar in small.splitAars) {
                     if (aarPath.explodedFromAar(aar)) {
