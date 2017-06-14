@@ -29,4 +29,7 @@ android:
 jdk:
   - oraclejdk8
 script:
-  - cd Android/DevSample && ./gradlew smallLint -q
+  - cd Android/DevSample
+  - ./gradlew buildLib -q -Dorg.gradle.parallel=false -Dorg.gradle.daemon=true
+  - ./gradlew buildBundle -q -Dorg.gradle.parallel=true -Dorg.gradle.daemon=true
+  - ./gradlew smallLint -q
