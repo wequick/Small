@@ -79,10 +79,6 @@ public class StripAarTransform extends Transform {
                 }
 
                 String destName = aarPath.module.fileName
-                //prevent aar have some local jar included in libs cause destName override as same one
-                if (src.parentFile.name.contains("libs")) {
-                    destName = destName + "-" + src.name.substring(0,src.name.lastIndexOf("."))
-                }
                 File dest = outputProvider.getContentLocation(
                         destName, it.contentTypes, it.scopes, Format.JAR)
                 FileUtils.copyFile(it.file, dest)
