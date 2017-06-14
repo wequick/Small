@@ -79,6 +79,9 @@ public class StripAarTransform extends Transform {
                 }
 
                 String destName = aarPath.module.fileName
+                if (src.parentFile.name == 'libs') {
+                    destName += '-' + src.name.substring(0, src.name.lastIndexOf('.'))
+                }
                 File dest = outputProvider.getContentLocation(
                         destName, it.contentTypes, it.scopes, Format.JAR)
                 FileUtils.copyFile(it.file, dest)

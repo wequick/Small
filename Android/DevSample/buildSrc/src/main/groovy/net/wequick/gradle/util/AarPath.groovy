@@ -177,10 +177,6 @@ public class AarPath {
 
                 def hash = inputFile.parentFile.name
                 module.fileName = "$module.name-$module.version-$hash"
-                //prevent aar have some local jar included in libs cause destName override as same one
-                if (mOutputDir.parentFile.name == "libs") {
-                    module.fileName += "-" + mOutputDir.name.substring(0, mOutputDir.name.lastIndexOf("."))
-                }
             }
         }
 
