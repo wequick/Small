@@ -191,6 +191,12 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 // with a different process('android:process=xx'), then we should also setup Small for
                 // that process so that the service classes can be successfully loaded.
                 Small.setUpOnDemand();
+            } else {
+                // The application might be started up by a background service
+                if (Small.isFirstSetUp()) {
+                    Log.e(TAG, "Starting service before Small has setup, this might block the main thread!");
+                }
+                Small.setUpOnDemand();
             }
         }
 

@@ -90,6 +90,13 @@ class RootPlugin extends BasePlugin {
                         def idx = it.name.indexOf('.')
                         if (idx < 0) return
 
+                        char c = it.name.charAt(idx + 1)
+                        if (c.isDigit()) {
+                            // This might be a local aar module composed by name and version
+                            // as 'feature-1.1.0'
+                            return
+                        }
+
                         type = it.name.substring(0, idx)
                     }
 

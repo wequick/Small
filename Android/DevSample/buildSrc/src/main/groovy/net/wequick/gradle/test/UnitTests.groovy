@@ -140,6 +140,7 @@ class UnitTests {
         def tests = []
 
         // Built-in tests
+        tests.add(new BundleManifestTests(project))
         tests.add(new DuplicateClassesTests(project))
 
         // User tests

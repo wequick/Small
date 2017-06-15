@@ -62,7 +62,7 @@ public class AarPath {
         mOutputDir = path
         mInputFile = parseInputFile(path)
     }
-    
+
     private static File parseInputFile(File outputDir) {
         // Find the build cache root which should be something as
         // `~/.android/build-cache` on Android Plugin 2.3.0+
@@ -183,7 +183,7 @@ public class AarPath {
         if (module.group == null) {
             throw new RuntimeException("Failed to parse aar module from $inputFile")
         }
-        
+
         return module
     }
 
@@ -221,7 +221,7 @@ public class AarPath {
     }
 
     public File getOutputDir() {
-        return  mOutputDir
+        return mOutputDir
     }
 
     public Module getModule() {
