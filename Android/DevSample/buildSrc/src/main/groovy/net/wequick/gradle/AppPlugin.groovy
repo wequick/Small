@@ -397,7 +397,12 @@ class AppPlugin extends BundlePlugin {
 
         // Add reference libraries
         proguard.doFirst {
-            getLibraryJars().findAll{ it.exists() }.each {
+            def libJars = getLibraryJars()
+            if (project.configurations.hasProperty('provided')) {
+                def providedJars = project.configurations.provided.files
+                libJars.removeAll(providedJars)
+            }
+            libJars.findAll{ it.exists() }.each {
                 // FIXME: the `libraryJar' method is protected, may be depreciated
                 pt.libraryJar(it)
             }
