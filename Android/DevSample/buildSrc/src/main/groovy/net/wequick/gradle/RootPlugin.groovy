@@ -6,7 +6,6 @@ import net.wequick.gradle.tasks.CleanBundleTask
 import net.wequick.gradle.tasks.LintTask
 import net.wequick.gradle.util.DependenciesUtils
 import net.wequick.gradle.util.Log
-import net.wequick.gradle.util.TaskUtils
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.execution.TaskExecutionListener
@@ -196,6 +195,27 @@ class RootPlugin extends BasePlugin {
         }
         project.task('buildLib', group: 'small', description: 'Build all libraries').doFirst {
             buildingLibIndex = 1
+            // Copy the small-databinding-stub jar
+            def stubJarName = 'small-databinding-stub.jar'
+            InputStream is = getClass().getClassLoader().getResourceAsStream(stubJarName)
+            if (is != null) {
+                def preJarDir = small.preBaseJarDir
+                if (!preJarDir.exists()) preJarDir.mkdirs()
+
+                File destJar = new File(preJarDir, stubJarName)
+                if (!destJar.exists()) {
+                    OutputStream out = new FileOutputStream(destJar)
+                    byte[] buffer = new byte[1024];
+                    int read;
+                    while ((read = is.read(buffer)) != -1) {
+                        out.write(buffer, 0, read);
+                    }
+                    out.flush();
+                    out.close();
+                }
+
+                is.close();
+            }
         }
         project.task('cleanBundle', group: 'small', description: 'Clean all bundles')
         project.task('buildBundle', group: 'small', description: 'Build all bundles')
