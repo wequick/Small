@@ -1,3 +1,14 @@
+## 1.2.0-alpha6 (2017-06-16)
+
+Feature:
+
+  - `smallLint` 增加对宿主 `bundle.json` 配置校验
+
+Bugfixes:
+
+  - 修正未正确将 AAR 内部携带的 jar 打包入插件的问题
+  - 修正当模块名形如 'xx-1.0.0' 误被识别为插件模块的问题
+
 ## 1.3.0-beta1 (2017-06-12)
 
 Features:
