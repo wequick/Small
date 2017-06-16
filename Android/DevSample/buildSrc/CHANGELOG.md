@@ -1,3 +1,10 @@
+## 1.3.0-beta2 (2017-06-16)
+
+Bugfixes:
+
+  - 修正插件混淆时找不到 `DataBindingComponent` 的问题
+  - 修正插件混淆时重复指定 libraryJar 的问题 (#492)
+
 ## 1.2.0-alpha6 (2017-06-16)
 
 Feature:
