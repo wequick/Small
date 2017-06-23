@@ -15,7 +15,7 @@ class HostPlugin extends AndroidPlugin {
     @Override
     protected void configureProject() {
         super.configureProject()
-        
+
         project.afterEvaluate {
             // Configure libs dir
             def sourceSet = project.android.sourceSets.main
@@ -70,14 +70,12 @@ class HostPlugin extends AndroidPlugin {
     protected void configureDebugVariant(BaseVariant variant) {
         super.configureDebugVariant(variant)
 
-        hookDataBinding(variant.javaCompile, variant.dirName)
+        hookDataBinding(variant, variant.javaCompile, variant.dirName)
     }
 
     @Override
     protected void configureReleaseVariant(BaseVariant variant) {
         super.configureReleaseVariant(variant)
-
-        hookDataBinding(variant.javaCompile, variant.dirName)
 
         if (small.jar != null) return // Handle once for multi flavors
 
@@ -93,10 +91,13 @@ class HostPlugin extends AndroidPlugin {
         project.buildLib.dependsOn small.jar
     }
 
-    def hookDataBinding(JavaCompile javac, String variantDirName) {
+    def hookDataBinding(BaseVariant variant, JavaCompile javac, String variantDirName) {
         if (!android.dataBinding.enabled) return
 
         javac.doLast {
+
+            generateDatabindingForHost(variant, javac, variantDirName)
+
             // Recompile android.databinding.DataBinderMapper
             File aptDir = new File(project.buildDir, "generated/source/apt/$variantDirName")
             if (!aptDir.exists()) {
@@ -139,5 +140,63 @@ class HostPlugin extends AndroidPlugin {
 
             bak.renameTo(dataBinderMapperJava)
         }
+    }
+
+    protected void generateDatabindingForHost(BaseVariant variant, JavaCompile javac, String variantDirName) {
+        // Move android.databinding.DataBinderMapper to [pkg].databinding.DataBinderMapper
+        println("hook data binding...")
+        final String targetJavaName = 'DataBinderMapper.java'
+        File genSourceDir = new File(project.buildDir, 'generated/source')
+        File aptDir = new File(genSourceDir, "apt/$variantDirName")
+        File bindingPkgDir = new File(aptDir, 'android/databinding')
+        File dataBinderMapperJava = new File(bindingPkgDir, targetJavaName)
+        InputStreamReader ir = new InputStreamReader(new FileInputStream(dataBinderMapperJava))
+        String code = ''
+        String line
+        def rules = [
+                [from: 'package android.databinding;', to: "package ${variant.applicationId}.databinding;", full: true],
+                [from: 'class DataBinderMapper', to: 'class DataBinderMapper implements small.databinding.DataBinderMappable'],
+                [from: '    android.databinding.ViewDataBinding getDataBinder', to: '    public android.databinding.ViewDataBinding getDataBinder'],
+                [from: '    int getLayoutId', to: '    public int getLayoutId'],
+                [from: '    String convertBrIdToString', to: '    public String convertBrIdToString']
+        ]
+        while ((line = ir.readLine()) != null) {
+            boolean parsed = false
+            for (Map rule : rules) {
+                if (!rule.parsed && line.startsWith(rule.from)) {
+                    if (rule.full) {
+                        code += rule.to + '\n'
+                    } else {
+                        code += line.replace(rule.from, rule.to) + '\n'
+                    }
+                    rule.parsed = parsed = true
+                    break
+                }
+            }
+            if (parsed) continue
+
+            code += line + '\n'
+        }
+        ir.close()
+
+        String packagePath = variant.applicationId.replaceAll('\\.', '/')
+        File smallBindingPkgDir = new File(aptDir, "$packagePath/databinding")
+        if (!smallBindingPkgDir.exists()) {
+            smallBindingPkgDir.mkdirs()
+        }
+        dataBinderMapperJava = new File(smallBindingPkgDir, targetJavaName)
+        dataBinderMapperJava.write(code)
+
+        project.ant.javac(srcdir: smallBindingPkgDir,
+                source: javac.sourceCompatibility,
+                target: javac.targetCompatibility,
+                destdir: javac.destinationDir,
+                includes: targetJavaName,
+                sourcepath: aptDir.path,
+                classpath: javac.classpath.asPath,
+                bootclasspath: android.bootClasspath.join(';'),
+                includeantruntime: false)
+
+
     }
 }
