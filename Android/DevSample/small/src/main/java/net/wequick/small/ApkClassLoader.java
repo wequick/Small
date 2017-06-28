@@ -156,6 +156,11 @@ class ApkClassLoader extends ClassLoader {
     }
 
     @Override
+    protected Class<?> findClass(String name) throws ClassNotFoundException {
+        return super.findClass(name);
+    }
+
+    @Override
     protected String findLibrary(String libraryName) {
         String fileName = System.mapLibraryName(libraryName);
 
@@ -288,7 +293,7 @@ class ApkClassLoader extends ClassLoader {
                 }
             }
 
-            return null;
+            return super.findClass(name);
         }
 
     }
