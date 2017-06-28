@@ -102,6 +102,14 @@ class ApkClassLoader extends ClassLoader {
         paths[0] = app.getPackageResourcePath(); // add host asset path
         int i = 1;
         for (ApkElement apk : mApks) {
+            if (Small.getBundleUpgraded(apk.packageName)) {
+                // If upgraded, delete the opt dex file for recreating
+                File optDexFile = new File(apk.optDexPath);
+                if (optDexFile.exists()){
+                    optDexFile.delete();
+                }
+                Small.setBundleUpgraded(apk.packageName, false);
+            }
             if (apk.nonResources) continue; // ignores the empty entry to fix #62
 
             paths[i++] = apk.path; // add plugin asset path
@@ -112,6 +120,8 @@ class ApkClassLoader extends ClassLoader {
         }
         mMergedAssetPaths = paths;
         ReflectAccelerator.mergeResources(app, paths, false);
+
+
 
         // Trigger all the bundle application `onCreate' event
         final ArrayList<ApkElement> lazyApks = new ArrayList<ApkElement>();
