@@ -121,8 +121,6 @@ class ApkClassLoader extends ClassLoader {
         mMergedAssetPaths = paths;
         ReflectAccelerator.mergeResources(app, paths, false);
 
-
-
         // Trigger all the bundle application `onCreate' event
         final ArrayList<ApkElement> lazyApks = new ArrayList<ApkElement>();
         for (ApkElement apk : mApks) {
