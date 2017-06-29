@@ -55,13 +55,23 @@ public class ReflectAccelerator {
     private static ArrayMap<Object, WeakReference<Object>> sResourceImpls;
     private static Object/*ResourcesImpl*/ sMergedResourcesImpl;
 
+    private static ActivityThread sActivityThread;
+
     private ReflectAccelerator() { /* cannot be instantiated */ }
 
     //______________________________________________________________________________________________
     // API
 
+    static ActivityThread getActivityThread() {
+        return sActivityThread;
+    }
+
+    public static void setActivityThread(ActivityThread thread) {
+        sActivityThread = thread;
+    }
+
     public static void mergeResources(Application app, String[] assetPaths, boolean updateActivities) {
-        ActivityThread activityThread = ActivityThread.currentActivityThread();
+        ActivityThread activityThread = getActivityThread();
         AssetManager newAssetManager;
         if (Build.VERSION.SDK_INT < 24) {
             newAssetManager = new AssetManager();

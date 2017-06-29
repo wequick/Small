@@ -28,6 +28,8 @@ import android.content.pm.PackageInfo;
 import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 
+import net.wequick.small.util.ReflectAccelerator;
+
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
@@ -106,6 +108,8 @@ class ApkBundleLauncher extends SoBundleLauncher {
         } catch (Throwable e) {
             throw new RuntimeException("Failed to replace host class loader!", e);
         }
+
+        ReflectAccelerator.setActivityThread(thread);
     }
 
     @Override

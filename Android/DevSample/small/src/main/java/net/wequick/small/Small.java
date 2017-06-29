@@ -17,7 +17,6 @@
 package net.wequick.small;
 
 import android.app.Activity;
-import android.app.ActivityThread;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
@@ -67,6 +66,8 @@ public final class Small {
     private static int sLaunchingHostVersionCode;
     private static int sWebActivityTheme;
 
+    private static Application sContext;
+
     private static boolean sLoadFromAssets;
 
     public static boolean isLoadFromAssets() {
@@ -82,7 +83,7 @@ public final class Small {
     }
 
     public static Application getContext() {
-        return ActivityThread.currentApplication();
+        return sContext;
     }
 
     public static void setBaseUri(String url) {
@@ -132,6 +133,8 @@ public final class Small {
     }
 
     public static void preSetUp(Application context) {
+        sContext = context;
+
         // Register default bundle launchers
         registerLauncher(new ActivityLauncher());
         registerLauncher(new ApkBundleLauncher());
