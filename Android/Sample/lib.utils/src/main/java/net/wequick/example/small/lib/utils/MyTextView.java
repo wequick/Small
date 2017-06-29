@@ -32,5 +32,6 @@ public class MyTextView extends TextView {
         TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.MyTextView);
         String label = ta.getString(R.styleable.MyTextView_label);
         setText("MyTextView: " + label);
+        ta.recycle();
     }
 }
