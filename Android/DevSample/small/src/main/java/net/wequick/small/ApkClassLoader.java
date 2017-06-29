@@ -102,6 +102,14 @@ class ApkClassLoader extends ClassLoader {
         paths[0] = app.getPackageResourcePath(); // add host asset path
         int i = 1;
         for (ApkElement apk : mApks) {
+            if (Small.getBundleUpgraded(apk.packageName)) {
+                // If upgraded, delete the opt dex file for recreating
+                File optDexFile = new File(apk.optDexPath);
+                if (optDexFile.exists()){
+                    optDexFile.delete();
+                }
+                Small.setBundleUpgraded(apk.packageName, false);
+            }
             if (apk.nonResources) continue; // ignores the empty entry to fix #62
 
             paths[i++] = apk.path; // add plugin asset path
@@ -153,6 +161,11 @@ class ApkClassLoader extends ClassLoader {
 
     private DexFile loadApkLocked(ApkElement apk) {
         return apk.loadDexFileLocked();
+    }
+
+    @Override
+    protected Class<?> findClass(String name) throws ClassNotFoundException {
+        return super.findClass(name);
     }
 
     @Override
@@ -288,7 +301,7 @@ class ApkClassLoader extends ClassLoader {
                 }
             }
 
-            return null;
+            return super.findClass(name);
         }
 
     }
