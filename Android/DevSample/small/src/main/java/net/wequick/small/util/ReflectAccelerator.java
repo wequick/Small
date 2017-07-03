@@ -442,8 +442,12 @@ public class ReflectAccelerator {
                 references = map.values();
             }
 
-            for (WeakReference<Resources> wr : references) {
-                Resources resources = wr.get();
+            //to array
+            WeakReference[] referenceArrays = new WeakReference[references.size()];
+            references.toArray(referenceArrays);
+
+            for (int i = 0; i < referenceArrays.length; i++) {
+                Resources resources = (Resources) referenceArrays[i].get();
                 if (resources == null) continue;
 
                 try {
@@ -475,8 +479,8 @@ public class ReflectAccelerator {
             }
 
             if (Build.VERSION.SDK_INT >= 21) {
-                for (WeakReference<Resources> wr : references) {
-                    Resources resources = wr.get();
+                for (int i = 0; i < referenceArrays.length; i++) {
+                    Resources resources = (Resources) referenceArrays[i].get();
                     if (resources == null) continue;
 
                     // android.util.Pools$SynchronizedPool<TypedArray>
