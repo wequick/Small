@@ -32,6 +32,7 @@ import android.content.pm.ServiceInfo;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.content.Context;
@@ -40,6 +41,7 @@ import android.content.pm.PackageInfo;
 import android.os.Message;
 import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.Window;
 
 import net.wequick.small.internal.InstrumentationInternal;
@@ -265,6 +267,17 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
         public InstrumentationWrapper(Instrumentation base) {
             mBase = base;
+        }
+
+        @Override public Activity newActivity(ClassLoader cl, String className, Intent intent)
+            throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+            Activity activity = mBase.newActivity(cl, className, intent);
+
+            if (Build.VERSION.SDK_INT >= 26) {
+                ReflectAccelerator.setFieldWithoutException(ContextThemeWrapper.class, activity, "mResources", Small.getContext().getResources());
+            }
+
+            return activity;
         }
 
         /** @Override V21+
