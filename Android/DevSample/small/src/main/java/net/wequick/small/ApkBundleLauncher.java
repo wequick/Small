@@ -87,6 +87,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
     private static final String TAG = "ApkBundleLauncher";
     private static final String FD_STORAGE = "storage";
     private static final String FILE_DEX = "bundle.dex";
+    private static final String STUB_QUEUE_RESTORE_KEY = "small.stubQueue";
 
     private static class LoadedApk {
         public String packageName;
@@ -318,6 +319,22 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             }
 
             sHostInstrumentation.callActivityOnCreate(activity, icicle);
+        }
+
+        @Override
+        public void callActivityOnSaveInstanceState(Activity activity, android.os.Bundle outState) {
+            sHostInstrumentation.callActivityOnSaveInstanceState(activity, outState);
+            if (mStubQueue != null) {
+                outState.putCharSequenceArray(STUB_QUEUE_RESTORE_KEY, mStubQueue);
+            }
+        }
+
+        @Override
+        public void callActivityOnRestoreInstanceState(Activity activity, android.os.Bundle savedInstanceState) {
+            sHostInstrumentation.callActivityOnRestoreInstanceState(activity, savedInstanceState);
+            if (mStubQueue == null) {
+                mStubQueue = savedInstanceState.getStringArray(STUB_QUEUE_RESTORE_KEY);
+            }
         }
 
         @Override
