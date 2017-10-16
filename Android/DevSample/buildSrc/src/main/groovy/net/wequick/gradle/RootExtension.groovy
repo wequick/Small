@@ -35,11 +35,7 @@ public class RootExtension extends BaseExtension {
     private static final VersionNumber REQUIRED_AAR_REVISION = VersionNumber.parse(REQUIRED_AAR_VERSION)
 
     /** The built version of gradle-small plugin */
-<<<<<<< HEAD
-    public static final String PLUGIN_VERSION = '1.3.0-beta2'
-=======
     public static final String PLUGIN_VERSION = '1.2.0'
->>>>>>> master
     public static final VersionNumber PLUGIN_REVISION = VersionNumber.parse(PLUGIN_VERSION)
 
     private static final String BINDING_AAR_VERSION = '1.1.0'
