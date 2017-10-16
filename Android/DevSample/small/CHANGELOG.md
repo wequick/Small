@@ -1,3 +1,13 @@
+## 1.3.0-alpha1 (2017-10-16)
+
+Features:
+
+  - 支持 Android O (8.0) (#526, @zhengxiaopeng)
+
+Bugfixes:
+
+  - 修正合并资源时可能出现的 ConcurrentModificationException (#508, @zhengxiaopeng)
+
 ## 1.2.0 (2017-10-13)
 
 Bugfixes:
