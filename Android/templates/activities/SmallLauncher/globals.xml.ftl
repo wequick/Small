@@ -5,6 +5,6 @@
     <global id="assetsOut" value="./app/src/main/assets" />
     <global id="mavenUrl" value="mavenCentral" />
     <global id="copyGradleSupported" type="boolean" value="${(compareVersions(gradlePluginVersion, '2.0') < 0)?string}" />
-    <global id="smallPluginVersion" value="1.3.0-beta2" />
-    <global id="smallAarVersion" value="1.3.0-beta2" />
+    <global id="smallPluginVersion" value="1.2.0" />
+    <global id="smallAarVersion" value="1.2.0" />
 </globals>

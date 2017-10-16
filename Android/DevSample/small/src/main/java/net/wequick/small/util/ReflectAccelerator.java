@@ -207,6 +207,11 @@ public class ReflectAccelerator {
                         // Element(File apk, File zip, DexFile dex)
                         return sDexElementConstructor.newInstance(pkg, pkg, dexFile);
                     }
+                case 1:
+                    if (Build.VERSION.SDK_INT >= 26) {
+                        //Only SDK >= 26
+                        return sDexElementConstructor.newInstance(dexFile);
+                    }
                 case 4:
                 default:
                     // Element(File apk, boolean isDir, File zip, DexFile dex)
@@ -311,9 +316,9 @@ public class ReflectAccelerator {
         }
     }
 
-    private static final class V23_ extends V14_22 {
+    private static class V23_25 extends V14_22 {
 
-        private static Field sDexPathList_nativeLibraryPathElements_field;
+        protected static Field sDexPathList_nativeLibraryPathElements_field;
 
         public static void expandNativeLibraryDirectories(ClassLoader classLoader,
                                                           List<File> libPaths) {
@@ -345,6 +350,76 @@ public class ReflectAccelerator {
                 Object[] elements = new Object[N];
                 for (int i = 0; i < N; i++) {
                     Object dexElement = makeDexElement(libPaths.get(i));
+                    elements[i] = dexElement;
+                }
+
+                expandArray(pathList, sDexPathList_nativeLibraryPathElements_field, elements, false);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static final class V26_ extends V23_25 {
+
+        private static Constructor sNativeLibraryElementConstructor;
+        private static Class sNativeLibraryElementClass;
+        private static Field sNativeLibrarysField;
+
+        /**
+         * <a href="https://android.googlesource.com/platform/libcore/+/android-o-preview-3/dalvik/src/main/java/dalvik/system/DexPathList.java">DexPathList.java</>
+         * @param libraryDir
+         * @return
+         * @throws Exception
+         */
+        private static Object makeNativeLibraryElement(File libraryDir) throws Exception {
+            if (sNativeLibraryElementClass == null) {
+                sNativeLibraryElementClass = Class.forName("dalvik.system.DexPathList$NativeLibraryElement");
+            }
+            if (sNativeLibraryElementConstructor == null) {
+                sNativeLibraryElementConstructor = sNativeLibraryElementClass.getConstructors()[0];
+                sNativeLibraryElementConstructor.setAccessible(true);
+            }
+            Class<?>[] types = sNativeLibraryElementConstructor.getParameterTypes();
+            switch (types.length) {
+                case 1:
+                    return sNativeLibraryElementConstructor.newInstance(libraryDir);
+                case 2:
+                default:
+                    return sNativeLibraryElementConstructor.newInstance(libraryDir, null);
+            }
+        }
+
+        public static void expandNativeLibraryDirectories(ClassLoader classLoader,
+            List<File> libPaths) {
+            if (sPathListField == null) return;
+
+            Object pathList = getValue(sPathListField, classLoader);
+            if (pathList == null) return;
+
+            if (sDexPathList_nativeLibraryDirectories_field == null) {
+                sDexPathList_nativeLibraryDirectories_field = getDeclaredField(
+                    pathList.getClass(), "nativeLibraryDirectories");
+                if (sDexPathList_nativeLibraryDirectories_field == null) return;
+            }
+
+            try {
+                // List<File> nativeLibraryDirectories
+                List<File> paths = getValue(sDexPathList_nativeLibraryDirectories_field, pathList);
+                if (paths == null) return;
+                paths.addAll(libPaths);
+
+                // NativeLibraryElement[] nativeLibraryPathElements
+                if (sDexPathList_nativeLibraryPathElements_field == null) {
+                    sDexPathList_nativeLibraryPathElements_field = getDeclaredField(
+                        pathList.getClass(), "nativeLibraryPathElements");
+                }
+                if (sDexPathList_nativeLibraryPathElements_field == null) return;
+
+                int N = libPaths.size();
+                Object[] elements = new Object[N];
+                for (int i = 0; i < N; i++) {
+                    Object dexElement = makeNativeLibraryElement(libPaths.get(i));
                     elements[i] = dexElement;
                 }
 
@@ -442,8 +517,12 @@ public class ReflectAccelerator {
                 references = map.values();
             }
 
-            for (WeakReference<Resources> wr : references) {
-                Resources resources = wr.get();
+            //to array
+            WeakReference[] referenceArrays = new WeakReference[references.size()];
+            references.toArray(referenceArrays);
+
+            for (int i = 0; i < referenceArrays.length; i++) {
+                Resources resources = (Resources) referenceArrays[i].get();
                 if (resources == null) continue;
 
                 try {
@@ -475,8 +554,8 @@ public class ReflectAccelerator {
             }
 
             if (Build.VERSION.SDK_INT >= 21) {
-                for (WeakReference<Resources> wr : references) {
-                    Resources resources = wr.get();
+                for (int i = 0; i < referenceArrays.length; i++) {
+                    Resources resources = (Resources) referenceArrays[i].get();
                     if (resources == null) continue;
 
                     // android.util.Pools$SynchronizedPool<TypedArray>
@@ -559,8 +638,10 @@ public class ReflectAccelerator {
             V9_13.expandNativeLibraryDirectories(classLoader, libPath);
         } else if (v < 23) {
             V14_22.expandNativeLibraryDirectories(classLoader, libPath);
+        } else if (v < 26){
+            V23_25.expandNativeLibraryDirectories(classLoader, libPath);
         } else {
-            V23_.expandNativeLibraryDirectories(classLoader, libPath);
+            V26_.expandNativeLibraryDirectories(classLoader, libPath);
         }
     }
 
@@ -723,6 +804,21 @@ public class ReflectAccelerator {
         try {
             field.set(target, value);
         } catch (IllegalAccessException e) {
+            // Ignored
+            e.printStackTrace();
+        }
+    }
+
+    public static void setField(Class clazz, Object target, String name, Object value) throws Exception {
+        Field field = clazz.getDeclaredField(name);
+        field.setAccessible(true);
+        field.set(target, value);
+    }
+
+    public static void setFieldWithoutException(Class clazz, Object target, String name, Object value) {
+        try {
+            setField(clazz, target, name, value);
+        } catch (Exception e) {
             // Ignored
             e.printStackTrace();
         }
