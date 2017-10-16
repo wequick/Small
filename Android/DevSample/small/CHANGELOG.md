@@ -1,3 +1,9 @@
+## 1.2.0 (2017-10-13)
+
+Bugfixes:
+
+  - 修正进程意外死亡重启后，StubActivity坑位问题 (#520, @xufan)
+
 ## 1.2.0-alpha6 (2017-06-16)
 
 Bugfixes:
