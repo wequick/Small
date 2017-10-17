@@ -30,6 +30,9 @@ android:
     - '.+'
 jdk:
   - oraclejdk8
+install:
+  - echo yes | sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout;1.0.2"
+  - echo yes | sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout-solver;1.0.2
 script:
   - cd Android/DevSample
   - ./gradlew buildLib -q -Dorg.gradle.parallel=false -Dorg.gradle.daemon=true
