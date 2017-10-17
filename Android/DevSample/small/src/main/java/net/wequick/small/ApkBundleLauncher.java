@@ -56,6 +56,7 @@ import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -91,15 +92,24 @@ public class ApkBundleLauncher extends SoBundleLauncher {
     private static final String FILE_DEX = "bundle.dex";
     private static final String STUB_QUEUE_RESTORE_KEY = "small.stubQueue";
 
-    private static class LoadedApk {
+    private static class LoadedApk implements Comparable {
         public String packageName;
         public File packagePath;
         public String applicationName;
+        public int order;
         public String path;
         public DexFile dexFile;
         public File optDexFile;
         public File libraryPath;
         public boolean nonResources; /** no resources.arsc */
+
+        @Override
+        public int compareTo(Object o) {
+            if (o instanceof LoadedApk) {
+                return order - ((LoadedApk) o).order;
+            }
+	    return order;
+        }
     }
 
     private static ConcurrentHashMap<String, LoadedApk> sLoadedApks;
@@ -800,7 +810,10 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         }
 
         // Trigger all the bundle application `onCreate' event
-        for (final LoadedApk apk : apks) {
+        List<LoadedApk> apkList = new ArrayList<>(apks);
+        //noinspection unchecked
+        Collections.sort(apkList);
+        for (final LoadedApk apk : apkList) {
             String bundleApplicationName = apk.applicationName;
             if (bundleApplicationName == null) continue;
 
@@ -880,6 +893,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             if (pluginInfo.applicationInfo != null) {
                 apk.applicationName = pluginInfo.applicationInfo.className;
             }
+            apk.order = bundle.getOrder();
             apk.packagePath = bundle.getExtractPath();
             apk.optDexFile = new File(apk.packagePath, FILE_DEX);
 

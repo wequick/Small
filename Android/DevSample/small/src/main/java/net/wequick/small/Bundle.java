@@ -100,6 +100,8 @@ public class Bundle {
     private Intent mIntent;
     private String type;
     private String path;
+    //Launch application order.
+    private int order;
     private String query;
     private HashMap<String, String> rules;
     private int versionCode;
@@ -527,6 +529,12 @@ public class Bundle {
             this.type = map.getString("type");
         }
 
+        if (map.has("order")) {
+            this.order = Integer.parseInt(map.getString("order"));
+        } else {
+            //Default means don't care the order, so put it at last.
+            this.order = Integer.MAX_VALUE;
+        }
         this.rules = new HashMap<String, String>();
         String entrancePath = DEFAULT_ENTRANCE_PATH;
         if (map.has("rules")) {
@@ -589,6 +597,10 @@ public class Bundle {
 
     protected Uri getUri() {
         return uri;
+    }
+
+    protected int getOrder() {
+        return order;
     }
 
     protected void setURL(URL url) {
