@@ -60,11 +60,19 @@ public class StripAarTransform extends Transform {
         Project project = ((Task) context).project
         AppExtension small = project.small
         inputs.each {
-            // Bypass the directories
+            // Filter the directories
             it.directoryInputs.each {
+                File src = it.file
+                AarPath aarPath = new AarPath(project, src)
+                for (aar in small.splitAars) {
+                    if (aarPath.explodedFromAar(aar)) {
+                        return
+                    }
+                }
+
                 File dest = outputProvider.getContentLocation(
-                        it.name, it.contentTypes, it.scopes, Format.DIRECTORY);
-                FileUtils.copyDirectory(it.file, dest)
+                        it.name, it.contentTypes, it.scopes, Format.DIRECTORY)
+                FileUtils.copyDirectory(src, dest)
             }
 
             // Filter the jars
@@ -84,7 +92,7 @@ public class StripAarTransform extends Transform {
                 }
                 File dest = outputProvider.getContentLocation(
                         destName, it.contentTypes, it.scopes, Format.JAR)
-                FileUtils.copyFile(it.file, dest)
+                FileUtils.copyFile(src, dest)
             }
         }
     }

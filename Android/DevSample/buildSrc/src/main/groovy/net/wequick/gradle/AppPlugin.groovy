@@ -1532,6 +1532,20 @@ class AppPlugin extends BundlePlugin {
         if (bindingClassesDir.exists()) {
             bindingClassesDir.deleteDir()
         }
+        // Delete classes in library which contains 'BR.class'
+        def bindingReferenceDirs = []
+        int prefixLen = javac.destinationDir.path.length() + 1
+        javac.destinationDir.eachFileRecurse(FileType.FILES, {
+            if (it.name == 'BR.class') {
+                String relativePath = it.path.substring(prefixLen)
+                if (!relativePath.startsWith(small.packagePath)) {
+                    bindingReferenceDirs.add(it.parentFile)
+                }
+            }
+        })
+        bindingReferenceDirs.each {
+            it.deleteDir()
+        }
 
         Log.success "[${project.name}] split databinding classes..."
     }
