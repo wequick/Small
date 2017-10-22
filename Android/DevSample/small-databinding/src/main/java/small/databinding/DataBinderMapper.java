@@ -101,7 +101,7 @@ public class DataBinderMapper {
         return subMapper.getDataBinder(bindingComponent, view, layoutId);
     }
 
-    ViewDataBinding getDataBinder(DataBindingComponent bindingComponent, View[] views, int layoutId) {
+    public ViewDataBinding getDataBinder(DataBindingComponent bindingComponent, View[] views, int layoutId) {
         DataBinderMappable subMapper = getSubMapper(layoutId);
         if (subMapper == null) {
             return null;
@@ -116,13 +116,13 @@ public class DataBinderMapper {
         return subMapper.getDataBinder(bindingComponent, views, layoutId);
     }
 
-    int getLayoutId(String tag) {
+    public int getLayoutId(String tag) {
         // Passing a non-zero layout id so that we can invoke the `getDataBinder' method
         // in which we'll resolve the real layout id.
         return PASSING_LAYOUT_ID;
     }
 
-    String convertBrIdToString(int id) {
+    public String convertBrIdToString(int id) {
         if (bindingPackageName == null) {
             return null;
         }

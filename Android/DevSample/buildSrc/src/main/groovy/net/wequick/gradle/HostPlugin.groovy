@@ -1,6 +1,8 @@
 package net.wequick.gradle
 
 import com.android.build.gradle.api.BaseVariant
+import com.android.build.gradle.internal.pipeline.TransformTask
+import com.android.build.gradle.internal.transforms.ProGuardTransform
 import net.wequick.gradle.tasks.CleanBundleTask
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -91,6 +93,16 @@ class HostPlugin extends AndroidPlugin {
             small.aapt = project.processReleaseResources
         }
         project.buildLib.dependsOn small.jar
+    }
+
+    @Override
+    protected void configureProguard(BaseVariant variant, TransformTask proguard, ProGuardTransform pt) {
+        super.configureProguard(variant, proguard, pt)
+        pt.dontwarn('android.databinding.**')
+        pt.keep('class android.databinding.** { *; }')
+        pt.dontwarn('small.databinding.**')
+        pt.keep('class small.databinding.** { *; }')
+        pt.keep('interface small.databinding.DataBinderMappable')
     }
 
     def hookDataBinding(JavaCompile javac, String variantDirName) {

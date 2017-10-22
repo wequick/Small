@@ -395,6 +395,9 @@ class AppPlugin extends BundlePlugin {
         pt.keep("class ${variant.applicationId}.R")
         pt.keep("class ${variant.applicationId}.R\$* { <fields>; }")
 
+        // Keep databinding
+        pt.keep("class ${variant.applicationId}.databinding.DataBinderMapper { *; }")
+
         // Add reference libraries
         proguard.doFirst {
             def libJars = getLibraryJars()
