@@ -86,6 +86,15 @@ class AndroidPlugin extends BasePlugin {
             project.dependencies.add(smallCompileType, "${SMALL_AAR_PREFIX}$rootSmall.aarVersion")
         }
 
+        // Add common ProGuard rules from stub modules
+        android.buildTypes.each { buildType ->
+            if (buildType.minifyEnabled) {
+                rootSmall.hostStubProjects.each { stub ->
+                    buildType.proguardFiles.add(stub.file('proguard-rules.pro'))
+                }
+            }
+        }
+
         def preBuild = project.tasks['preBuild']
         if (released) {
             preBuild.doFirst {
