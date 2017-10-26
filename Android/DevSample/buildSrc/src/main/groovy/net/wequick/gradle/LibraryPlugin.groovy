@@ -120,6 +120,7 @@ class LibraryPlugin extends AppPlugin {
         // The `lib.*' modules are referenced by any `app.*' modules,
         // so keep all the public methods for them.
         pt.keep("class ${variant.applicationId}.** { public *; }")
+        pt.dontwarn("${variant.applicationId}.*")
     }
 
     @Override

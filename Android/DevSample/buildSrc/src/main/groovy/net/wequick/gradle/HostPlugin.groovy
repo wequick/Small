@@ -98,7 +98,6 @@ class HostPlugin extends AndroidPlugin {
     @Override
     protected void configureProguard(BaseVariant variant, TransformTask proguard, ProGuardTransform pt) {
         super.configureProguard(variant, proguard, pt)
-        pt.dontwarn('android.databinding.**')
         pt.keep('class android.databinding.** { *; }')
         pt.dontwarn('small.databinding.**')
         pt.keep('class small.databinding.** { *; }')

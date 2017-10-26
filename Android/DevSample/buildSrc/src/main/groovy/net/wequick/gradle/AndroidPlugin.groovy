@@ -204,6 +204,9 @@ class AndroidPlugin extends BasePlugin {
         pt.keep('class android.support.** { *; }')
         pt.keep('interface android.support.** { *; }')
 
+        // Don't warn data binding library (cause we strip it from bundles)
+        pt.dontwarn('android.databinding.**')
+
         // Keep Small library
         pt.dontwarn('net.wequick.small.**')
         pt.keep('class net.wequick.small.Small { public *; }')
