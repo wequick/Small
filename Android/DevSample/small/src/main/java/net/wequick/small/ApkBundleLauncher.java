@@ -235,6 +235,12 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 f.setAccessible(true);
                 Configuration activityConfig = (Configuration) f.get(activity);
 
+                if (mApplicationConfig == null) {
+                    // The application config is not ready yet.
+                    // This may be called on Android 7.0 multi-window-mode. Fix #548.
+                    return false;
+                }
+
                 // Calculate the changes
                 int configDiff = activityConfig.diff(mApplicationConfig);
                 if (configDiff == 0) {
