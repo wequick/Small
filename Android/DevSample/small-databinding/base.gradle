@@ -19,7 +19,11 @@ android {
 }
 
 dependencies {
-    provided 'net.wequick.small:small:1.2.0-alpha4'
+    if (gradle.startParameter.projectDir == project.projectDir) {
+        provided 'net.wequick.small:small:1.3.0-beta3'
+    } else {
+        provided project(':small')
+    }
     provided 'com.android.databinding:library:1.3.1'
     provided 'com.android.databinding:baseLibrary:2.3.0'
     provided 'com.android.databinding:adapters:1.3.1'
