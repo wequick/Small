@@ -237,7 +237,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
                 if (mApplicationConfig == null) {
                     // The application config is not ready yet.
-                    // This may be called on Android 7.0 multi-window-mode. Fix #548.
+                    // This may be called on Android 7.0 multi-window-mode.
                     return false;
                 }
 
