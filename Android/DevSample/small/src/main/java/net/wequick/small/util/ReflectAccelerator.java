@@ -580,7 +580,7 @@ public class ReflectAccelerator {
         Set<?> resourceKeys = sResourceImpls.keySet();
         for (Object resourceKey : resourceKeys) {
             WeakReference resourceImpl = (WeakReference)sResourceImpls.get(resourceKey);
-            if (resourceImpl != null && resourceImpl.get() == null) {
+            if (resourceImpl != null && resourceImpl.get() != sMergedResourcesImpl) {
                 // Sometimes? the weak reference for the key was released by what
                 // we can not find the cache resources we had merged before.
                 // And the system will recreate a new one which only build with host resources.

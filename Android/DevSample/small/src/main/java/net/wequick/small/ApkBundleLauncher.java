@@ -41,7 +41,6 @@ import android.content.pm.PackageInfo;
 import android.os.Message;
 import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
-import android.view.ContextThemeWrapper;
 import android.view.Window;
 
 import net.wequick.small.internal.InstrumentationInternal;
@@ -181,6 +180,10 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             // Replace with the REAL activityInfo
             ActivityInfo targetInfo = sLoadedActivities.get(targetClass);
             ReflectAccelerator.setActivityInfo(r, targetInfo);
+
+            // Ensure the merged application-scope resource has been cached so that
+            // the incoming activity can attach to it without creating a new(unmerged) one.
+            ReflectAccelerator.ensureCacheResources();
         }
 
         private void ensureServiceClassesLoadable(Message msg) {
@@ -276,17 +279,6 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             mBase = base;
         }
 
-        @Override public Activity newActivity(ClassLoader cl, String className, Intent intent)
-            throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-            Activity activity = mBase.newActivity(cl, className, intent);
-
-            if (Build.VERSION.SDK_INT >= 26) {
-                ReflectAccelerator.setFieldWithoutException(ContextThemeWrapper.class, activity, "mResources", Small.getContext().getResources());
-            }
-
-            return activity;
-        }
-
         /** @Override V21+
          * Wrap activity from REAL to STUB */
         public ActivityResult execStartActivity(
@@ -318,7 +310,6 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                 if (ai == null) break;
 
                 applyActivityInfo(activity, ai);
-                ReflectAccelerator.ensureCacheResources();
             } while (false);
 
             // Reset activity instrumentation if it was modified by some other applications #245
