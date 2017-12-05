@@ -72,7 +72,10 @@ public class MainFragment extends Fragment {
 
                 Intent onclickIntent = new Intent(context, NotifyResultActivity.class);
                 onclickIntent.putExtra("notification_id", MY_NOTIFICATION_ID);
-                Small.wrapIntent(onclickIntent); //!< 增加这行代码
+
+                //------------------------------
+                Small.wrapIntent(onclickIntent);
+                //^ 增加这行代码 -----------------
 
                 PendingIntent pi = PendingIntent.getActivity(context, 0, onclickIntent,
                         PendingIntent.FLAG_UPDATE_CURRENT);
@@ -95,8 +98,8 @@ public class MainFragment extends Fragment {
         // 方案二: 使用TaskStackBuilder构造PendingIntent, 发起一个通知
         // 额外操作:
         //   1. 在 `stub` 模块放置 `smallIcon` 图片资源
+        //   2. 使用 `Small.wrapIntent(intent)` 暗度插件意图 (当使用了 support 26.0 以上版本时）
         //
-        // 这里不需要手动修改意图, 因为 `Small` 对 `TaskStackBuilder` 进行了Hook, 自动完成wrapIntent
         button = (Button) rootView.findViewById(R.id.send_notification_taskstack_button);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -105,6 +108,10 @@ public class MainFragment extends Fragment {
 
                 Intent onclickIntent = new Intent(context, NotifyResultActivity.class);
                 onclickIntent.putExtra("notification_id", MY_NOTIFICATION_ID);
+
+                //------------------------------
+                Small.wrapIntent(onclickIntent);
+                //^ 增加这行代码 -----------------
 
                 PendingIntent pi = TaskStackBuilder.create(context)
                         .addNextIntent(getActivity().getIntent())

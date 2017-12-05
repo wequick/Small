@@ -738,7 +738,9 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             Object newImpl = Proxy.newProxyInstance(context.getClassLoader(), impl.getClass().getInterfaces(), aop);
             f.set(TaskStackBuilder.class, newImpl);
         } catch (Exception ignored) {
-            ignored.printStackTrace();
+            Log.e(TAG, "Failed to hook TaskStackBuilder. \n" +
+                    "Please manually call `Small.wrapIntent` to ensure the notification intent can be opened. \n" +
+                    "See https://github.com/wequick/Small/issues/547 for details.");
         }
     }
 
