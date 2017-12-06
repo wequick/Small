@@ -29,9 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by galen on 2017/12/5.
+ * The health manager report the known issue and print tips for fixing.
  */
-
 public class HealthManager {
 
     static final String TAG = "HealthManager";
