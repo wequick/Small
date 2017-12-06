@@ -44,6 +44,7 @@ import android.util.Log;
 import android.view.Window;
 
 import net.wequick.small.internal.InstrumentationInternal;
+import net.wequick.small.util.HealthManager;
 import net.wequick.small.util.ReflectAccelerator;
 
 import java.io.File;
@@ -421,7 +422,9 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
         @Override
         public boolean onException(Object obj, Throwable e) {
-            if (sProviders != null && e.getClass().equals(ClassNotFoundException.class)) {
+            if (e.getClass().equals(ClassNotFoundException.class)) {
+                if (sProviders == null) return super.onException(obj, e);
+
                 boolean errorOnInstallProvider = false;
                 StackTraceElement[] stacks = e.getStackTrace();
                 for (StackTraceElement st : stacks) {
@@ -451,6 +454,8 @@ public class ApkBundleLauncher extends SoBundleLauncher {
                     }
                     return true;
                 }
+            } else if (HealthManager.fixException(obj, e)) {
+                return true;
             }
 
             return super.onException(obj, e);
