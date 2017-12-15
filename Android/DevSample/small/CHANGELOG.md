@@ -1,3 +1,14 @@
+## 1.3.0-beta5 (2017-12-13)
+
+Features:
+
+  - 增加 `HealthManager` 类，在资源错误引起的 crash 时打印必要的日志
+
+Bugfixes:
+
+  - 修正 7.0 多窗口模式的 crash (#548)
+  - 解决了一些特殊机型 AppTheme 问题
+
 ## 1.3.0-beta3 (2017-10-28)
 
 版本同步
