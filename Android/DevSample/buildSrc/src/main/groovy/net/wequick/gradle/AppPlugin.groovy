@@ -1537,11 +1537,10 @@ class AppPlugin extends BundlePlugin {
         }
         // Delete classes in library which contains 'BR.class'
         def bindingReferenceDirs = []
-        int prefixLen = javac.destinationDir.path.length() + 1
+        def retainedPackagePath = new File(javac.destinationDir, small.packagePath)
         javac.destinationDir.eachFileRecurse(FileType.FILES, {
             if (it.name == 'BR.class') {
-                String relativePath = it.path.substring(prefixLen)
-                if (!relativePath.startsWith(small.packagePath)) {
+                if (it.parentFile != retainedPackagePath) {
                     bindingReferenceDirs.add(it.parentFile)
                 }
             }
