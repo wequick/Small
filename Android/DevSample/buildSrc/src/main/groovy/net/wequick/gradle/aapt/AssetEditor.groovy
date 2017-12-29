@@ -126,18 +126,23 @@ public class AssetEditor extends CppHexEditor {
         }
 
         // Read strings
+        def endBytesLen = s.isUtf8 ? 1 : 2
         def start = s.stringsStart + pos
+        def curPos = tellp()
         for (int i = 0; i < s.stringCount; i++) {
-            seek(start + s.stringOffsets[i])
+            def offset = start + s.stringOffsets[i]
+            assert(curPos == offset)
+
             def len = decodeLength(s.isUtf8)
             s.stringLens[i] = len.data
             s.strings[i] = readBytes(len.value)
-            s.stringsSize += len.value + len.data.length + 1 // 1 for 0x0
-            skip(1) // 0x0
+            def size = len.value + len.data.length + endBytesLen
+            s.stringsSize += size
+            curPos += size
+            skip(endBytesLen)
         }
 
         def endPos = pos + s.header.size
-        def curPos = tellp()
         def noStyles = (s.stylesStart == 0)
         if (noStyles) {
             s.stringPadding = endPos - curPos
@@ -193,6 +198,9 @@ public class AssetEditor extends CppHexEditor {
             writeBytes(s.stringLens[i])
             writeBytes(it)
             writeByte(0x0)
+            if (!s.isUtf8) {
+                writeByte(0x0)
+            }
         }
         if (s.stringPadding > 0) writeBytes(new byte[s.stringPadding])
 
@@ -395,6 +403,7 @@ public class AssetEditor extends CppHexEditor {
             }
         }
 
+        def endBytesLen = sp.isUtf8 ? 1 : 2 // 0x00 or 0x0000
         // Filter strings
         ids.each {
             def s = sp.strings[it]
@@ -403,7 +412,7 @@ public class AssetEditor extends CppHexEditor {
             def lenData = sp.stringLens[it]
             lens.add(lenData)
             def l = s.length
-            offset += l + lenData.length + 1 // 1 for 0x0
+            offset += l + lenData.length + endBytesLen
         }
 
         // Filter styles
@@ -432,7 +441,7 @@ public class AssetEditor extends CppHexEditor {
                             def lenData = sp.stringLens[it.name]
                             lens.add(lenData)
                             def l = s.length
-                            offset += l + lenData.length + 1 // 1 for 0x0
+                            offset += l + lenData.length + endBytesLen
 
                             ids.add(it.name)
                             it.name = stringCount
