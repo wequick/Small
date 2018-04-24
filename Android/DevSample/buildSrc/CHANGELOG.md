@@ -1,3 +1,10 @@
+## 1.3.0-beta6 (2018-04-24)
+
+Bugfixes:
+
+  - 修正 UTF16 string pools 长度解析问题
+  - 修正 Windows 系统下 `BR.class` 被误删除的问题 (#544)
+
 ## 1.3.0-beta5 (2017-12-15)
 
 版本同步
