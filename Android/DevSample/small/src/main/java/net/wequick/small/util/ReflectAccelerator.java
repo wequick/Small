@@ -184,7 +184,11 @@ public class ReflectAccelerator {
                 sDexElementClass = Class.forName("dalvik.system.DexPathList$Element");
             }
             if (sDexElementConstructor == null) {
-                sDexElementConstructor = sDexElementClass.getConstructors()[0];
+                if (Build.VERSION.SDK_INT >= 26) {
+                    sDexElementConstructor = sDexElementClass.getConstructors()[1]; // (DexFile, File)
+                } else {
+                    sDexElementConstructor = sDexElementClass.getConstructors()[0];
+                }
             }
             Class<?>[] types = sDexElementConstructor.getParameterTypes();
             switch (types.length) {
@@ -207,10 +211,10 @@ public class ReflectAccelerator {
                         // Element(File apk, File zip, DexFile dex)
                         return sDexElementConstructor.newInstance(pkg, pkg, dexFile);
                     }
-                case 1:
+                case 2:
                     if (Build.VERSION.SDK_INT >= 26) {
                         //Only SDK >= 26
-                        return sDexElementConstructor.newInstance(dexFile);
+                        return sDexElementConstructor.newInstance(dexFile, pkg);
                     }
                 case 4:
                 default:
