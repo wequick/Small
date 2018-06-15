@@ -17,7 +17,7 @@ package net.wequick.gradle
 
 import org.gradle.api.Project
 
-public class BaseExtension {
+class BaseExtension {
 
     public static final String FD_INTERMEDIATES = "intermediates"
 
@@ -33,7 +33,7 @@ public class BaseExtension {
 
     Project project
 
-    public BaseExtension(Project project) {
+    BaseExtension(Project project) {
         this.project = project
     }
 }

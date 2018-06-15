@@ -20,13 +20,13 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:23.2.1'
-    compile 'com.android.support:design:23.2.1'
-    compile 'com.android.support:support-annotations:23.1.1'
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    testImplementation 'junit:junit:4.12'
+    implementation 'com.android.support:appcompat-v7:23.2.1'
+    implementation 'com.android.support:design:23.2.1'
+    implementation 'com.android.support:support-annotations:23.1.1'
     // User libraries
-    compile project(':lib.style')
-    compile project(':lib.utils')
-    compile project(':lib.analytics')
+    implementation project(':lib.style')
+    implementation project(':lib.utils')
+    implementation project(':lib.analytics')
 }

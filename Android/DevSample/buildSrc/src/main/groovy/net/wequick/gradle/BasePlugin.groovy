@@ -18,35 +18,12 @@ package net.wequick.gradle
 import org.gradle.api.Project
 import org.gradle.api.Plugin
 
-/**
- *
- */
-public abstract class BasePlugin implements Plugin<Project> {
-
-    public static final String SMALL_AAR_PREFIX = "net.wequick.small:small:"
-    public static final String SMALL_BINDING_AAR_PREFIX = "small.support:databinding:"
-    public static final String SMALL_LIBS = 'smallLibs'
-
-    protected boolean isBuildingBundle
-    protected boolean isBuildingLib
-
+abstract class BasePlugin<T extends BaseExtension> implements Plugin<Project> {
     protected Project project
+    protected T mSmall
 
     void apply(Project project) {
         this.project = project
-
-        def sp = project.gradle.startParameter
-        def p = sp.projectDir
-        def t = sp.taskNames[0]
-        if (p == null || p == project.rootProject.projectDir) {
-            // gradlew buildLib | buildBundle
-            if (t == 'buildLib') isBuildingLib = true
-            else if (t == 'buildBundle') isBuildingBundle = true
-        } else if (t == 'assembleRelease' || t == 'aR') {
-            // gradlew -p [project.name] assembleRelease
-            if (pluginType == PluginType.Library) isBuildingLib = true
-            else isBuildingBundle = true
-        }
 
         createExtension()
 
@@ -57,28 +34,37 @@ public abstract class BasePlugin implements Plugin<Project> {
 
     protected void createExtension() {
         // Add the 'small' extension object
-        project.extensions.create('small', getExtensionClass(), project)
-        small.type = getPluginType()
+        mSmall = project.extensions.create('small', getExtensionClass(), project)
     }
 
     protected void configureProject() {
-        // Tidy up while gradle build finished
-        project.gradle.buildFinished { result ->
-            if (result.failure == null) return
+        project.gradle.buildFinished {
             tidyUp()
+        }
+        project.beforeEvaluate {
+            beforeEvaluate(rootSmall.isBuildingLib)
         }
     }
 
-    protected void createTask() {}
+    protected void createTask() {
 
-    protected <T extends BaseExtension> T getSmall() {
-        return (T) project.small
     }
 
-    protected PluginType getPluginType() { return PluginType.Unknown }
+    protected RootExtension getRootSmall() {
+        return project.rootProject.extensions.getByName('small')
+    }
 
-    /** Restore state for DEBUG mode */
-    protected void tidyUp() { }
+    protected T getSmall() {
+        return (T) mSmall
+    }
 
-    protected abstract Class<? extends BaseExtension> getExtensionClass()
+    protected void tidyUp() {
+
+    }
+
+    protected void beforeEvaluate(boolean released) {
+
+    }
+
+    abstract protected Class<T> getExtensionClass()
 }

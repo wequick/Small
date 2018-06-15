@@ -13,16 +13,22 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package net.wequick.gradle.tasks
+package net.wequick.gradle.dsl
 
-import net.wequick.gradle.test.UnitTests
-import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.TaskAction
+class PackageConfig {
 
-class LintTask extends DefaultTask {
+    boolean apk
+    List<String> abi
 
-    @TaskAction
-    def run() {
-        UnitTests.runAllTests(project)
+    PackageConfig() {
+        apk = true
+    }
+
+    void apk(boolean flag) {
+        apk = flag
+    }
+
+    void abi(String... args) {
+        abi = args.toList()
     }
 }

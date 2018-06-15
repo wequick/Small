@@ -18,8 +18,8 @@ package net.wequick.gradle.aapt
 /**
  * enum from include/androidfw/ResourceTypes.h
  */
-public enum ResStringPoolSpan {
-    public static int END = 0xFFFFFFFF;
+enum ResStringPoolSpan {
+    public static int END = 0xFFFFFFFF
     public static byte[] END_SPAN = [0xFF, 0xFF, 0xFF, 0xFF,
                                      0xFF, 0xFF, 0xFF, 0xFF]
 }

@@ -18,7 +18,7 @@ package net.wequick.gradle.aapt
 /**
  * enum from include/androidfw/ResourceTypes.h
  */
-public enum ResStringFlag {
-    public static int SORTED_FLAG = 1<<0;
-    public static int UTF8_FLAG = 1<<8;
+enum ResStringFlag {
+    public static int SORTED_FLAG = 1<<0
+    public static int UTF8_FLAG = 1<<8
 }

@@ -18,6 +18,6 @@ package net.wequick.gradle.aapt
 /**
  * enum from include/androidfw/ResourceTypes.h
  */
-public enum ResTableType {
-    public static int NO_ENTRY = -1;
+class ResTableType {
+    public static int NO_ENTRY = -1
 }

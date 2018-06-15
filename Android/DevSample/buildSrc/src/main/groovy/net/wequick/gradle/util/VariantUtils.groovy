@@ -13,22 +13,21 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package net.wequick.gradle
+package net.wequick.gradle.util
 
-import org.gradle.api.Project
+import com.android.build.gradle.api.BaseVariant
+import com.android.build.gradle.api.BaseVariantOutput
 
-public class AssetExtension extends BundleExtension {
+final class VariantUtils {
 
-    /** */
-    protected File assetsDir
+    static void allOutputs(BaseVariant variant, Closure<BaseVariantOutput> closure) {
+        if (variant.outputs.size() > 0) {
+//            if (variant.outputs[0].hasProperty('outputFile')) {
+                variant.outputs.each closure
+                return
+//            }
+        }
 
-    protected File unsignedFile
-
-    AssetExtension(Project project) {
-        super(project)
-
-        File interDir = new File(project.buildDir, FD_INTERMEDIATES)
-        assetsDir = new File(interDir, 'small-asset')
-        unsignedFile = new File(interDir, 'outputs/asset-unsigned.zip')
+        variant.outputs.all closure
     }
 }

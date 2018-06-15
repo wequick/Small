@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="net.wequick.example.small.app.main" >
 
     <!-- permissions for umeng analytics -->
@@ -9,6 +10,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
+        tools:replace="android:name"
         android:name=".AppContext"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"

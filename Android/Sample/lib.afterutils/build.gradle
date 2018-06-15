@@ -1,4 +1,4 @@
-apply plugin: 'com.android.library'
+apply plugin: "com.android.${hasProperty('smallApp')?'application':'library'}"
 
 android {
     compileSdkVersion 23
@@ -19,9 +19,9 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:23.2.1'
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    testImplementation 'junit:junit:4.12'
+    implementation 'com.android.support:appcompat-v7:23.2.1'
 
-    compile project(':lib.utils')
+    implementation project(':lib.utils')
 }

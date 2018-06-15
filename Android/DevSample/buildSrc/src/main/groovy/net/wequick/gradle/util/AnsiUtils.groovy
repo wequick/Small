@@ -15,8 +15,8 @@
  */
 package net.wequick.gradle.util
 
-import static org.fusesource.jansi.Ansi.*;
-import static org.fusesource.jansi.Ansi.Color.*;
+import static org.fusesource.jansi.Ansi.Color.*
+import static org.fusesource.jansi.Ansi.ansi;
 
 public final class AnsiUtils {
     public static def red(text) {

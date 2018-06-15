@@ -505,24 +505,28 @@ public class AssetEditor extends CppHexEditor {
         sp.header.size = newSize
     }
 
-/** Dump ResStringPool, as `aapt d xmlstrings' command */
+    /** Dump ResStringPool, as `aapt d xmlstrings' command */
     protected static def dumpStringPool(pool) {
+        dumpStringPool(pool, '')
+    }
+
+    protected static def dumpStringPool(pool, String space) {
         def type = pool.flags == 0 ? 'UTF-16' : 'UTF-8'
-        println "String pool of ${pool.stringCount} unique $type non-sorted strings, " +
+        println "${space}String pool of ${pool.stringCount} unique $type non-sorted strings, " +
                 "${pool.stringCount} entries and ${pool.styleCount} styles " +
                 "using ${pool.header.size} bytes:"
         pool.strings.eachWithIndex { v, i ->
             if (pool.isUtf8) {
-                println "String #$i: ${new String(v)}"
+                println "${space}String #$i: ${new String(v)}"
             } else {
-                println "String #$i: ${getUtf8String(v)}"
+                println "${space}String #$i: ${getUtf8String(v)}"
             }
         }
         pool.styles.eachWithIndex { v, i ->
             if (pool.isUtf8) {
-                println "Style #$i: $v"
+                println "${space}Style #$i: $v"
             } else {
-                println "Style #$i: $v"
+                println "${space}Style #$i: $v"
             }
         }
     }

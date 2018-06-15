@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package net.wequick.gradle.transform
+package net.wequick.gradle.compat.databinding
 
 import com.android.build.api.transform.Context
 import com.android.build.api.transform.QualifiedContent.ContentType
@@ -24,13 +24,10 @@ import com.android.build.api.transform.TransformException
 import com.android.build.api.transform.TransformInput
 import com.android.build.api.transform.TransformOutputProvider
 import com.android.build.gradle.internal.pipeline.TransformManager
-import net.wequick.gradle.AppExtension
-import net.wequick.gradle.util.AarPath
+import com.google.common.collect.Sets
 import org.apache.commons.io.FileUtils
-import org.gradle.api.Project
-import org.gradle.api.Task
 
-public class StripAarTransform extends Transform {
+class StripDataBindingTransform extends Transform {
 
     @Override
     String getName() {
@@ -44,7 +41,8 @@ public class StripAarTransform extends Transform {
 
     @Override
     Set<Scope> getScopes() {
-        return TransformManager.SCOPE_FULL_PROJECT
+        Sets.immutableEnumSet(Scope.EXTERNAL_LIBRARIES)
+//        return TransformManager.SCOPE_FULL_PROJECT
     }
 
     @Override
@@ -57,42 +55,21 @@ public class StripAarTransform extends Transform {
                    Collection<TransformInput> referencedInputs,
                    TransformOutputProvider outputProvider, boolean isIncremental)
             throws IOException, TransformException, InterruptedException {
-        Project project = ((Task) context).project
-        AppExtension small = project.small
+        String[] filters = ['com.android.databinding', 'small.support:databinding',
+                            'small:',
+                            'com.android.support' // FIXME: figure out why it wasn't stripped before
+        ]
+        def project = context.project
         inputs.each {
-            // Filter the directories
-            it.directoryInputs.each {
-                File src = it.file
-                AarPath aarPath = new AarPath(project, src)
-                for (aar in small.splitAars) {
-                    if (aarPath.explodedFromAar(aar)) {
-                        return
-                    }
-                }
-
-                File dest = outputProvider.getContentLocation(
-                        it.name, it.contentTypes, it.scopes, Format.DIRECTORY)
-                FileUtils.copyDirectory(src, dest)
-            }
-
             // Filter the jars
             it.jarInputs.each {
-                // Strip jars in aar or build-cache under android plugin 2.3.0+
-                File src = it.file
-                AarPath aarPath = new AarPath(project, src)
-                for (aar in small.splitAars) {
-                    if (aarPath.explodedFromAar(aar)) {
-                        return
-                    }
-                }
+//                println "---- $it.file"
+                if (filters.find { f -> it.name.startsWith(f) } != null) return
 
-                String destName = aarPath.module.fileName
-                if (src.parentFile.name == 'libs') {
-                    destName += '-' + src.name.substring(0, src.name.lastIndexOf('.'))
-                }
+                println "+++ keep ${project.name} $it.name"
                 File dest = outputProvider.getContentLocation(
-                        destName, it.contentTypes, it.scopes, Format.JAR)
-                FileUtils.copyFile(src, dest)
+                        it.name, it.contentTypes, it.scopes, Format.JAR)
+                FileUtils.copyFile(it.file, dest)
             }
         }
     }

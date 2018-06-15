@@ -5,6 +5,7 @@
 apply plugin: 'groovy'
 
 repositories {
+    google()
     jcenter()
 }
 

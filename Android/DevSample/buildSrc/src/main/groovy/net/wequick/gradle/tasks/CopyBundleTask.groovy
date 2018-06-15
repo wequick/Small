@@ -13,27 +13,10 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package net.wequick.gradle
+package net.wequick.gradle.tasks
 
-import com.android.build.gradle.tasks.ProcessAndroidResources
-import org.gradle.api.Project
-import org.gradle.api.Task
+import org.gradle.api.tasks.Copy
 
-public class AndroidExtension extends BaseExtension {
+class CopyBundleTask extends Copy {
 
-    /** File of release variant output */
-    protected File outputFile
-
-    /** Task of android packager */
-    ProcessAndroidResources aapt
-
-    /** Task of R.class jar */
-    Task jar
-
-    /** Map of build-cache file */
-    Map buildCaches
-
-    AndroidExtension(Project project) {
-        super(project)
-    }
 }

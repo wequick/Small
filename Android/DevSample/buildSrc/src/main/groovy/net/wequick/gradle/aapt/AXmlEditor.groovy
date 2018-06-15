@@ -39,9 +39,12 @@ public class AXmlEditor extends AssetEditor {
         if (xml.type != ResType.RES_XML_TYPE) return
 
         def sp = readStringPool()
-        byte[] targetBytes = [ // platformBuildVersionCode
-                'p',0,'l',0,'a',0,'t',0,'f',0,'o',0,'r',0,'m',0,'B',0,'u',0,'i',0,'l',0,'d',0,
-                'V',0,'e',0,'r',0,'s',0,'i',0,'o',0,'n',0,'C',0,'o',0,'d',0,'e',0 ]
+        byte[] targetBytes
+        if (sp.isUtf8) {
+            targetBytes = ['s','m','a','l','l','F','l','a','g','s']
+        } else {
+            targetBytes = ['s', 0, 'm', 0, 'a', 0, 'l', 0, 'l', 0, 'F', 0, 'l', 0, 'a', 0, 'g', 0, 's', 0]
+        }
         int targetIndex = -1
         int N = sp.stringCount
         for (int i = 0; i < N; i++) {
@@ -51,7 +54,7 @@ public class AXmlEditor extends AssetEditor {
                 break
             }
         }
-        if (targetIndex == -1) return
+        if (targetIndex == -1) return false
 
         while (tellp() < xml.size) {
             def chunk = readChunkHeader()
@@ -65,22 +68,9 @@ public class AXmlEditor extends AssetEditor {
             for (int i = 0; i < node.attributeCount; i++) {
                 skip(4)
                 int nameIndex = readInt()
-                if (nameIndex == targetIndex) { // platformBuildVersionCode
+                if (nameIndex == targetIndex) { // smallFlags
                     skip(8)
-                    int versionCode = readInt()
-                    seek(tellp() - 4)
-
-                    // The flag bits are:
-                    //  F    F    F    F    F    F    F    F
-                    // 1111 1111 1111 1111 1111 1111 1111 1111
-                    // ^^^^ ^^^^ ^^^^ ^^^^ ^^^^
-                    //       ABI Flags (20)
-                    //                          ^
-                    //                 nonResources Flag (1)
-                    //                           ^^^ ^^^^ ^^^^
-                    //                     platformBuildVersionCode (11) => MAX=0x7FF=4095
-                    int newFlag = (flags << 11) | versionCode
-                    writeInt(newFlag)
+                    writeInt(flags)
                     close()
                     return true
                 } else {

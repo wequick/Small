@@ -18,7 +18,7 @@ package net.wequick.gradle.aapt
 /**
  * Class to edit aapt-generated resources.arsc file
  */
-public class ArscEditor extends AssetEditor {
+class ArscEditor extends AssetEditor {
     /*      Arsc struct
      *  +-----------------------+
      *  | Table Header          |
@@ -74,15 +74,15 @@ public class ArscEditor extends AssetEditor {
         def libPackageIds = []
 
         // Ensure there is an `attr' typeSpec
-        if (retainedTypes[0].id != 1) { // attr type id is always as `1'
-            def attrSpec = t.typeList.specs[0]
-            attrSpec.entryCount = 0
-            attrSpec.configs = []
-            attrSpec.flags = []
-            attrSpec.header.size = attrSpec.header.headerSize // id(1) res0(1) res1(2) entryCount(4)
-            retainedTypeIds.add(attrSpec.id - 1)
-            retainedTypeSpecs.add(attrSpec)
-        }
+//        if (retainedTypes[0].id != 1) { // attr type id is always as `1'
+//            def attrSpec = t.typeList.specs[0]
+//            attrSpec.entryCount = 0
+//            attrSpec.configs = []
+//            attrSpec.flags = []
+//            attrSpec.header.size = attrSpec.header.headerSize // id(1) res0(1) res1(2) entryCount(4)
+//            retainedTypeIds.add(attrSpec.id - 1)
+//            retainedTypeSpecs.add(attrSpec)
+//        }
         // Filter typeSpecs
         retainedTypes.each {
             if (it.id == Aapt.ID_DELETED) {
@@ -353,7 +353,6 @@ public class ArscEditor extends AssetEditor {
         def offset = dynamicRefPos
         def type = readTableType()
         while (offset < table.header.size) {
-//            println "-- type: $type"
             if (type.isConfig) { // ResTable_type
                 def entryOffsets = []
                 for (int i = 0; i < type.entryCount; i++) {
@@ -399,17 +398,46 @@ public class ArscEditor extends AssetEditor {
 
     /** Read all data of resources.arsc */
     def readTable() {
+        readTable(false)
+    }
+
+    def readTable(boolean debug) {
         def header = readChunkHeader()
         assert (header.type == ResType.RES_TABLE_TYPE)
 
+        if (debug) println "ReadTable"
+
         def t = [:]
         t.header = header
+        if (debug) println "  header: $header"
+
         t.packageCount = readInt()
+        if (debug) println "  packageCount: $t.packageCount"
+
         t.stringPool = readStringPool()
+        if (debug) {
+            println '  stringPool:'
+            dumpStringPool(t.stringPool, '    ')
+        }
+
         t.package = readPackage()
+        if (debug) println "  package: $t.package"
+
         t.typeStringPool = readStringPool()
+        if (debug) {
+            println '  typeStringPool:'
+            dumpStringPool(t.typeStringPool, '    ')
+        }
+
         t.keyStringPool = readStringPool()
+        if (debug) {
+            println '  keyStringPool:'
+            dumpStringPool(t.keyStringPool, '    ')
+        }
+
         t.typeList = readTypeList()
+        if (debug) println "  typeList: $t.typeList"
+
         return t
     }
     /** Write all data of resources.arsc */
@@ -717,14 +745,14 @@ public class ArscEditor extends AssetEditor {
         return s
     }
 
-    private def dumpTable() {
+    def dumpTable() {
         seek(0)
-        def t = readTable()
+        def t = readTable(DEBUG_NOISY)
         dumpTable(t)
     }
 
     /** Dump table as `aapt d resources' */
-    private def dumpTable(t) {
+    def dumpTable(t) {
         println "String Pool:"
         dumpStringPool(t.stringPool)
         println "Type String Pool:"

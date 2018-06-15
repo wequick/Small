@@ -9,11 +9,14 @@ sourceSets {
 }
 
 dependencies {
+    project.rootProject.buildscript.configurations.classpath.dependencies.each {
+        println "??? $it.name"
+    }
     if (gradle.startParameter.projectDir == project.projectDir) {
         // gradlew -p buildSrc xx
-        provided 'com.android.tools.build:gradle:2.3.0'
+        provided 'com.android.tools.build:gradle:3.0.0'
     } else {
-        compile 'com.android.tools.build:gradle:2.3.0'
+        compile 'com.android.tools.build:gradle:3.0.0'
     }
     compile 'org.fusesource.jansi:jansi:1.8'
 }

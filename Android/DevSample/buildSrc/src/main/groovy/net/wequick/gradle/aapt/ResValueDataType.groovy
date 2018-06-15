@@ -18,7 +18,7 @@ package net.wequick.gradle.aapt
 /**
  * enum from include/androidfw/ResourceTypes.h
  */
-public enum ResValueDataType {
-    public static int TYPE_REFERENCE = 0x01;
-    public static int TYPE_STRING = 0x03;
+enum ResValueDataType {
+    public static int TYPE_REFERENCE = 0x01
+    public static int TYPE_STRING = 0x03
 }

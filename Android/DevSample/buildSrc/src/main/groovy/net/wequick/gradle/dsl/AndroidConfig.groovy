@@ -13,14 +13,23 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package net.wequick.gradle
+package net.wequick.gradle.dsl
 
-import org.gradle.api.Project
-import org.gradle.api.Task
+class AndroidConfig {
 
-public class BundleExtension extends AndroidExtension {
+    int compileSdkVersion
+    String buildToolsVersion
+    String supportVersion
 
-    BundleExtension(Project project) {
-        super(project)
+    void compileSdkVersion(int version) {
+        compileSdkVersion = version
+    }
+
+    void buildToolsVersion(String version) {
+        buildToolsVersion = version
+    }
+
+    void supportVersion(String version) {
+        supportVersion = version
     }
 }

@@ -13,28 +13,19 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package net.wequick.gradle.test
+package net.wequick.gradle.util
 
-import net.wequick.gradle.RootExtension
-import org.gradle.api.Project
+import java.text.DecimalFormat
 
-class BundleUnitTests extends UnitTests {
+final class FileUtils {
 
-    BundleUnitTests(Project project) {
-        super(project)
+    static String getFormatSize(File file) {
+        long size = file.length()
+        if (size <= 0) return '0'
+
+        def units = [ 'B', 'KB', 'MB', 'GB', 'TB' ]
+        int level = (int) (Math.log10(size)/Math.log10(1024))
+        def formatSize = new DecimalFormat('#,##0.#').format(size/Math.pow(1024, level))
+        return "$formatSize ${units[level]}"
     }
-
-    String bundleId() {
-        throw new RuntimeException("Unimplemented bundleId!")
-    }
-
-    File getBundle() {
-        return getBundle(bundleId())
-    }
-
-    File getBundle(String bundleId) {
-        RootExtension rootExt = project.rootProject.small
-        return rootExt.getBundleOutput(bundleId)
-    }
-
 }

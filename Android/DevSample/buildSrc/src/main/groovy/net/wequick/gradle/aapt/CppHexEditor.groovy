@@ -21,7 +21,7 @@ import java.nio.ByteOrder
 /**
  * Class of c++ hex file (little endian) editor
  */
-public class CppHexEditor {
+class CppHexEditor {
 
     private File mFile
     private File mClipFile
@@ -30,32 +30,32 @@ public class CppHexEditor {
     private boolean mEdited
     private long mLengthBeforeClip
 
-    public CppHexEditor(File file) {
+    CppHexEditor(File file) {
         mFile = file
         mRaf = new RandomAccessFile(file, 'rw')
     }
 
-    protected seek(long offset) {
+    void seek(long offset) {
         mRaf.seek(offset)
     }
 
-    protected skip(long count) {
+    int skip(long count) {
         mRaf.skipBytes((int)count)
     }
 
-    protected tellp() {
+    long tellp() {
         return mRaf.getFilePointer()
     }
 
-    protected length() {
+    long length() {
         return mRaf.length()
     }
 
-    protected setLength(long length) {
+    void setLength(long length) {
         mRaf.setLength(length)
     }
 
-    protected close() {
+    void close() {
         mRaf.close()
     }
 
@@ -64,57 +64,57 @@ public class CppHexEditor {
      *  c++: little endian
      *  java: big endian
      */
-    protected byte readByte() {
+    byte readByte() {
         return mRaf.readByte()
     }
 
-    protected void writeByte(val) {
+    void writeByte(val) {
         def buffer = new byte[1]
         buffer[0] = (byte)(val & 0xFF)
         writeBytes(buffer)
     }
 
-    protected short readShort() {
+    short readShort() {
         def buffer = readBytes(2)
         return getShort(buffer)
     }
 
-    protected short getShort(byte[] buffer) {
+    static short getShort(byte[] buffer) {
         ByteBuffer bb = ByteBuffer.wrap(buffer)
         bb.order(ByteOrder.LITTLE_ENDIAN)
         return bb.getShort()
     }
 
-    protected void writeShort(i) {
-        def buffer = new byte[2];
-        buffer[1] = (byte)((i >> 8) & 0xFF);
-        buffer[0] = (byte)(i & 0xFF);
+    void writeShort(i) {
+        def buffer = new byte[2]
+        buffer[1] = (byte)((i >> 8) & 0xFF)
+        buffer[0] = (byte)(i & 0xFF)
         writeBytes(buffer)
     }
 
-    protected int readInt() {
+    int readInt() {
         def buffer = readBytes(4)
         ByteBuffer bb = ByteBuffer.wrap(buffer)
         bb.order(ByteOrder.LITTLE_ENDIAN)
         return bb.getInt()
     }
 
-    protected void writeInt(i) {
-        def buffer = new byte[4];
-        buffer[3] = (byte)((i >> 24) & 0xFF);
-        buffer[2] = (byte)((i >> 16) & 0xFF);
-        buffer[1] = (byte)((i >> 8) & 0xFF);
-        buffer[0] = (byte)(i & 0xFF);
+    void writeInt(i) {
+        def buffer = new byte[4]
+        buffer[3] = (byte)((i >> 24) & 0xFF)
+        buffer[2] = (byte)((i >> 16) & 0xFF)
+        buffer[1] = (byte)((i >> 8) & 0xFF)
+        buffer[0] = (byte)(i & 0xFF)
         writeBytes(buffer)
     }
 
-    protected byte[] readBytes(n) {
+    byte[] readBytes(n) {
         byte[] buffer = new byte[n]
         mRaf.read(buffer)
         return buffer
     }
 
-    protected void writeBytes(byte[] buffer) {
+    void writeBytes(byte[] buffer) {
         mRaf.write(buffer)
         if (!mEdited) mEdited = true
     }
@@ -146,7 +146,7 @@ public class CppHexEditor {
      * @param length
      * @return
      */
-    protected def dumpBytes(long length) {
+    void dumpBytes(long length) {
         for (int i = 0; i < length; i++) {
             def s = String.format('%02X ', readByte())
             if (i % 16 == 0) {
@@ -165,7 +165,7 @@ public class CppHexEditor {
      * Check if has been written any bytes
      * @return true edited
      */
-    protected boolean isEdited() {
+    boolean isEdited() {
         return mEdited
     }
 }

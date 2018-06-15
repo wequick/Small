@@ -18,8 +18,8 @@ package net.wequick.gradle.aapt
 /**
  * enum from include/androidfw/ResourceTypes.h
  */
-public enum ResTableEntry {
-    public static int FLAG_COMPLEX = 0X0001;
-    public static int FLAG_PUBLIC = 0X0002;
-    public static int FLAG_WEAK = 0X0004;
+class ResTableEntry {
+    public static int FLAG_COMPLEX = 0X0001
+    public static int FLAG_PUBLIC = 0X0002
+    public static int FLAG_WEAK = 0X0004
 }
