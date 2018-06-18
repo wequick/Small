@@ -9,6 +9,6 @@ int dimen appbar_padding_top 0x79030002
 int dimen fab_margin 0x79030003
 int layout activity_main 0x79040000
 int style AppTheme 0x79050000
-int style AppTheme.AppBarOverlay 0x79050001
-int style AppTheme.NoActionBar 0x79050002
-int style AppTheme.PopupOverlay 0x79050003
+int style AppTheme_AppBarOverlay 0x79050001
+int style AppTheme_NoActionBar 0x79050002
+int style AppTheme_PopupOverlay 0x79050003
