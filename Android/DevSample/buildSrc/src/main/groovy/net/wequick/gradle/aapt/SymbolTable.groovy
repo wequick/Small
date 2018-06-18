@@ -227,12 +227,14 @@ class SymbolTable {
                         }
                         table.addStyle(entryName, attrs)
                         return
-                    } else if (typeName == 'item') {
-                        typeName = 'id'
                     }
 
-                    if (typeName.endsWith('-array')) {
+                    if (typeName == 'item') {
+                        typeName = 'id'
+                    } else if (typeName.endsWith('-array')) {
                         typeName = 'array'
+                    } else if (typeName == 'style') {
+                        entryName = entryName.replace('.', '_')
                     }
 
                     table.addEntry(typeName, [entryName])
@@ -287,9 +289,14 @@ class SymbolTable {
                     def s = table.addStyle(lastStyleName)
                     s.addEntry(key, idStr)
                 }
-            } else {
-                table.addEntry(type, [key], [idStr])
+                return
             }
+
+            if (type == 'style') {
+                key = key.replace('.', '_')
+            }
+
+            table.addEntry(type, [key], [idStr])
         }
         return table
     }
@@ -744,8 +751,7 @@ class SymbolTable {
             if (t.entries.size() == 0) return
             pw.println "  public static final class ${t.name} {"
             t.entries.each { e ->
-                def key = e.key.replace('.', '_')
-                pw.println "    public static final ${e.valueType} $key=${e.value};"
+                pw.println "    public static final ${e.valueType} ${e.key}=${e.value};"
             }
             pw.println "  }"
         }
