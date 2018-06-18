@@ -560,19 +560,11 @@ class RootPlugin extends BasePlugin<RootExtension> {
             def fullSymbolFile = AndroidPluginUtils.getSymbolFile(aapt)
             aapt.aaptOptions.additionalParameters '--output-text-symbols', fullSymbolFile.absolutePath
 
-            // Ensure generate R.java
-            def fullRJavaFile = new File(fullOutputDir, "$packagePath/R.java")
-            if (!fullRJavaFile.parentFile.exists()) {
-                fullRJavaFile.parentFile.mkdirs()
-            }
-//            aapt.aaptOptions.additionalParameters '-J', fullRJavaFile.parentFile.absolutePath
-
             // After the full-R.java generated, also make a split one
             aapt.outputs.files(aapt.project.files(miniRJavaFile))
             aapt.outputs.files(aapt.project.files(miniSymbolFile))
             aapt.doLast {
-//                println "-- ${fullRJavaFile.exists()}, $fullRJavaFile"
-//                assert false
+                def fullRJavaFile = new File(fullOutputDir, "$packagePath/R.java")
                 def fullSymbols = SymbolTable.fromFile(fullSymbolFile)
                 def idSymbols = fullSymbols.copy().retainTypes(['id']) // with `R.id.*`
 
