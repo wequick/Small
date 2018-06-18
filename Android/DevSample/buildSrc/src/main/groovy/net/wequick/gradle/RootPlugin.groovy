@@ -94,24 +94,16 @@ class RootPlugin extends BasePlugin<RootExtension> {
             }
 
             // Semi-instant run
-            if (small.isRunningHost) {
-                // Before running host, build all the bundles first.
-                small.hostProject.afterEvaluate {
-                    AndroidPluginUtils.getVariants(it).all { variant ->
-                        small.bundleProjects.each { bundle ->
-                            it.mergeDebugAssets.dependsOn "$bundle.path:assembleRelease"
-                        }
-                    }
-                }
-
-//                small.bundleProjects.each { bundle ->
-//                    bundle.afterEvaluate {
-//                        AndroidPluginUtils.getVariants(bundle).all { variant ->
-//                            variant.preBuild.dependsOn "$bundle.path:buildLib"
+//            if (small.isRunningHost) {
+//                // Before running host, build all the bundles first.
+//                small.hostProject.afterEvaluate {
+//                    AndroidPluginUtils.getVariants(it).all { variant ->
+//                        small.bundleProjects.each { bundle ->
+//                            variant.mergeAssets.dependsOn "$bundle.path:assembleRelease"
 //                        }
 //                    }
 //                }
-            }
+//            }
         }
     }
 
@@ -627,30 +619,40 @@ class RootPlugin extends BasePlugin<RootExtension> {
         javac.doFirst {
             // While incremental building,
             // the `R.class` should be revert to the full version temporary.
-            def classDir = new File(javac.destinationDir, packagePath)
-            def fullBackupRClassDir = new File(javac.destinationDir, '../__full_backup')
-            if (fullBackupRClassDir.exists()) {
-                fullBackupRClassDir.listFiles().each { classFile ->
-                    File originalFile = new File(classDir, classFile.name)
+            def classesDir = javac.destinationDir
+            def fullBackupRClassesDir = new File(classesDir, "../stripped-$classesDir.name-R")
+            if (fullBackupRClassesDir.exists()) {
+                def len = fullBackupRClassesDir.absolutePath.length()
+                fullBackupRClassesDir.eachFile(FileType.FILES, { classFile ->
+                    def dir = new File(classesDir, classFile.parentFile.absolutePath.substring(len))
+                    File originalFile = new File(dir, classFile.name)
                     if (originalFile.exists()) {
                         originalFile.delete()
                     }
                     org.apache.commons.io.FileUtils.moveFileToDirectory(
-                            classFile, classDir, false)
-                }
+                            classFile, dir, false)
+                })
             }
         }
         javac.doLast {
             // After `javac' done, the full-R.class is no need any more,
             // replace it with the split one
-            def fullRClassDir = new File(javac.destinationDir, packagePath)
-            def fullBackupRClassDir = new File(javac.destinationDir, '../__full_backup')
-            fullRClassDir.listFiles().each {
+            def classesDir = javac.destinationDir
+            def len = classesDir.absolutePath.length()
+            def fullBackupRClassDir = new File(javac.destinationDir, "../stripped-$classesDir.name-R")
+            classesDir.eachFileRecurse(FileType.FILES, {
                 if (it.name.startsWith('R.') || it.name.startsWith('R$')) {
+                    def path = it.parentFile.absolutePath.substring(len)
+                    def backupDir = new File(fullBackupRClassDir, path)
+                    File backupFile = new File(backupDir, it.name)
+                    if (backupFile.exists()) {
+                        backupFile.delete()
+                    }
                     org.apache.commons.io.FileUtils.moveFileToDirectory(
-                            it, fullBackupRClassDir, true)
+                            it, backupDir, true)
                 }
-            }
+            })
+            Log.success "[${project.name}] strip library R.class..."
 
             bundle.ant.javac(srcdir: miniRJavaFile.parentFile,
                     source: javac.sourceCompatibility,
@@ -666,8 +668,12 @@ class RootPlugin extends BasePlugin<RootExtension> {
         def manifest = new XmlParser().parse(manifestFile)
         def android = new Namespace('http://schemas.android.com/apk/res/android', 'android')
 
-        // Strip unused <uses-sdk> node
+        // Strip unused <uses-sdk> nodes
         manifest['uses-sdk'].each {
+            manifest.remove(it)
+        }
+        // Strip unused <uses-permission> nodes
+        manifest['uses-permission'].each {
             manifest.remove(it)
         }
         // Strip unused <application android:*=..> attributes
