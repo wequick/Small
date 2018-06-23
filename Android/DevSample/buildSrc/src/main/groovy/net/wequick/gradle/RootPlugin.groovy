@@ -308,6 +308,7 @@ class RootPlugin extends BasePlugin<RootExtension> {
             }
         }
 
+        apps.remove(small.hostProject)
         apps.each { app ->
             app.afterEvaluate {
                 small.stubProjects.each { stub ->
@@ -317,6 +318,11 @@ class RootPlugin extends BasePlugin<RootExtension> {
             }
         }
 
+        small.hostProject.afterEvaluate { app ->
+            small.stubProjects.each { stub ->
+                app.dependencies.add('api', app.dependencies.project(path: stub.path))
+            }
+        }
         small.hostProject.apply plugin: HostPlugin
     }
 
@@ -834,6 +840,12 @@ class RootPlugin extends BasePlugin<RootExtension> {
             def jniDir = new File(aarDir, 'jni')
             if (jniDir.exists()) {
                 jniDirs.add jniDir
+            } else {
+                def lib = project.rootProject.findProject(aar.name)
+                if (lib != null) {
+                    def libAndroid = AndroidPluginUtils.getAndroid(lib)
+                    jniDirs.addAll libAndroid.sourceSets.main.jniLibs.srcDirs
+                }
             }
         }
 
