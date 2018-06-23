@@ -63,10 +63,8 @@ class StripDataBindingTransform extends Transform {
         inputs.each {
             // Filter the jars
             it.jarInputs.each {
-//                println "---- $it.file"
                 if (filters.find { f -> it.name.startsWith(f) } != null) return
 
-                println "+++ keep ${project.name} $it.name"
                 File dest = outputProvider.getContentLocation(
                         it.name, it.contentTypes, it.scopes, Format.JAR)
                 FileUtils.copyFile(it.file, dest)
