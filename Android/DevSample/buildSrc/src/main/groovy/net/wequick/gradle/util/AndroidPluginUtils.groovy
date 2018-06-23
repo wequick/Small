@@ -26,8 +26,8 @@ import com.android.build.gradle.tasks.MergeManifests
 
 class AndroidPluginUtils {
 
-    static <T extends BaseExtension> T getAndroid(Project project) {
-        return (T) project.extensions.findByName('android')
+    static BaseExtension getAndroid(Project project) {
+        return project.extensions.findByName('android')
     }
 
     static DomainObjectSet<BaseVariant> getVariants(Project project) {

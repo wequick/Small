@@ -456,6 +456,16 @@ class RootExtension extends BaseExtension {
         return mUnusedSymbols
     }
 
+    File getBundleOutput(String pkg) {
+        String name
+        if (buildToAssets) {
+            name = "${pkg}.apk"
+        } else {
+            name = "lib${pkg.replace('.', '_')}.so"
+        }
+        return new File(getOutputBundleDir(), name)
+    }
+
     /**
      * Generate a random package id in range [0x03, 0x7e] by bundle's name.
      * [0x00, 0x02] reserved for android system resources.

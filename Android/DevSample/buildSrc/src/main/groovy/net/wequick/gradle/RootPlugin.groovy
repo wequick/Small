@@ -28,6 +28,7 @@ import net.wequick.gradle.dsl.AndroidConfig
 import net.wequick.gradle.internal.Version
 import net.wequick.gradle.migrate.MigrateAGP3Task
 import net.wequick.gradle.tasks.DumpBundlesTask
+import net.wequick.gradle.tasks.LintTask
 import net.wequick.gradle.tasks.PrepareAarTask
 import net.wequick.gradle.tasks.ResolveDependenciesTask
 import net.wequick.gradle.util.AndroidPluginUtils
@@ -91,6 +92,9 @@ class RootPlugin extends BasePlugin<RootExtension> {
             // Assemble dependencies
             small.bundleProjects.each {
                 it.task('buildBundle', dependsOn: 'assembleRelease')
+            }
+            small.assetProjects.each {
+                it.apply plugin: AssetPlugin
             }
 
             // Semi-instant run
@@ -244,7 +248,10 @@ class RootPlugin extends BasePlugin<RootExtension> {
 
     void syncSigningConfig() {
         def hostProject = small.hostProject
-        small.bundleProjects.each { bundle ->
+        def bundles = []
+        bundles.addAll small.bundleProjects
+        bundles.addAll small.assetProjects
+        bundles.each { bundle ->
             bundle.afterEvaluate {
                 def hostAndroid = AndroidPluginUtils.getAndroid(hostProject)
                 def hostDebugBuildType = hostAndroid.buildTypes.find { it.name == 'debug' }
@@ -271,6 +278,7 @@ class RootPlugin extends BasePlugin<RootExtension> {
         super.createTask()
 
         project.task('small', type: DumpBundlesTask)
+        project.task('smallLint', type: LintTask)
         project.task('cleanLib', type: Delete) {
             delete new File(project.buildDir, 'small')
         }
