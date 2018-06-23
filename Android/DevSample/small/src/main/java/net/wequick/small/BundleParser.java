@@ -119,6 +119,7 @@ public class BundleParser {
     private boolean mUsesHardwareAccelerated;
     private String mLibDir;
     private String mLauncherActivityName;
+    private String mSmallBuildVersion;
 
     private Context mContext;
     private ZipFile mZipFile;
@@ -177,19 +178,17 @@ public class BundleParser {
             // <manifest ...
             mPackageInfo.packageName = parser.getAttributeValue(null, "package").intern();
 
-            // After gradle-small 0.9.0, we roll out
-            // `The Small exclusive flags`
+            // After gradle-small 2.0, we roll out `The Small exclusive flags`
+            //
             //  F    F    F    F    F    F    F    F
             // 1111 1111 1111 1111 1111 1111 1111 1111
-            // ^^^^ ^^^^ ^^^^ ^^^^ ^^^^
-            //       ABI Flags (20)
-            //                          ^
-            //                 nonResources Flag (1)
-            //                           ^^^ ^^^^ ^^^^
-            //                     platformBuildVersionCode (11) => MAX=0x7FF=4095
-            int flags = parser.getAttributeIntValue(null, "platformBuildVersionCode", 0);
-            int abiFlags = (flags & 0xFFFFF000) >> 12;
-            mNonResources = (flags & 0x800) != 0;
+            // ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^   ABI Flags         ( 31 )
+            //                                       ^  nonResources Flag (  1 )
+            int flags = parser.getAttributeIntValue(null, "smallFlags", 0);
+            int abiFlags = (flags & 0xFFFFFFFE) >> 1;
+            mNonResources = (flags & 0x1) != 0;
+
+//            mSmallBuildVersion = parser.getAttributeValue(null, "smallBuild").intern();
 
             TypedArray sa = res.obtainAttributes(attrs,
                     R.styleable.AndroidManifest);
