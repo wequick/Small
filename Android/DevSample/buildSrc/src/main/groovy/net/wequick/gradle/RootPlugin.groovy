@@ -128,9 +128,9 @@ class RootPlugin extends BasePlugin<RootExtension> {
                     }
 
                     def bakLine = line
-                    line = line.replace('compile', 'implementation')
-                    line = line.replace('testCompile', 'testImplementation')
-                    line = line.replace('provided', 'compileOnly')
+                    line = line.replaceFirst('compile ', 'implementation ')
+                    line = line.replaceFirst('testCompile ', 'testImplementation ')
+                    line = line.replaceFirst('provided ', 'compileOnly ')
                     if (bakLine.length() != line.length()) {
                         migrated = true
                     }
