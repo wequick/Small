@@ -89,7 +89,7 @@ public class MainFragment extends Fragment {
         }
 
 //        TextView tvLib = (TextView) rootView.findViewById(R.id.lib_label);
-        tvLib.setText(Greet.hello() + " (ButterKnife 8)");
+//        tvLib.setText(Greet.hello() + " (ButterKnife 8)");
 
         TextView tvJni = (TextView) rootView.findViewById(R.id.jni_label);
         tvJni.setText(HelloPluginJni.stringFromJNI());
