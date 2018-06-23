@@ -35,6 +35,8 @@ install:
   - echo yes | sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout-solver;1.0.2"
 script:
   - cd Android/DevSample
-  - ./gradlew buildLib -q -Dorg.gradle.parallel=false -Dorg.gradle.daemon=true
-  - ./gradlew buildBundle -q -Dorg.gradle.parallel=true -Dorg.gradle.daemon=true
-  - ./gradlew smallLint -q
+  #- ./gradlew buildLib -q -Dorg.gradle.parallel=false -Dorg.gradle.daemon=true
+  #- ./gradlew buildBundle -q -Dorg.gradle.parallel=true -Dorg.gradle.daemon=true
+  #- ./gradlew smallLint -q
+  - ./gradlew buildLib -q
+  - ./gradlew buildBundle -q
