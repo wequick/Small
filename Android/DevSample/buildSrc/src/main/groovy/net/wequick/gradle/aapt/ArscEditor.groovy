@@ -74,15 +74,17 @@ class ArscEditor extends AssetEditor {
         def libPackageIds = []
 
         // Ensure there is an `attr' typeSpec
-//        if (retainedTypes[0].id != 1) { // attr type id is always as `1'
-//            def attrSpec = t.typeList.specs[0]
-//            attrSpec.entryCount = 0
-//            attrSpec.configs = []
-//            attrSpec.flags = []
-//            attrSpec.header.size = attrSpec.header.headerSize // id(1) res0(1) res1(2) entryCount(4)
-//            retainedTypeIds.add(attrSpec.id - 1)
-//            retainedTypeSpecs.add(attrSpec)
-//        }
+        def attrType = retainedTypes.find { it.name == 'attr' }
+        if (attrType == null) {
+            def attrSpec = findAttrSpec(t)
+            attrSpec.entryCount = 0
+            attrSpec.configs = []
+            attrSpec.flags = []
+            attrSpec.header.size = attrSpec.header.headerSize // id(1) res0(1) res1(2) entryCount(4)
+            retainedTypeIds.add(attrSpec.id - 1)
+            retainedTypeSpecs.add(attrSpec)
+        }
+
         // Filter typeSpecs
         retainedTypes.each {
             if (it.id == Aapt.ID_DELETED) {
@@ -99,6 +101,7 @@ class ArscEditor extends AssetEditor {
             def flags = []
             es.each { e ->
                 def flag = (e.id == Aapt.ID_DELETED) ? 0 : ts.flags[e.id]
+                if (flag == null) flag = 0
                 flags.add(flag)
             }
             ts.flags = flags
@@ -306,6 +309,15 @@ class ArscEditor extends AssetEditor {
         if (DEBUG_NOISY) dumpTable()
 
         close()
+    }
+
+    static def findAttrSpec(Map t) {
+        def index = indexOfStringInPool(t.typeStringPool, 'attr')
+        if (index == -1) {
+            dumpStringPool(t.typeStringPool)
+            throw new RuntimeException("Failed to find the attr type.")
+        }
+        return t.typeList.specs[index]
     }
 
     /**

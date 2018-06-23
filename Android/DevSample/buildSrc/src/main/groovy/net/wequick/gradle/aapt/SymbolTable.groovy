@@ -157,7 +157,6 @@ class SymbolTable {
     Type attrType
     String packageId
     String packageName
-    File publicSymbolFile
 
     SymbolTable() {
         packageId = '7f'
@@ -343,12 +342,6 @@ class SymbolTable {
     SymbolTable merge(SymbolTable st) {
         if (st == null) return this
 
-        if (attrType == null) {
-            attrType = st.attrType
-        } else {
-            attrType = attrType.merge(st.attrType)
-        }
-
         if (types == null) {
             types = st.types
         } else if (st.types != null) {
@@ -439,17 +432,57 @@ class SymbolTable {
         styleables.removeAll(strippedStyleables)
     }
 
-    void sortEntries() {
+    void sortEntries(File publicSymbolFile) {
         if (types == null) return
 
-        // Sort types
+        // Tidy
         types.removeAll { it.entries == null }
+
+        // Simply sort in alphabet order if the public symbols not exists
+        if (publicSymbolFile == null) {
+            sortEntriesInAlphabetOrder()
+            return
+        }
+
+        SymbolTable publicSymbol = fromFile(publicSymbolFile)
+        if (publicSymbol == null || publicSymbol.types == null) {
+            sortEntriesInAlphabetOrder()
+            return
+        }
+
+        // TODO: Sort with public symbols
+        def publicTypeNames = publicSymbol.types.collect { it.name }
+        types.sort {
+            def index = publicTypeNames.indexOf(it.name)
+            if (index == -1) index = Integer.MAX_VALUE
+            return index
+        }
+
+        types.each { t ->
+            def relativeType = publicSymbol.types.find { it.name == t.name }
+            if (relativeType == null) return
+
+            def relativeEntryKeys = relativeType.entries.collect { it.key }
+            t.entries.sort {
+                def index = relativeEntryKeys.indexOf(it.key)
+                if (index == -1) index = Integer.MAX_VALUE
+                return index
+            }
+        }
+    }
+
+    void sortEntriesInAlphabetOrder() {
+        // Sort types
         types.sort { it.name }
+
+        // Ensure the `attr` is in first
+        def attrType = types.find { it.name == 'attr' }
         if (attrType != null) {
             types.remove(attrType)
             types.add(0, attrType)
         }
 
+        // Sort entries
         types.each { t ->
             t.entries.sort { it.key }
         }
@@ -463,17 +496,17 @@ class SymbolTable {
         }
     }
 
-    void assignEntryIds(String packageId) {
-        sortEntries()
+    void assignEntryIds(String packageId, File publicSymbolFile) {
+        sortEntries(publicSymbolFile)
 
         if (types == null) return
 
-        attrType = types.find { it.name == 'attr' }
+        def attrType = types.find { it.name == 'attr' }
 
         def typeId = 1
-//        if (attrType == null) {
-//            typeId = 2 // skip 'attr' type
-//        }
+        if (attrType == null) {
+            typeId = 2 // skip 'attr' type
+        }
         types.each { t ->
             def entryId = 0
             t.entries.each { e ->
@@ -484,7 +517,9 @@ class SymbolTable {
             typeId = typeId + 1
         }
 
-        if (styleables == null || attrType == null) return
+        if (styleables == null || attrType == null) {
+            return
+        }
 
         styleables.each { t ->
             def ids = t.entries.collect { e ->
@@ -638,7 +673,10 @@ class SymbolTable {
             def corrected = false
             t.values.eachWithIndex { String id, int i ->
                 if (id == UNKNOWN_STYLE_REF) {
-                    t.values[i] = relativeStyle.values[i]
+                    def relativeIndex = relativeStyle.entries.findIndexOf {
+                        it.key == t.entries[i].key
+                    }
+                    t.values[i] = relativeStyle.values[relativeIndex]
                     corrected = true
                 }
             }
@@ -713,10 +751,7 @@ class SymbolTable {
     }
 
     private void addAttrType(String key) {
-        if (attrType == null) {
-            attrType = new Type('attr')
-        }
-        attrType.addEntry(key)
+        addEntry('attr', [key])
     }
 
     private void printTextSymbols(PrintWriter pw) {
@@ -727,11 +762,11 @@ class SymbolTable {
             }
         }
 
-        if (styleables == null) return
+        if (pw != null || styleables == null) return
         styleables.each { t ->
-            printLine("int[] styleable $t.name $t.value", pw)
+            println "int[] styleable $t.name $t.value"
             t.entries.each { e ->
-                printLine("$e.valueType styleable ${t.name}_${e.key} $e.value", pw)
+                println "int styleable ${t.name}_$e.key $e.value"
             }
         }
     }

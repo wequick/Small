@@ -269,6 +269,29 @@ public class AssetEditor extends CppHexEditor {
         writeInt(ss.lastChar)
     }
 
+    protected static int indexOfStringInPool(Map pool, String target) {
+        byte[] targetBytes
+        if (pool.isUtf8) {
+            targetBytes = target.toCharArray()
+        } else {
+            def temp = target.toCharArray()
+            targetBytes = new byte[temp.length * 2]
+            int j = 0
+            for (int i = 0; i < temp.length; i++) {
+                targetBytes[j++] = temp[i]
+                targetBytes[j++] = '\0'
+            }
+        }
+
+        for (int i = 0; i < pool.strings.size(); i++) {
+            byte[] v = pool.strings[i]
+            if (Arrays.equals(v, targetBytes)) {
+                return i
+            }
+        }
+        return -1
+    }
+
     /** Get utf-8 from utf-16 */
     protected static def getUtf8String(u16str) {
         int len16 = u16str.size()

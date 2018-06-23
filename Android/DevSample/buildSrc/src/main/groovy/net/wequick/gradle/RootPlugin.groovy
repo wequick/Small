@@ -586,7 +586,8 @@ class RootPlugin extends BasePlugin<RootExtension> {
                 idSymbols.strip(baseIdSymbols)
 
                 miniSymbols.merge(idSymbols)
-                miniSymbols.assignEntryIds(packageId)
+                miniSymbols.assignEntryIds(packageId, miniSymbolFile)
+                miniSymbols.mapStyleableReferences(fullSymbols)
 
                 // Store for later `splitApFile`
                 aapt.extensions.add('fullSymbols', fullSymbols)
@@ -598,7 +599,6 @@ class RootPlugin extends BasePlugin<RootExtension> {
                 baseSymbols.generateRJavaToFile(fullRJavaFile, packageName)
                 Log.success "[${project.name}] concat full R.java..."
 
-                miniSymbols.mapStyleableReferences(fullSymbols)
                 miniSymbols.generateRJavaToFile(miniRJavaFile, packageName)
                 Log.success "[${project.name}] generate mini R.java..."
 
@@ -732,7 +732,8 @@ class RootPlugin extends BasePlugin<RootExtension> {
         }
 
         def baseSymbols = new SymbolTable()
-        File hostSymbolFile = small.hostProject.file('build/intermediates/symbols/release/R.txt')
+        ProcessAndroidResources hostAapt = small.hostProject.extensions.getByName('smallAapt')
+        File hostSymbolFile = AndroidPluginUtils.getSymbolFile(hostAapt)
         baseSymbols.merge(SymbolTable.fromFile(hostSymbolFile))
         libProjects.each {
             File publicSymbolFile = it.file('public.txt')
