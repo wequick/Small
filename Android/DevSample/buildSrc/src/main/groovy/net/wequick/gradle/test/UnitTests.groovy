@@ -18,6 +18,7 @@ package net.wequick.gradle.test
 import com.android.build.gradle.tasks.ProcessAndroidResources
 import com.android.sdklib.BuildToolInfo
 import net.wequick.gradle.util.AnsiUtils
+import net.wequick.gradle.util.Command
 import net.wequick.gradle.util.Log
 import org.gradle.api.Project
 import org.gradle.api.logging.LogLevel
@@ -28,11 +29,13 @@ class UnitTests {
     public static String error
     public static String details
     protected Project project
+    private Command command
 
     UnitTests() { }
 
     UnitTests(Project project) {
         this.project = project
+        this.command = Command.with(project)
     }
 
     void setUp() {
@@ -48,66 +51,15 @@ class UnitTests {
     }
 
     def cmd(exe, theArgs, logs) {
-        def out = null
-        def redirectsOutput = !logs
-        if (redirectsOutput) {
-            out = new ByteArrayOutputStream()
-        }
-
-        project.exec {
-            commandLine exe
-            args = theArgs
-            if (redirectsOutput) {
-                standardOutput = out
-            }
-        }
-
-        return out
+        return command.execute(exe, theArgs, logs)
     }
 
     def gradlew(String taskName, boolean quiet, boolean parallel) {
-        def args = []
-        def exe = './gradlew'
-        if (System.properties['os.name'].toLowerCase().contains('windows')) {
-            exe = 'cmd'
-            args.add('/c')
-            args.add('gradlew.bat')
-        }
-
-        args.add(taskName)
-        if (quiet) {
-            args.add('-q')
-        }
-        args.add('-Dorg.gradle.daemon=true')
-        args.add("-Dorg.gradle.parallel=${parallel ? 'true' : 'false'}")
-
-        cmd(exe, args, true)
-
-//        GradleBuild gradlew = project.task('__temp_gradlew', type: GradleBuild)
-//        gradlew.tasks = [taskName]
-//        gradlew.startParameter.systemPropertiesArgs.putAll(
-//                'org.gradle.daemon': 'true',
-//                'org.gradle.parallel': parallel ? 'true' : 'false')
-//        gradlew.startParameter.logLevel = quiet ? LogLevel.QUIET : LogLevel.LIFECYCLE
-//
-//        gradlew.execute()
-//
-//        project.tasks.remove(gradlew)
+        return command.gradlew(taskName, quiet, parallel)
     }
 
     def aapt(theArgs) {
-        def rootSmall = project.rootProject.small
-        def tasks = rootSmall.hostProject.tasks.withType(ProcessAndroidResources)
-        def aapt = tasks[0]
-        def buildToolInfo = aapt.buildTools
-        def exe = buildToolInfo.getPath(BuildToolInfo.PathId.AAPT)
-        def out = new ByteArrayOutputStream()
-        project.exec {
-            executable exe
-            args = theArgs
-            standardOutput = out
-        }
-        return out.toString()
+        return command.aapt(theArgs)
     }
 
     static def tAssert(boolean condition, String message) {

@@ -32,7 +32,9 @@ import net.wequick.gradle.tasks.DumpBundlesTask
 import net.wequick.gradle.tasks.LintTask
 import net.wequick.gradle.tasks.PrepareAarTask
 import net.wequick.gradle.tasks.ResolveDependenciesTask
+import net.wequick.gradle.tasks.RunHostTask
 import net.wequick.gradle.util.AndroidPluginUtils
+import net.wequick.gradle.util.Command
 import net.wequick.gradle.util.DependenciesUtils
 import net.wequick.gradle.util.FileUtils
 import net.wequick.gradle.util.JNIUtils
@@ -303,6 +305,30 @@ class RootPlugin extends BasePlugin<RootExtension> {
         project.afterEvaluate {
             small.allBundleProjects.each {
                 it.task('cleanBundle', type: CleanBundleTask)
+            }
+        }
+
+        // Run
+        project.afterEvaluate {
+            def host = small.hostProject
+            host.afterEvaluate {
+                AndroidPluginUtils.getVariants(host).all { BaseVariant variant ->
+                    if (variant.buildType.name != 'debug') return
+
+                    if (project.hasProperty('smallRun')) return
+
+                    variant.outputs.all { out ->
+                        def apk = out.outputFile
+                        def manifest = new File(out.processManifest.manifestOutputDirectory, 'AndroidManifest.xml')
+                        project.task('smallRun', group: 'small', type: RunHostTask,
+                                //dependsOn: variant.assemble,
+                                description: 'Run the host\n运行主程序') {
+                            it.host host
+                            it.apk apk
+                            it.manifest manifest
+                        }
+                    }
+                }
             }
         }
     }
