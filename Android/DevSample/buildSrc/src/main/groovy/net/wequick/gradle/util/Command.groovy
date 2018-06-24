@@ -52,7 +52,7 @@ class Command {
             }
         }
 
-        return out
+        return out ? out.toString() : null
     }
 
     def gradlew(String taskName, boolean quiet, boolean parallel) {
@@ -96,7 +96,7 @@ class Command {
 
     def aapt(List<String> args) {
         def aapt = this.buildToolInfo.getPath(BuildToolInfo.PathId.AAPT)
-        execute(aapt, args, true)
+        return execute(aapt, args, false)
     }
 
     BuildToolInfo getBuildToolInfo() {
