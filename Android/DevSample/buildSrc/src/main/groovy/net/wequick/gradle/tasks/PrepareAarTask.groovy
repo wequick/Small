@@ -4,9 +4,15 @@ package net.wequick.gradle.tasks
 import com.android.build.gradle.api.LibraryVariant
 import net.wequick.gradle.RootExtension
 import net.wequick.gradle.util.AndroidPluginUtils
+import net.wequick.gradle.util.AnsiUtils
+import net.wequick.gradle.util.Log
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.file.FileCollection
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
 
 class PrepareAarTask extends DefaultTask {
@@ -14,6 +20,9 @@ class PrepareAarTask extends DefaultTask {
     File destinationDir
     List<File> aarFiles
     String modulePath
+    File explodedDir
+    FileCollection fatFiles
+    FileCollection strippedFiles
 
     RootExtension small
 
@@ -44,17 +53,32 @@ class PrepareAarTask extends DefaultTask {
             stripFiles.add destFile
         }
 
-        inputs.files project.files(aarFiles)
-        outputs.files project.files(stripFiles)
+        fatFiles = project.files(aarFiles)
+        strippedFiles = project.files(stripFiles)
+        explodedDir = new File(small.explodedAarDir, modulePath)
+    }
+
+    @InputFiles
+    def getFatFiles() {
+        return fatFiles
+    }
+
+    @OutputDirectory
+    def getExplodedDir() {
+        return explodedDir
+    }
+
+    @OutputFiles
+    def getStrippedFiles() {
+        return strippedFiles
     }
 
     @TaskAction
     void run() {
         aarFiles.each { srcFile ->
             // Unpack
-//            println "### export $path"
+            Log.success("Strip ${modulePath.replace('/', ':')}")
 
-            def explodedDir = new File(small.explodedAarDir, modulePath)
             project.ant.unzip(src: srcFile.path, dest: explodedDir)
 
             // Check if exist resources
