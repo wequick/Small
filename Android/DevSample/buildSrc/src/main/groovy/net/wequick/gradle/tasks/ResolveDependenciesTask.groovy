@@ -17,7 +17,8 @@ class ResolveDependenciesTask extends DefaultTask {
     private File dependenciesFileOutDir
 
     ResolveDependenciesTask() {
-        dependenciesFileOutDir = new File(project.buildDir, 'small/dependencies')
+        RootExtension small = project.small
+        dependenciesFileOutDir = small.dependenciesDir
 
         def inputFiles = []
         def outputFiles = []

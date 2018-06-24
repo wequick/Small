@@ -3,6 +3,7 @@ package net.wequick.gradle.compat.databinding
 import com.android.build.gradle.BaseExtension
 import groovy.io.FileType
 import com.android.build.gradle.api.BaseVariant
+import net.wequick.gradle.RootExtension
 import net.wequick.gradle.internal.Version
 import net.wequick.gradle.util.AndroidPluginUtils
 import net.wequick.gradle.util.DependenciesUtils
@@ -204,7 +205,8 @@ class DataBindingCompat {
     private static void createSmallDataBindingJarProvider(Project repo, String artifactName) {
         repo.configurations.maybeCreate(artifactName)
 
-        def jarPath = new File(repo.buildDir, 'small/compat/data-binding')
+        RootExtension rootSmall = repo.rootProject.small
+        def jarPath = new File(rootSmall.buildDir, 'compat/data-binding')
         def jarName = 'small-databinding-stub.jar'
         def jarFile = new File(jarPath, jarName)
         def jarTask = repo.task(artifactName) { Task jar ->

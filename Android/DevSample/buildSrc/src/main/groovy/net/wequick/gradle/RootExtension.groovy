@@ -36,6 +36,8 @@ class RootExtension extends BaseExtension {
     private SymbolTable mUnusedSymbols
     private File mExplodedAarDir
     private File mStrippedAarDir
+    private File mBuildDir
+    private File mDependenciesDir
 
     Project smallProject
     Project smallBindingProject
@@ -156,7 +158,7 @@ class RootExtension extends BaseExtension {
         if (!isBuildingBundle) return null
 
         if (mProvidedAarDependencies == null) {
-            File depDir = new File(project.buildDir, 'small/dependencies/provided-aar')
+            File depDir = new File(this.dependenciesDir, 'provided-aar')
             def map = new HashMap()
             project.subprojects.each { sub ->
                 def modules = []
@@ -180,7 +182,7 @@ class RootExtension extends BaseExtension {
         if (!isBuildingBundle) return null
 
         if (mCompiledAarDependencies == null) {
-            File depDir = new File(project.buildDir, 'small/dependencies/compiled-aar')
+            File depDir = new File(this.dependenciesDir, 'compiled-aar')
             def map = new HashMap()
             project.subprojects.each { sub ->
                 def modules = []
@@ -226,7 +228,7 @@ class RootExtension extends BaseExtension {
         if (!isBuildingBundle) return null
 
         if (mProvidedJarDependencies == null) {
-            File depDir = new File(project.buildDir, 'small/dependencies/provided-jar')
+            File depDir = new File(this.dependenciesDir, 'provided-jar')
             def map = new HashMap()
             project.subprojects.each { sub ->
                 def paths = []
@@ -266,6 +268,20 @@ class RootExtension extends BaseExtension {
 
     String getOutputBundlePath() {
         return "$hostProject.projectDir.name/smallLibs"
+    }
+
+    File getBuildDir() {
+        if (mBuildDir == null) {
+            mBuildDir = new File(project.projectDir, 'build-small')
+        }
+        return mBuildDir
+    }
+
+    File getDependenciesDir() {
+        if (mDependenciesDir == null) {
+            mDependenciesDir = new File(this.buildDir, 'dependencies')
+        }
+        return mDependenciesDir
     }
 
     List<Project> getCommonModules() {
@@ -317,6 +333,14 @@ class RootExtension extends BaseExtension {
         def projects = []
         projects.addAll libProjects
         projects.addAll appProjects
+        return projects
+    }
+
+    List<Project> getAllBundleProjects() {
+        def projects = []
+        projects.addAll libProjects
+        projects.addAll appProjects
+        projects.addAll assetProjects
         return projects
     }
 

@@ -27,6 +27,7 @@ import net.wequick.gradle.compat.databinding.DataBindingCompat
 import net.wequick.gradle.dsl.AndroidConfig
 import net.wequick.gradle.internal.Version
 import net.wequick.gradle.migrate.MigrateAGP3Task
+import net.wequick.gradle.tasks.CleanBundleTask
 import net.wequick.gradle.tasks.DumpBundlesTask
 import net.wequick.gradle.tasks.LintTask
 import net.wequick.gradle.tasks.PrepareAarTask
@@ -277,19 +278,33 @@ class RootPlugin extends BasePlugin<RootExtension> {
     protected void createTask() {
         super.createTask()
 
-        project.task('small', type: DumpBundlesTask)
-        project.task('smallLint', type: LintTask)
-        project.task('cleanLib', type: Delete) {
-            delete new File(project.buildDir, 'small')
+        project.task('small', group: 'small', type: DumpBundlesTask,
+                description: 'Dump the environments and bundles\n输出环境变量与组件列表')
+        project.task('smallLint', group: 'small', type: LintTask,
+                description: 'Lint the compiled bundles\n静态检查编译生成的组件')
+
+        // Build
+        project.task('buildLib', group: 'small', type: ResolveDependenciesTask,
+                description: 'Prepare stripped aar and resolve dependencies\n预分离三方库，解析库依赖')
+        project.task('buildBundle')
+
+        // Clean
+        project.task('cleanLib', group: 'small', type: Delete,
+                description: 'Clean the resolved library dependencies\n清除解析出的公共库依赖关系') {
+            delete small.buildDir
         }
-        project.task('cleanSmallCache', type: Delete) {
+        project.task('cleanSmallCache', group: 'small', type: Delete,
+                description: 'Clean the stripped aar caches\n清除预分离的三方库缓存') {
             delete small.explodedAarDir
             delete small.strippedAarDir
         }
-        project.task('buildLib', type: ResolveDependenciesTask)
-        project.task('buildBundle')
-
-        project.task('migrate3', type: MigrateAGP3Task)
+        project.task('cleanBundle', group: 'small',
+                description: 'Clean the bundles\n清除所有编译的组件')
+        project.afterEvaluate {
+            small.allBundleProjects.each {
+                it.task('cleanBundle', type: CleanBundleTask)
+            }
+        }
     }
 
     void addCommonDependencies() {
