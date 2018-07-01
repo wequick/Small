@@ -57,6 +57,8 @@ public class ReflectAccelerator {
     // ActivityClientRecord
     private static Field sActivityClientRecord_intent_field;
     private static Field sActivityClientRecord_activityInfo_field;
+    // ClientTransaction
+    private static Field sClientTransaction_mActivityCallbacks_field;  // since Android P
 
     private static ArrayMap<Object, WeakReference<Object>> sResourceImpls;
     private static Object/*ResourcesImpl*/ sMergedResourcesImpl;
@@ -708,6 +710,31 @@ public class ReflectAccelerator {
                     r.getClass(), "activityInfo");
         }
         setValue(sActivityClientRecord_activityInfo_field, r, ai);
+    }
+
+    public static List/*<LaunchActivityItem>*/ getLaunchActivityItems(Object t) {
+        if (sClientTransaction_mActivityCallbacks_field == null) {
+            sClientTransaction_mActivityCallbacks_field = getDeclaredField(t.getClass(), "mActivityCallbacks");
+        }
+        return getValue(sClientTransaction_mActivityCallbacks_field, t);
+    }
+
+    public static void setActivityInfoToLaunchActivityItem(Object item, ActivityInfo targetInfo) {
+        // The item maybe instance of different classes like
+        // `android.app.servertransaction.LaunchActivityItem`
+        // or `android.app.servertransaction.ActivityConfigurationChangeItem` and etc.
+        // So here we cannot cache one reflection field.
+        Field f = getDeclaredField(item.getClass(), "mInfo");
+        setValue(f, item, targetInfo);
+    }
+
+    public static Intent getIntentOfLaunchActivityItem(Object item) {
+        // The item maybe instance of different classes like
+        // `android.app.servertransaction.LaunchActivityItem`
+        // or `android.app.servertransaction.ActivityConfigurationChangeItem` and etc.
+        // So here we cannot cache one reflection field.
+        Field f = getDeclaredField(item.getClass(), "mIntent");
+        return getValue(f, item);
     }
 
     //______________________________________________________________________________________________
