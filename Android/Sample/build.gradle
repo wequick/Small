@@ -29,7 +29,7 @@ apply plugin: 'net.wequick.small'
 small {
     buildToAssets = false
     android {
-        compileSdkVersion = 26
+        compileSdkVersion = 27
         buildToolsVersion = "25.0.2"
         supportVersion = "25.1.0"
     }
