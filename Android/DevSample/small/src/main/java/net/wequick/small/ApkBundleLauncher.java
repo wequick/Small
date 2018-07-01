@@ -125,14 +125,23 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         private static final int CREATE_SERVICE = 114;
         private static final int CONFIGURATION_CHANGED = 118;
         private static final int ACTIVITY_CONFIGURATION_CHANGED = 125;
+        private static final int EXECUTE_TRANSACTION = 159; // since Android P
 
         private Configuration mApplicationConfig;
+
+        interface ActivityInfoReplacer {
+            void replace(ActivityInfo info);
+        }
 
         @Override
         public boolean handleMessage(Message msg) {
             switch (msg.what) {
                 case LAUNCH_ACTIVITY:
                     redirectActivity(msg);
+                    break;
+
+                case EXECUTE_TRANSACTION:
+                    redirectActivityForP(msg);
                     break;
 
                 case CREATE_SERVICE:
@@ -153,9 +162,36 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             return false;
         }
 
+        private void redirectActivityForP(Message msg) {
+            Object/*android.app.servertransaction.ClientTransaction*/ t = msg.obj;
+            List callbacks = ReflectAccelerator.getLaunchActivityItems(t);
+            if (callbacks == null) return;
+
+            for (final Object/*LaunchActivityItem*/ item : callbacks) {
+                Intent intent = ReflectAccelerator.getIntentOfLaunchActivityItem(item);
+                tryReplaceActivityInfo(intent, new ActivityInfoReplacer() {
+                    @Override
+                    public void replace(ActivityInfo targetInfo) {
+                        ReflectAccelerator.setActivityInfoToLaunchActivityItem(item, targetInfo);
+                    }
+                });
+            }
+        }
+
         private void redirectActivity(Message msg) {
-            Object/*ActivityClientRecord*/ r = msg.obj;
+            final Object/*ActivityClientRecord*/ r = msg.obj;
             Intent intent = ReflectAccelerator.getIntent(r);
+            tryReplaceActivityInfo(intent, new ActivityInfoReplacer() {
+                @Override
+                public void replace(ActivityInfo targetInfo) {
+                    ReflectAccelerator.setActivityInfo(r, targetInfo);
+                }
+            });
+        }
+
+        private void tryReplaceActivityInfo(Intent intent, ActivityInfoReplacer replacer) {
+            if (intent == null) return;
+
             String targetClass = unwrapIntent(intent);
             boolean hasSetUp = Small.hasSetUp();
             if (targetClass == null) {
@@ -180,7 +216,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
 
             // Replace with the REAL activityInfo
             ActivityInfo targetInfo = sLoadedActivities.get(targetClass);
-            ReflectAccelerator.setActivityInfo(r, targetInfo);
+            replacer.replace(targetInfo);
 
             // Ensure the merged application-scope resource has been cached so that
             // the incoming activity can attach to it without creating a new(unmerged) one.

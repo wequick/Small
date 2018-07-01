@@ -29,7 +29,7 @@ small {
     buildToAssets = true
     strictSplitResources = false
     android {
-        compileSdkVersion = 26
+        compileSdkVersion = 27
         buildToolsVersion = "26.0.2"
         supportVersion = "25.1.0"
     }
