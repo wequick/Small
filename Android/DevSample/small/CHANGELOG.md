@@ -1,8 +1,14 @@
+## 1.5.0-beta2 (2018-07-06)
+
+Features:
+
+  - 支持 Android 9.0 (API 28)
+
 ## 1.5.0-beta1 (2018-07-02)
 
 Features:
 
-  - 兼容 Android P (8.1 以上版本)
+  - 支持 Android 8.1 (API 27)
 
 ## 1.3.0-beta6 (2018-04-24)
 
