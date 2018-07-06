@@ -30,6 +30,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.ArrayMap;
+import android.view.ContextThemeWrapper;
 
 import java.io.File;
 import java.io.IOException;
@@ -187,7 +188,7 @@ public class ReflectAccelerator {
             }
             if (sDexElementConstructor == null) {
                 if (Build.VERSION.SDK_INT >= 26) {
-                    sDexElementConstructor = sDexElementClass.getConstructors()[1]; // (DexFile, File)
+                    sDexElementConstructor = sDexElementClass.getConstructor(new Class[]{DexFile.class, File.class});
                 } else {
                     sDexElementConstructor = sDexElementClass.getConstructors()[0];
                 }
@@ -465,12 +466,23 @@ public class ReflectAccelerator {
     }
 
     public static int[] addAssetPaths(AssetManager assets, String[] paths) {
-        if (sAssetManager_addAssetPaths_method == null) {
-            sAssetManager_addAssetPaths_method = getMethod(AssetManager.class,
-                    "addAssetPaths", new Class[]{String[].class});
+        if (Build.VERSION.SDK_INT < 28) {
+            if (sAssetManager_addAssetPaths_method == null) {
+                sAssetManager_addAssetPaths_method = getMethod(AssetManager.class,
+                        "addAssetPaths", new Class[]{String[].class});
+            }
+            if (sAssetManager_addAssetPaths_method == null) return null;
+            return invoke(sAssetManager_addAssetPaths_method, assets, new Object[]{paths});
+        } else {
+            // `AssetManager#addAssetPaths` becomes unavailable since android 9.0,
+            // use recursively `addAssetPath` instead.
+            int N = paths.length;
+            int[] ids = new int[N];
+            for (int i = 0; i < N; i++) {
+                ids[i] = addAssetPath(assets, paths[i]);
+            }
+            return ids;
         }
-        if (sAssetManager_addAssetPaths_method == null) return null;
-        return invoke(sAssetManager_addAssetPaths_method, assets, new Object[]{paths});
     }
 
     public static void mergeResources(Application app, Object activityThread, String[] assetPaths) {
@@ -484,9 +496,13 @@ public class ReflectAccelerator {
         addAssetPaths(newAssetManager, assetPaths);
 
         try {
-            Method mEnsureStringBlocks = AssetManager.class.getDeclaredMethod("ensureStringBlocks", new Class[0]);
-            mEnsureStringBlocks.setAccessible(true);
-            mEnsureStringBlocks.invoke(newAssetManager, new Object[0]);
+            if (Build.VERSION.SDK_INT < 28) {
+                Method mEnsureStringBlocks = AssetManager.class.getDeclaredMethod("ensureStringBlocks", new Class[0]);
+                mEnsureStringBlocks.setAccessible(true);
+                mEnsureStringBlocks.invoke(newAssetManager, new Object[0]);
+            } else {
+                // `AssetManager#ensureStringBlocks` becomes unavailable since android 9.0
+            }
 
             Collection<WeakReference<Resources>> references;
 
@@ -735,6 +751,34 @@ public class ReflectAccelerator {
         // So here we cannot cache one reflection field.
         Field f = getDeclaredField(item.getClass(), "mIntent");
         return getValue(f, item);
+    }
+
+    public static void resetResourcesAndTheme(Activity activity, int themeId) {
+        AssetManager newAssetManager = activity.getApplication().getAssets();
+        Resources resources = activity.getResources();
+
+        // Set the activity resources assets to the application one
+        try {
+            Field mResourcesImpl = Resources.class.getDeclaredField("mResourcesImpl");
+            mResourcesImpl.setAccessible(true);
+            Object resourceImpl = mResourcesImpl.get(resources);
+            Field implAssets = resourceImpl.getClass().getDeclaredField("mAssets");
+            implAssets.setAccessible(true);
+            implAssets.set(resourceImpl, newAssetManager);
+        } catch (Throwable e) {
+            android.util.Log.e("Small", "Failed to update resources for activity " + activity, e);
+        }
+
+        // Reset the theme
+        try {
+            Field mt = ContextThemeWrapper.class.getDeclaredField("mTheme");
+            mt.setAccessible(true);
+            mt.set(activity, null);
+        } catch (Throwable e) {
+            android.util.Log.e("Small", "Failed to update existing theme for activity " + activity, e);
+        }
+
+        activity.setTheme(themeId);
     }
 
     //______________________________________________________________________________________________

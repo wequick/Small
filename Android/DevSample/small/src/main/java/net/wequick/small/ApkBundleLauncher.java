@@ -163,6 +163,11 @@ public class ApkBundleLauncher extends SoBundleLauncher {
         }
 
         private void redirectActivityForP(Message msg) {
+            if (Build.VERSION.SDK_INT >= 28) {
+                // Following APIs cannot be called again since android 9.0.
+                return;
+            }
+
             Object/*android.app.servertransaction.ClientTransaction*/ t = msg.obj;
             List callbacks = ReflectAccelerator.getLaunchActivityItems(t);
             if (callbacks == null) return;
@@ -189,7 +194,7 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             });
         }
 
-        private void tryReplaceActivityInfo(Intent intent, ActivityInfoReplacer replacer) {
+        static void tryReplaceActivityInfo(Intent intent, ActivityInfoReplacer replacer) {
             if (intent == null) return;
 
             String targetClass = unwrapIntent(intent);
@@ -336,6 +341,20 @@ public class ApkBundleLauncher extends SoBundleLauncher {
             ensureInjectMessageHandler(sActivityThread);
             return ReflectAccelerator.execStartActivity(mBase,
                     who, contextThread, token, target, intent, requestCode);
+        }
+
+        @Override
+        public Activity newActivity(ClassLoader cl, final String className, Intent intent) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+            final String[] targetClassName = {className};
+            if (Build.VERSION.SDK_INT >= 28) {
+                ActivityThreadHandlerCallback.tryReplaceActivityInfo(intent, new ActivityThreadHandlerCallback.ActivityInfoReplacer() {
+                    @Override
+                    public void replace(ActivityInfo info) {
+                        targetClassName[0] = info.targetActivity; // Redirect to the plugin activity
+                    }
+                });
+            }
+            return mBase.newActivity(cl, targetClassName[0], intent);
         }
 
         @Override
@@ -1046,6 +1065,11 @@ public class ApkBundleLauncher extends SoBundleLauncher {
      * @param ai
      */
     private static void applyActivityInfo(Activity activity, ActivityInfo ai) {
+        // Apply theme (9.0 only)
+        if (Build.VERSION.SDK_INT >= 28) {
+            ReflectAccelerator.resetResourcesAndTheme(activity, ai.getThemeResource());
+        }
+
         // Apply window attributes
         Window window = activity.getWindow();
         window.setSoftInputMode(ai.softInputMode);
