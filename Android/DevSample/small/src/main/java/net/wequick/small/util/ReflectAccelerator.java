@@ -134,7 +134,7 @@ public class ReflectAccelerator {
             List<String> paths = getValue(sPathClassLoader_libraryPathElements_field, classLoader);
             if (paths == null) return;
             for (File libPath : libPaths) {
-                paths.add(libPath.getAbsolutePath() + File.separator);
+                paths.add(0, libPath.getAbsolutePath() + File.separator);
             }
         }
     }
@@ -316,7 +316,7 @@ public class ReflectAccelerator {
             try {
                 // File[] nativeLibraryDirectories
                 Object[] paths = libPaths.toArray();
-                expandArray(pathList, sDexPathList_nativeLibraryDirectories_field, paths, false);
+                expandArray(pathList, sDexPathList_nativeLibraryDirectories_field, paths, true);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -360,7 +360,7 @@ public class ReflectAccelerator {
                     elements[i] = dexElement;
                 }
 
-                expandArray(pathList, sDexPathList_nativeLibraryPathElements_field, elements, false);
+                expandArray(pathList, sDexPathList_nativeLibraryPathElements_field, elements, true);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -430,7 +430,7 @@ public class ReflectAccelerator {
                     elements[i] = dexElement;
                 }
 
-                expandArray(pathList, sDexPathList_nativeLibraryPathElements_field, elements, false);
+                expandArray(pathList, sDexPathList_nativeLibraryPathElements_field, elements, true);
             } catch (Exception e) {
                 e.printStackTrace();
             }
